@@ -9,6 +9,7 @@ demo/lgraph_server
 
 # Distribution / packaging
 .Python
+.antlr/
 build/
 develop-eggs/
 dist/
