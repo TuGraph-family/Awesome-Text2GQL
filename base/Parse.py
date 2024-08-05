@@ -41,13 +41,13 @@ class Node():
                 else:
                     self.desc=self.desc+self.text_properties['name']
             elif(property=='tile'):
-                if(rand<4):
+                if(rand<3):
                     self.desc=self.desc+'标题是'+self.text_properties['title']
                 else:
                     self.desc=self.desc+self.text_properties['title']
             else:
                 self.desc+=self.text_properties[property]
-            if(nodeFlag==False):
+            if(rand<3 and nodeFlag==False):
                 self.desc+='的节点'+self.variable # 的电影,node 默认的label是节点
         return self.desc
     
@@ -76,32 +76,36 @@ class ReturnBody(CypherBase):
         # 逐项翻译:
         mergeList=[]
         for item in self.returnItems:
-            if(len(item)==3):
+            if(len(item)==3 and item[1]!=0):
                 if(self.random_numbers.pop()<5):
                     self.returnDesc='返回'+item[0]+'节点的'+item[1]+'属性值,并将该值重命名为'+item[2]
                 else:
                     self.returnDesc='返回节点'+item[0]+'的'+item[1]+'属性值,并将该值重命名为'+item[2]
-            elif(len(item)==2 & item[1]==0):
+            elif(len(item)==3 and item[1]==0):
+                self.returnDesc='将该节点重命名为'+item[2]
+            elif(len(item)==2 and item[1]==0):
                 self.returnDesc='返回'+item[0]+'节点'
             else:
                 self.returnDesc='返回'+item[0]+'节点的'+item[1]+'属性值'
         mergeList.append(self.returnDesc)
         # orderby
-        if(len(self.orderBy)==1 & self.DISTINCT==False):
+        if(len(self.orderBy)==1 and self.DISTINCT==False):
             if(self.random_numbers.pop()<5):
                 self.orderDesc='同时按照节点的'+self.orderBy[0][1]+'属性'+self.getTokenDesc(self.orderBy[0][2])+'排序'
             else:
                 self.orderDesc='按照节点的'+self.orderBy[0][1]+'属性'+self.getTokenDesc(self.orderBy[0][2])+'排列返回的结果'
-        elif(len(self.orderBy)==2 & self.DISTINCT==False):
+        elif(len(self.orderBy)==2 and self.DISTINCT==False):
             #  ORDER BY n.property1 DESC, n.property2 ASC
-            self.orderDesc=',首先按照'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值'+self.getTokenDesc(self.orderBy[0][2])+'排列，然后在'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值相同的情况下，按照'
-            +self.orderBy[1][0]+'.'+self.orderBy[1][1]+'的值'+self.getTokenDesc(self.orderBy[1][2])+'排列'
+            self.orderDesc='返回结果首先按照'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值'+self.getTokenDesc(self.orderBy[0][2])+'排列，然后在'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值相同的情况下，按照'+self.orderBy[1][0]+'.'+self.orderBy[1][1]+'的值'+self.getTokenDesc(self.orderBy[1][2])+'排列'
         else:
             pass #多条sort的情况
         mergeList.append(self.orderDesc)
         
         if(self.skip!=0):
-            self.skipDesc='跳过前'+str(self.skip)+'条数据'
+            if(self.skip=='1'):
+                self.skipDesc='跳过第一条数据'
+            else:
+                self.skipDesc='跳过前'+str(self.skip)+'条数据'
             mergeList.append(self.skipDesc)
             
         if(self.limit!=0):

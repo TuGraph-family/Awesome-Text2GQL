@@ -69,10 +69,8 @@ class TransVisitor(LcypherVisitor):
                 if (ruleName=='oC_ReadingClause'):
                     # readingDesc+=self.visit(ctx.oC_ReadingClause()) # 报错 list没有accept方法 易错点
                     readingDesc += self.visitOC_ReadingClause(child) #0次或多次
-                    # readingDesc+=','
                 if (ruleName=='oC_UpdatingClause'):
                     updateDesc+=self.visitOC_UpdatingClause(child)
-                    # updateDesc+=','
                 if (ruleName=='oC_Return'):
                     returnDesc+=self.visit(ctx.oC_Return())
         descList.append(readingDesc)

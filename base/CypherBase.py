@@ -48,10 +48,10 @@ class CypherBase():
     def mergeDesc(self,descList):
         desc=''
         for i in range(len(descList)):
-            if(descList[i]!=''):
-                desc+=descList[i]
-                if(i!=len(descList)-1):
-                    desc+=','
+            desc=desc+descList[i]+','
+            if(descList[i]==''):
+                desc = desc[:-1]
+        desc = desc[:-1]
         return desc
     
     ##定义AST模板和prompt模板

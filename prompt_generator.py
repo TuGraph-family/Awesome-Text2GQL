@@ -17,7 +17,7 @@ def test(file_path):
             parser = LcypherParser(token_stream)
             tree = parser.oC_Cypher()
             
-            print(tree.toStringTree(recog=parser)) #AST
+            # print(tree.toStringTree(recog=parser)) #AST
             ruleNames = parser.ruleNames
             # listener = TransListener(parser)
             # walker = ParseTreeWalker()
@@ -27,4 +27,4 @@ def test(file_path):
             visitor.printPrompt()
 
 if __name__ == '__main__':
-    test('/root/work_repo/antlr_python/query.txt')
+    test('/root/work_repo/Awesome-Text2GQL/query.txt')
