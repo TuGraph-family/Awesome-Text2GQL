@@ -1,7 +1,7 @@
 import random
 
 class CypherBase():
-    def __init__(self):
+    def __init__(self,schemaDictPath):
         self.ruleNames=['oC_Cypher', 'oC_Statement', 'oC_Query', 'oC_RegularQuery', 'oC_Union', 'oC_SingleQuery', 
                         'oC_SinglePartQuery', 'oC_MultiPartQuery', 'oC_UpdatingClause', 'oC_ReadingClause', 'oC_Match',
                         'oC_Unwind', 'oC_Merge', 'oC_MergeAction', 'oC_Create', 'oC_Set', 'oC_SetItem', 'oC_Delete', 
@@ -32,7 +32,10 @@ class CypherBase():
         self.template[self.tokenDict['DISTINCT']].extend(['将查询结果去重','最后将结果去重'])
         self.template[self.tokenDict['DESC']].extend(['降序'])
         self.template[self.tokenDict['ASC']].extend(['升序',''])
-
+        # schema相关的关键字模板
+        self.schemaDict={}
+        self.loadDictFromFile(schemaDictPath)
+        
     def getRuleName(self,ruleIndex):
         return self.ruleNames[ruleIndex]
     
@@ -54,11 +57,21 @@ class CypherBase():
         desc = desc[:-1]
         return desc
     
-    ##定义AST模板和prompt模板
-    # 嵌套列表
-    ##[rule_id][match_list]
-    
-    # def load_from_file(file_path, Bool:replace=True):
-    #     #替换/补充
-    #     #第一列 规则名称
-    #     pass
+    def loadDictFromFile(self,filePath):
+        with open(filePath, 'r') as file:
+            lines = file.readlines()
+        for line in lines:
+            elements = line.strip().split()
+            if elements:
+                key = elements[0]
+                values = elements[1:]
+                self.schemaDict[key] = values
+                
+    def getSchemaDesc(self,key):
+        rand=random.randint(0, len(self.schemaDict[key])-1)
+        return self.schemaDict[key][rand]
+
+if __name__ == '__main__':
+    schemaDictPath='/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt'
+    cpherBase=CypherBase(schemaDictPath)
+    print(cpherBase.getSchemaDesc('rate'))

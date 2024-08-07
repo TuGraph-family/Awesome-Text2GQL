@@ -1,4 +1,3 @@
-import sys
 from antlr4 import *
 
 from cypher.LcypherLexer import LcypherLexer

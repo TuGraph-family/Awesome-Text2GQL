@@ -101,16 +101,22 @@ class ReturnBody(CypherBase):
             pass #多条sort的情况
         mergeList.append(self.orderDesc)
         
-        if(self.skip!=0):
-            if(self.skip=='1'):
-                self.skipDesc='跳过第一条数据'
-            else:
-                self.skipDesc='跳过前'+str(self.skip)+'条数据'
-            mergeList.append(self.skipDesc)
-            
-        if(self.limit!=0):
-            self.limitDesc='返回'+str(self.limit)+'条数据'
-            mergeList.append(self.limitDesc)
+        if(self.skip!=0 and self.limit!=0):
+           desc='保留去除前'+str(self.skip)+'条数据后的'+str(self.limit)+'条数据'
+           mergeList.append(desc)
+        else:
+            if(self.skip!=0):
+                if(self.skip=='1'):
+                    self.skipDesc='跳过第一条数据'
+                else:
+                    self.skipDesc='跳过前'+str(self.skip)+'条数据'
+                mergeList.append(self.skipDesc)
+            if(self.limit!=0):
+                if(self.random_numbers.pop()<5):
+                    self.limitDesc='返回'+str(self.limit)+'条数据'
+                else:
+                    self.limitDesc='保留前'+str(self.limit)+'条数据'
+                mergeList.append(self.limitDesc)
         
         self.desc=self.mergeDesc(mergeList)
         if(self.DISTINCT==True):
