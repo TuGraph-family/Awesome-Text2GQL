@@ -4,13 +4,13 @@ from base.Schema import Schema
 def main(input_path,output_path,db_id,schema_path):
     schema=Schema(db_id,schema_path)
     schemaDesc=schema.genDesc()
-    instruction_beginning="I want you to act as a GQL terminal in front of an example database, you need only to return the gql command to me.Below is an instruction that describes a task, Write a response that appropriately completes the request.\n\"\n##Instruction:\n"
+    instruction_beginning="我希望你像一个Tugraph数据库前端一样工作，你只需要返回给我cypher语句。下面是一条描述任务的指令，写一条正确的response来完成这个请求.\n\"\n##Instruction:\n"
     instruction_end="\n\n"
     instruction=instruction_beginning+schemaDesc+instruction_end
     dataSize=0
     with open(input_path, 'r') as file:
         dataSize = sum(1 for line in file)/2
-        
+
     dataList= [{
         "db_id": db_id,
         "instruction":instruction,

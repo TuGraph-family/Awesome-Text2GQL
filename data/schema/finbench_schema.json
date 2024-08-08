@@ -1,0 +1,650 @@
+{
+    "schema": [
+        {
+            "label": "Person",
+            "type": "VERTEX",
+            "primary": "id",
+            "properties": [
+                {
+                    "name": "id",
+                    "type": "INT64"
+                },
+                {
+                    "name": "name",
+                    "type": "STRING"
+                },
+                {
+                    "name": "isBlocked",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "createTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "gender",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "birthday",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "country",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "city",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "Account",
+            "type": "VERTEX",
+            "primary": "id",
+            "properties": [
+                {
+                    "name": "id",
+                    "type": "INT64"
+                },
+                {
+                    "name": "createTime",
+                    "type": "INT64"
+                },
+                {
+                    "name": "isBlocked",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "type",
+                    "type": "STRING"
+                },
+                {
+                    "name": "nickname",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "phonenum",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "email",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "freqLoginType",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "lastLoginTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "accountLevel",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "Medium",
+            "type": "VERTEX",
+            "primary": "id",
+            "properties": [
+                {
+                    "name": "id",
+                    "type": "INT64"
+                },
+                {
+                    "name": "type",
+                    "type": "STRING"
+                },
+                {
+                    "name": "isBlocked",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "createTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "lastLoginTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "riskLevel",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "Loan",
+            "type": "VERTEX",
+            "primary": "id",
+            "properties": [
+                {
+                    "name": "id",
+                    "type": "INT64"
+                },
+                {
+                    "name": "loanAmount",
+                    "type": "DOUBLE"
+                },
+                {
+                    "name": "balance",
+                    "type": "DOUBLE"
+                },
+                {
+                    "name": "createTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "loanUsage",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "interestRate",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "Company",
+            "type": "VERTEX",
+            "primary": "id",
+            "properties": [
+                {
+                    "name": "id",
+                    "type": "INT64"
+                },
+                {
+                    "name": "name",
+                    "type": "STRING"
+                },
+                {
+                    "name": "isBlocked",
+                    "type": "BOOL"
+                },
+                {
+                    "name": "createTime",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "country",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "city",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "business",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "description",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "url",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "transfer",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "amount",
+                    "type": "DOUBLE"
+                },
+                {
+                    "name": "orderNum",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "comment",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "payType",
+                    "type": "STRING",
+                    "optional": true
+                },
+                {
+                    "name": "goodsType",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "withdraw",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "amount",
+                    "type": "DOUBLE"
+                }
+            ]
+        },
+        {
+            "label": "repay",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "amount",
+                    "type": "DOUBLE"
+                }
+            ]
+        },
+        {
+            "label": "deposit",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "amount",
+                    "type": "DOUBLE"
+                }
+            ]
+        },
+        {
+            "label": "signIn",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "location",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "invest",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "ratio",
+                    "type": "DOUBLE"
+                }
+            ]
+        },
+        {
+            "label": "apply",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "org",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "guarantee",
+            "type": "EDGE",
+            "temporal": "timestamp",
+            "temporal_order": "DESC",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64"
+                },
+                {
+                    "name": "relation",
+                    "type": "STRING",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "own",
+            "type": "EDGE",
+            "properties": [
+                {
+                    "name": "timestamp",
+                    "type": "INT64",
+                    "optional": true
+                }
+            ]
+        },
+        {
+            "label": "workIn",
+            "type": "EDGE",
+            "properties": []
+        }
+    ],
+    "files": [
+        {
+            "path": "Person.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "Person",
+            "columns": [
+                "id",
+                "name",
+                "isBlocked",
+                "createTime",
+                "gender",
+                "birthday",
+                "country",
+                "city"
+            ]
+        },
+        {
+            "path": "Account.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "Account",
+            "columns": [
+                "id",
+                "createTime",
+                "isBlocked",
+                "type",
+                "nickname",
+                "phonenum",
+                "email",
+                "freqLoginType",
+                "lastLoginTime",
+                "accountLevel"
+            ]
+        },
+        {
+            "path": "Medium.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "Medium",
+            "columns": [
+                "id",
+                "type",
+                "isBlocked",
+                "createTime",
+                "lastLoginTime",
+                "riskLevel"
+            ]
+        },
+        {
+            "path": "Loan.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "Loan",
+            "columns": [
+                "id",
+                "loanAmount",
+                "balance",
+                "createTime",
+                "loanUsage",
+                "interestRate"
+            ]
+        },
+        {
+            "path": "Company.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "Company",
+            "columns": [
+                "id",
+                "name",
+                "isBlocked",
+                "createTime",
+                "country",
+                "city",
+                "business",
+                "description",
+                "url"
+            ]
+        },
+        {
+            "path": "AccountTransferAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "transfer",
+            "SRC_ID": "Account",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "amount",
+                "timestamp",
+                "orderNum",
+                "comment",
+                "payType",
+                "goodsType"
+            ]
+        },
+        {
+            "path": "AccountWithdrawAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "withdraw",
+            "SRC_ID": "Account",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "amount",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "AccountRepayLoan.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "repay",
+            "SRC_ID": "Account",
+            "DST_ID": "Loan",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "amount",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "LoanDepositAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "deposit",
+            "SRC_ID": "Loan",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "amount",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "MediumSignInAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "signIn",
+            "SRC_ID": "Medium",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp",
+                "location"
+            ]
+        },
+        {
+            "path": "PersonInvestCompany.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "invest",
+            "SRC_ID": "Person",
+            "DST_ID": "Company",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "ratio",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "CompanyInvestCompany.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "invest",
+            "SRC_ID": "Company",
+            "DST_ID": "Company",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "ratio",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "PersonApplyLoan.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "apply",
+            "SRC_ID": "Person",
+            "DST_ID": "Loan",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp",
+                "org"
+            ]
+        },
+        {
+            "path": "CompanyApplyLoan.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "apply",
+            "SRC_ID": "Company",
+            "DST_ID": "Loan",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp",
+                "org"
+            ]
+        },
+        {
+            "path": "PersonGuaranteePerson.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "guarantee",
+            "SRC_ID": "Person",
+            "DST_ID": "Person",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp",
+                "relation"
+            ]
+        },
+        {
+            "path": "CompanyGuaranteeCompany.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "guarantee",
+            "SRC_ID": "Company",
+            "DST_ID": "Company",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp",
+                "relation"
+            ]
+        },
+        {
+            "path": "CompanyOwnAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "own",
+            "SRC_ID": "Company",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp"
+            ]
+        },
+        {
+            "path": "PersonOwnAccount.csv",
+            "header": 1,
+            "format": "CSV",
+            "label": "own",
+            "SRC_ID": "Person",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "timestamp"
+            ]
+        }
+    ]
+}
