@@ -21,8 +21,10 @@ class TransVisitor(LcypherVisitor):
         self.curPatternChain=PatternChain(self.cypherBase)
         self.workMode=self.config.workMode
     
-    def printPrompt(self):
-        print(self.prompt)
+    def save2File(self):
+        with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
+            file.write(self.query+'\n')
+            file.write(self.prompt+'\n')
 
     # Visit a parse tree produced by LcypherParser#oC_Cypher.
     def visitOC_Cypher(self, ctx:LcypherParser.OC_CypherContext):
@@ -33,6 +35,8 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_Statement.
     def visitOC_Statement(self, ctx:LcypherParser.OC_StatementContext):
         self.prompt= str(self.visitChildren(ctx))
+        self.query=ctx.getText()
+        self.save2File()
 
 
     # Visit a parse tree produced by LcypherParser#oC_Query.

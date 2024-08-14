@@ -20,6 +20,12 @@ class Config:
     def getschemaDictPath(self):
         return self.config_data.get("schema_dict_path")
     
+    def getOutputPath(self):
+        if self.workMode=='translate':
+            return self.config_data.get("output_prompt_path")
+        else:
+            return self.config_data.get("output_query_path")
+    
     # def get_database_config(self):
     #     return self.config_data.get('database', {})
 
