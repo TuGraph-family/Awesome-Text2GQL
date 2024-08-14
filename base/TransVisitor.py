@@ -2,18 +2,21 @@
 from antlr4 import *
 from cypher.LcypherParser import LcypherParser
 from cypher.LcypherVisitor import LcypherVisitor
-from base.Parse import Node,ReturnBody
+from base.Parse import Node,ReturnBody,PatternChain
 from base.CypherBase import CypherBase
+from base import Config
 
 # This class defines a complete generic visitor for a parse tree produced by LcypherParser.
 
 class TransVisitor(LcypherVisitor):
-    def __init__(self):
+    def __init__(self,config:Config):
         self.prompt = ''
         self.nodeList=[]
         self.currentNodeId=0
-        self.cypherBase=CypherBase()
-        self.returnBody=ReturnBody()
+        self.config=config
+        self.cypherBase=CypherBase(self.config)
+        self.returnBody=ReturnBody(self.cypherBase,self.config)
+        # self.patternchain=PatternChain(self.config)
     
     def printPrompt(self):
         print(self.prompt)

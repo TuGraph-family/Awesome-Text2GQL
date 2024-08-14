@@ -1,0 +1,8 @@
+{
+    "db_id": "movie",
+    "input_query_path": "/root/work_repo/Awesome-Text2GQL/query.txt",
+    "schema_dict_path": [
+        "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
+    ],
+    "output_path": ""
+}

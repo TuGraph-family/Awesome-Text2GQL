@@ -1,7 +1,7 @@
 import random
 
 class CypherBase():
-    def __init__(self,schemaDictPath):
+    def __init__(self,config):
         self.ruleNames=['oC_Cypher', 'oC_Statement', 'oC_Query', 'oC_RegularQuery', 'oC_Union', 'oC_SingleQuery', 
                         'oC_SinglePartQuery', 'oC_MultiPartQuery', 'oC_UpdatingClause', 'oC_ReadingClause', 'oC_Match',
                         'oC_Unwind', 'oC_Merge', 'oC_MergeAction', 'oC_Create', 'oC_Set', 'oC_SetItem', 'oC_Delete', 
@@ -24,17 +24,19 @@ class CypherBase():
                         'oC_MapLiteral', 'oC_Parameter', 'oC_PropertyExpression', 'oC_PropertyKeyName', 'oC_IntegerLiteral',
                         'oC_DoubleLiteral', 'oC_SchemaName', 'oC_SymbolicName', 'oC_ReservedWord', 'oC_LeftArrowHead',
                         'oC_RightArrowHead', 'oC_Dash']
-        self.tokenDict={'MATCH': 0, 'DISTINCT': 1,'DESC':2,'ASC':3}
+        self.tokenDict={'MATCH': 0, 'DISTINCT': 1,'DESC':2,'ASC':3,'RETURN':4}
         
         # 关键字模板
+        # self.loadDictFromFile()
         self.template = [[] for _ in range(len(self.tokenDict))]
-        self.template[self.tokenDict['MATCH']].extend(['找到','获得','查询','查找图数据库中','查找数据库中','从数据库中查找'])
+        self.template[self.tokenDict['MATCH']].extend(['找到','获得','查询','查找图数据库中','查找数据库中','从数据库中查找','在图中查找'])
         self.template[self.tokenDict['DISTINCT']].extend(['将查询结果去重','最后将结果去重'])
         self.template[self.tokenDict['DESC']].extend(['降序'])
         self.template[self.tokenDict['ASC']].extend(['升序',''])
+        self.template[self.tokenDict['RETURN']].extend(['返回子图','返回相关的节点和关系',''])
         # schema相关的关键字模板
         self.schemaDict={}
-        self.loadDictFromFile(schemaDictPath)
+        self.loadDictFromFile(config.getschemaDictPath())
         
     def getRuleName(self,ruleIndex):
         return self.ruleNames[ruleIndex]
@@ -57,15 +59,16 @@ class CypherBase():
         desc = desc[:-1]
         return desc
     
-    def loadDictFromFile(self,filePath):
-        with open(filePath, 'r') as file:
-            lines = file.readlines()
-        for line in lines:
-            elements = line.strip().split()
-            if elements:
-                key = elements[0]
-                values = elements[1:]
-                self.schemaDict[key] = values
+    def loadDictFromFile(self,filePaths):
+        for filePath in filePaths:
+            with open(filePath, 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                elements = line.strip().split()
+                if elements:
+                    key = elements[0]
+                    values = elements[1:]
+                    self.schemaDict[key] = values
                 
     def getSchemaDesc(self,key):
         rand=random.randint(0, len(self.schemaDict[key])-1)

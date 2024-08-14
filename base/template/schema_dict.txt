@@ -17,3 +17,43 @@ has_genre 有流派
 has_keyword 有关键字
 duration 持续时间
 rated 评分 评价 打分
+Person 人
+Company 公司
+Account 账户
+Loan 贷款
+Medium 中间
+isBlocked 是否被
+type 类型
+nickname 昵称
+phoneNumber 电话号码
+email 电子邮箱 邮箱
+freqLogintype 常用账户登录方式
+lastLoginType 上一次登录时间
+acountLavel 账户等级
+createTime 创建时间
+loanAmount 贷款金额
+balance 贷款余额
+usage 贷款用途
+insertrate 
+riskLevel 风险等级
+timestamp 时间戳
+amount 数额 金额
+location 地理位置
+ratio 比例
+organization 组织
+relationship 关系
+gender 性别
+birthday 生日
+country 国家
+city 城市
+business 主营业务
+description 描述
+url url
+withdraw 取
+signIn 登录
+repay 偿还 付还
+deposit 支付
+apply 应用
+guarantee 担保
+invest 投资
+own 拥有 持有

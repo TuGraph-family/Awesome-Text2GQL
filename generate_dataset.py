@@ -34,7 +34,8 @@ def main(input_path,output_path,db_id,schema_path):
     print("JSON数据已写入文件。")
     
 if __name__=='__main__':
-    input_path='/root/work_repo/Awesome-Text2GQL/data/raw_query.txt'
+    
+    input_path='/root/work_repo/Awesome-Text2GQL/data/movie_raw_query.txt'
     output_path='/root/work_repo/Awesome-Text2GQL/data/text2gql_train.json'
     db_id='movie'
     schema_path='Awesome-Text2GQL/data/schema/movie_schema.json'
