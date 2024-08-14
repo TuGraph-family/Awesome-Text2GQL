@@ -1,6 +1,8 @@
 {
     "db_id": "movie",
+    "work_mode": "translate",
     "input_query_path": "/root/work_repo/Awesome-Text2GQL/query.txt",
+    "input_query_template_path": "/root/work_repo/Awesome-Text2GQL/query_template.txt",
     "schema_dict_path": [
         "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
     ],

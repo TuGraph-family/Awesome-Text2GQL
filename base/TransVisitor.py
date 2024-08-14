@@ -2,9 +2,10 @@
 from antlr4 import *
 from cypher.LcypherParser import LcypherParser
 from cypher.LcypherVisitor import LcypherVisitor
-from base.Parse import Node,ReturnBody,PatternChain
+from base.Parse import Node,ReturnBody,PatternChain,EdgeInstance
 from base.CypherBase import CypherBase
 from base import Config
+import copy
 
 # This class defines a complete generic visitor for a parse tree produced by LcypherParser.
 
@@ -16,7 +17,9 @@ class TransVisitor(LcypherVisitor):
         self.config=config
         self.cypherBase=CypherBase(self.config)
         self.returnBody=ReturnBody(self.cypherBase,self.config)
-        # self.patternchain=PatternChain(self.config)
+        self.patternChainList=[]
+        self.curPatternChain=PatternChain(self.cypherBase)
+        self.workMode=self.config.workMode
     
     def printPrompt(self):
         print(self.prompt)
@@ -75,13 +78,12 @@ class TransVisitor(LcypherVisitor):
                 if (ruleName=='oC_UpdatingClause'):
                     updateDesc+=self.visitOC_UpdatingClause(child)
                 if (ruleName=='oC_Return'):
-                    returnDesc+=self.visit(ctx.oC_Return())
+                    returnDesc+=self.visitOC_Return(child)
         descList.append(readingDesc)
         descList.append(updateDesc)
         descList.append(returnDesc)
         desc=self.cypherBase.mergeDesc(descList)
         return desc
-
 
     # Visit a parse tree produced by LcypherParser#oC_MultiPartQuery.
     def visitOC_MultiPartQuery(self, ctx:LcypherParser.OC_MultiPartQueryContext):
@@ -102,15 +104,20 @@ class TransVisitor(LcypherVisitor):
     def visitOC_Match(self, ctx:LcypherParser.OC_MatchContext):
         # oC_Match : ( OPTIONAL_ SP )? MATCH SP? oC_Pattern ( SP? oC_Hint )* ( SP? oC_Where )? ;
         matchDesc=self.cypherBase.getTokenDesc('MATCH')
+        desc=matchDesc
         for child in ctx.getChildren():
             if isinstance(child,ParserRuleContext):
                 ruleIndex=child.getRuleIndex()
                 ruleName = self.cypherBase.getRuleName(ruleIndex)
-                if (ruleName=='oC_Pattern'):
-                    desc=matchDesc+self.visitOC_Pattern(child)
-                    return desc
-            # 未完成
-        return self.visitChildren(ctx)
+                if (ruleName=='oC_Pattern'): # 待完善，可能有多个组成
+                    patternDesc=self.visitOC_Pattern(child)
+                    desc+=patternDesc
+                if (ruleName=='oC_Hint'):
+                    self.visitOC_Hint(child)
+                if (ruleName=='oC_Where'):
+                    self.visitOC_Where(child)
+            # 待完善，Optional_，oC_Hint
+        return desc
 
 
     # Visit a parse tree produced by LcypherParser#oC_Unwind.
@@ -191,7 +198,7 @@ class TransVisitor(LcypherVisitor):
                 self.visitOC_ReturnBody(child)
         if ctx.DISTINCT():
             self.returnBody.distinct=True
-        return self.returnBody.getDesc()
+        return self.returnBody.getDesc(self.patternChainList)
 
 
     # Visit a parse tree produced by LcypherParser#oC_ReturnBody.
@@ -291,35 +298,101 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_Where.
     def visitOC_Where(self, ctx:LcypherParser.OC_WhereContext):
-        return self.visitChildren(ctx)
+        # 待完善，如果含有=，应该更新到节点或边的property里面
+        # oC_Where : WHERE SP oC_Expression ;
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_Expression'):
+                    exprs=self.visitOC_Expression(child)
+        for expr in exprs:
+            if(len(expr)==3 and expr[1]=='='): # leftExpr,symbol,rightExpr
+                item=[expr[0][0],expr[0][1],expr[2][0]] # property的类型？
+                for patternChain in self.patternChainList:
+                    patternChain.addItem(item)
+                # 待完善，暂时只支持AND
+        # return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by LcypherParser#oC_Pattern.
     def visitOC_Pattern(self, ctx:LcypherParser.OC_PatternContext):
         # oC_Pattern : oC_PatternPart ( SP? ',' SP? oC_PatternPart )* ;
-        return self.visitChildren(ctx)
+        # 多个MatchPattern # MATCH (n:person), (m:movie) 
+        mergeList=[]
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_PatternPart'):
+                    mergeList.append(self.visitOC_PatternPart(child))
+                    self.curPatternChain.parse_finised=True
+                    # patternChain=PatternChain(self.cypherBase)
+                    patternChain=copy.deepcopy(self.curPatternChain) # 深拷贝
+                    self.curPatternChain.clean()
+                    self.patternChainList.append(patternChain)
+        desc=self.cypherBase.mergeDesc(mergeList)
+        return desc
 
 
     # Visit a parse tree produced by LcypherParser#oC_PatternPart.
     def visitOC_PatternPart(self, ctx:LcypherParser.OC_PatternPartContext):
-        return self.visitChildren(ctx)
+        # oC_PatternPart : ( oC_Variable SP? '=' SP? oC_AnonymousPatternPart )
+            #    | oC_AnonymousPatternPart
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_Variable'):
+                    self.curPatternChain.variable=self.visitOC_Variable(child)
+                if (ruleName=='oC_AnonymousPatternPart'):
+                    desc=self.visitOC_AnonymousPatternPart(child)
+        return desc
 
 
     # Visit a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    def visitOC_AnonymousPatternPart(self, ctx:LcypherParser.OC_AnonymousPatternPartContext):
-        return self.visitChildren(ctx)
+    # def visitOC_AnonymousPatternPart(self, ctx:LcypherParser.OC_AnonymousPatternPartContext):
+    #     return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElement.
     def visitOC_PatternElement(self, ctx:LcypherParser.OC_PatternElementContext):
-        result=self.visitChildren(ctx)
-        return result
+        #oC_PatternElement : ( oC_NodePattern ( SP? oC_PatternElementChain )* )
+                #   | ( '(' oC_PatternElement ')' )
+                #   ;
+        n = ctx.getChildCount()
+        desc=''
+        ifOnlyOneNode=True
+        lastNode=Node(0,self.cypherBase)
+        for i in range(n):
+            c = ctx.getChild(i)
+            if isinstance(c,ParserRuleContext):
+                ruleIndex=c.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_NodePattern'):
+                    firstNode=self.visitOC_NodePattern(c)
+                    desc=firstNode.getDesc()
+                    self.curPatternChain.addNode(firstNode)
+                    lastNode=firstNode
+                if (ruleName=='oC_PatternElementChain'):
+                    ifOnlyOneNode=False
+                    edge,node=self.visitOC_PatternElementChain(c)
+                    edge.addRightNode(node)
+                    edge.addLeftNode(lastNode)
+                    lastNode=node
+                    self.curPatternChain.addEdge(edge)
+                    self.curPatternChain.addNode(node)
+                if (ruleName=='oC_PatternElement'):
+                    return self.visitOC_PatternElement(c)
+        if ifOnlyOneNode:
+            return desc
+        return self.curPatternChain.getDesc()
 
 
     # Visit a parse tree produced by LcypherParser#oC_NodePattern.
     def visitOC_NodePattern(self, ctx:LcypherParser.OC_NodePatternContext):
         # oC_NodePattern : '(' SP? ( oC_Variable SP? )? ( oC_NodeLabels SP? )? ( oC_Properties SP? )? ')' ;
-        node_instance=Node(len(self.nodeList))
+        node_instance=Node(len(self.nodeList),self.cypherBase)
         self.nodeList.append(node_instance)
         n = ctx.getChildCount()
         for i in range(n):
@@ -337,21 +410,67 @@ class TransVisitor(LcypherVisitor):
                     properties,text_properties=self.visit(ctx.oC_Properties())
                     self.nodeList[-1].addProperties(properties,text_properties)
         self.nodeList[-1].parse_finised=True
-        return self.nodeList[-1].getDesc()
+        return self.nodeList[-1]
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElementChain.
     def visitOC_PatternElementChain(self, ctx:LcypherParser.OC_PatternElementChainContext):
-        return self.visitChildren(ctx)
+        # oC_PatternElementChain : oC_RelationshipPattern SP? oC_NodePattern ;
+        n = ctx.getChildCount()
+        for i in range(n):
+            c = ctx.getChild(i)
+            if isinstance(c,ParserRuleContext):
+                ruleIndex=c.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_NodePattern'):
+                    node=self.visitOC_NodePattern(c)
+                if (ruleName=='oC_RelationshipPattern'):
+                    # 待完成，添加边的左右节点
+                    edge=self.visitOC_RelationshipPattern(c)
+        return edge,node
 
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipPattern.
     def visitOC_RelationshipPattern(self, ctx:LcypherParser.OC_RelationshipPatternContext):
-        return self.visitChildren(ctx)
+# oC_RelationshipPattern : ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
+#                        | ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash )
+#                        | ( oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
+#                        | ( oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash )
+        edge=EdgeInstance()
+        n = ctx.getChildCount()
+        for i in range(n):
+            c = ctx.getChild(i)
+            if isinstance(c,ParserRuleContext):
+                ruleIndex=c.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_RelationshipDetail'):
+                    edge=self.visitOC_RelationshipDetail(c)
+        if ctx.oC_LeftArrowHead():
+            edge.leftArrow=True
+        if ctx.oC_RightArrowHead():
+            edge.rightArrow=True
+        return edge
 
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipDetail.
     def visitOC_RelationshipDetail(self, ctx:LcypherParser.OC_RelationshipDetailContext):
-        return self.visitChildren(ctx)
+    #oC_RelationshipDetail : '[' SP? ( oC_Variable SP? )? ( oC_RelationshipTypes SP? )? oC_RangeLiteral? ( oC_Properties SP? )? ']' ;
+        edge=EdgeInstance()
+        n = ctx.getChildCount()
+        for i in range(n):
+            c = ctx.getChild(i)
+            if isinstance(c,ParserRuleContext):
+                ruleIndex=c.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_Variable'):
+                    edge.variable=self.visitOC_Variable(c)
+                if(ruleName=='oC_RelationshipTypes'):
+                    edge.addLable(self.visitOC_RelationshipTypes(c))
+                if(ruleName=='oC_RangeLiteral'):
+                    edge.range=self.visitOC_RangeLiteral(c)
+                if(ruleName=='oC_Properties'):
+                    properties,text_properties=self.visit(ctx.oC_Properties())
+                    edge.addProperties(properties,text_properties)
+        return edge
 
 
     # Visit a parse tree produced by LcypherParser#oC_Properties.
@@ -394,7 +513,25 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_RangeLiteral.
     def visitOC_RangeLiteral(self, ctx:LcypherParser.OC_RangeLiteralContext):
-        return self.visitChildren(ctx)
+    # oC_RangeLiteral : '*' SP? ( oC_IntegerLiteral SP? )? ( '..' SP? ( oC_IntegerLiteral SP? )? )? ;
+        text=ctx.getText()
+        intList=[]
+        str = text.replace('*', '').replace(' ', '')
+        items = str.split('..')
+        position = str.find('..')
+        # 1
+        if(position!=0):
+            intList.append(items[0])
+        else:
+            intList.append(str(0))
+        # 2
+        if(len(items)==2):
+            intList.append(items[1])
+        elif(position==0 and len(items)==1):
+            intList.append(items[0])
+        else:
+            intList.append(str(0))
+        return intList
 
 
     # Visit a parse tree produced by LcypherParser#oC_LabelName.
@@ -414,16 +551,32 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_OrExpression.
     def visitOC_OrExpression(self, ctx:LcypherParser.OC_OrExpressionContext):
+        # 参考visitOC_AndExpression()的实现，或的运算优先级最低
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by LcypherParser#oC_XorExpression.
     def visitOC_XorExpression(self, ctx:LcypherParser.OC_XorExpressionContext):
+        # 参考visitOC_AndExpression()的实现，或的运算优先级最低，与的运算优先级最高
         return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by LcypherParser#oC_AndExpression.
     def visitOC_AndExpression(self, ctx:LcypherParser.OC_AndExpressionContext):
+        # oC_AndExpression : oC_NotExpression ( SP AND SP oC_NotExpression )* ;
+        # 运算优先级 And > Xor > Or
+        text=ctx.getText()
+        exprList=[]
+        if ("AND" in text):
+            for child in ctx.getChildren():
+                if isinstance(child,ParserRuleContext):
+                    ruleIndex=child.getRuleIndex()
+                    ruleName = self.cypherBase.getRuleName(ruleIndex)
+                    if (ruleName=='oC_NotExpression'):
+                        exprList.append(self.visitOC_NotExpression(child)) # list的嵌套
+                        exprList.append('AND')
+            exprList.pop()
+            return exprList
         return self.visitChildren(ctx)
 
 
@@ -434,7 +587,20 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
     def visitOC_ComparisonExpression(self, ctx:LcypherParser.OC_ComparisonExpressionContext):
-        return self.visitChildren(ctx)
+    # oC_ComparisonExpression : oC_AddOrSubtractExpression ( SP? oC_PartialComparisonExpression )* ;
+        symbol=''
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_AddOrSubtractExpression'):
+                    leftExpr=self.visitOC_AddOrSubtractExpression(child)
+                if (ruleName=='oC_PartialComparisonExpression'):
+                    symbol,rightExpr=self.visitOC_PartialComparisonExpression(child)
+                    # 待完善，暂不支持多个oC_PartialComparisonExpression
+        if symbol!='':
+            return [leftExpr,symbol,rightExpr]
+        return leftExpr
 
 
     # Visit a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
@@ -530,7 +696,23 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_PartialComparisonExpression.
     def visitOC_PartialComparisonExpression(self, ctx:LcypherParser.OC_PartialComparisonExpressionContext):
-        return self.visitChildren(ctx)
+    # oC_PartialComparisonExpression : ( '=' SP? oC_AddOrSubtractExpression )
+    #                            | ( '<>' SP? oC_AddOrSubtractExpression )
+    #                            | ( '<' SP? oC_AddOrSubtractExpression )
+    #                            | ( '>' SP? oC_AddOrSubtractExpression )
+    #                            | ( '<=' SP? oC_AddOrSubtractExpression )
+    #                            | ( '>=' SP? oC_AddOrSubtractExpression )
+        text=ctx.getText() # 取前两个字符。
+        symbol=text[:2]
+        if (symbol!='<>' and symbol !='<=' or symbol!='>='):
+            symbol=symbol[:1]
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_AddOrSubtractExpression'):
+                    addOrSubExpr=self.visitOC_AddOrSubtractExpression(child)
+        return symbol,addOrSubExpr
 
 
     # Visit a parse tree produced by LcypherParser#oC_ParenthesizedExpression.

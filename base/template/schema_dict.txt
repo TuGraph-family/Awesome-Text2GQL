@@ -7,7 +7,7 @@ poster_image 海报图片
 user 用户
 login 登录用户名
 genre 流派
-name 姓名 名称 名字
+name 姓名 名称 名字 名
 person 人
 born 出生日期
 keyword 关键字模板
@@ -57,3 +57,4 @@ apply 应用
 guarantee 担保
 invest 投资
 own 拥有 持有
+plan 计划

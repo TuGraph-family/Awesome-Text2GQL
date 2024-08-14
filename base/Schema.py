@@ -113,7 +113,6 @@ class Schema():
             for item in second_row:
                 itemList=item.split(':')
                 keywordList.append(itemList[0])
-                # 获取第3行到末尾行的数据
             data_from_third_row = reader[2:]
             count=min(count,len(data_from_third_row))
             random_rows = random.sample(data_from_third_row, count)
