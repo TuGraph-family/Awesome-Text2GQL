@@ -56,7 +56,10 @@ class CypherBase():
             desc=desc+descList[i]+','
             if(descList[i]==''):
                 desc = desc[:-1]
-        desc = desc[:-1]
+            elif(descList[i][-1]=='？' or descList[i][-1]=='?'):
+                desc = desc[:-1]
+        if(desc[-1]==','):
+            desc = desc[:-1]
         return desc
     
     def loadDictFromFile(self,filePaths):

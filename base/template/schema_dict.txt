@@ -58,3 +58,14 @@ guarantee 担保
 invest 投资
 own 拥有 持有
 plan 计划
+content 内容
+introduce 介绍
+time 时间
+important_events 重要事件
+relation 关系
+person_person 人物关系 人物间关系
+person_plan 人物和计划间的关系 人物和计划的关系
+perosn_organization 人物和组织间的关系
+organization_plan 组织和计划间的关系
+organization_organization 组织间的关系
+time_time 时间上的关系 时间关系
