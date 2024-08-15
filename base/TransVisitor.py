@@ -4,8 +4,10 @@ from cypher.LcypherParser import LcypherParser
 from cypher.LcypherVisitor import LcypherVisitor
 from base.Parse import Node,ReturnBody,PatternChain,EdgeInstance
 from base.CypherBase import CypherBase
+from base.Schema import Schema
 from base import Config
 import copy
+import random
 
 # This class defines a complete generic visitor for a parse tree produced by LcypherParser.
 
@@ -20,11 +22,27 @@ class TransVisitor(LcypherVisitor):
         self.patternChainList=[]
         self.curPatternChain=PatternChain(self.cypherBase)
         self.workMode=self.config.workMode
+        self.dbID=config.getDbId()
+        schemaPath=self.config.getSchemaPath(self.dbID)
+        self.schema=Schema(self.dbID,schemaPath)
+        #queryGen相关
+        self.matchPatternChainLabelList=[] # 暂时只支持单个matchpattern,保存 label List
+        self.genQueryList=[]
     
     def save2File(self):
-        with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
-            file.write(self.query+'\n')
-            file.write(self.prompt+'\n')
+        if self.workMode=='translate':
+            with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
+                file.write(self.query+'\n')
+                file.write(self.prompt+'\n')
+        elif self.workMode=='genQuery':
+            with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
+                for query in self.genQueryList:
+                    file.write(query+'\n')
+                    
+    def getMatchPatternChainLabelList(self): # 一对一生成, 查询所有符合条件的schema并生成
+        if(len(self.patternChainList)==1):
+            patternChain=self.patternChainList[0]
+            self.matchPatternChainLabelList=self.schema.getpatternMatchList(patternChain.chainList)
 
     # Visit a parse tree produced by LcypherParser#oC_Cypher.
     def visitOC_Cypher(self, ctx:LcypherParser.OC_CypherContext):
@@ -73,7 +91,7 @@ class TransVisitor(LcypherVisitor):
         for child in ctx.getChildren():
             # if isinstance(child, LcypherParser.OC_ReadingClauseContext): # LcypherParser is not defined???
             #     return self.visit(ctx.oC_ReadingClause())
-            if isinstance(child, ParserRuleContext): # LcypherParser is not defined???
+            if isinstance(child, ParserRuleContext):
                 ruleIndex=child.getRuleIndex()
                 ruleName = self.cypherBase.getRuleName(ruleIndex)
                 if (ruleName=='oC_ReadingClause'):
@@ -83,11 +101,14 @@ class TransVisitor(LcypherVisitor):
                     updateDesc+=self.visitOC_UpdatingClause(child)
                 if (ruleName=='oC_Return'):
                     returnDesc+=self.visitOC_Return(child)
+        if(self.workMode=='genQuery'):
+            pass
         descList.append(readingDesc)
         descList.append(updateDesc)
         descList.append(returnDesc)
         desc=self.cypherBase.mergeDesc(descList)
         return desc
+                
 
     # Visit a parse tree produced by LcypherParser#oC_MultiPartQuery.
     def visitOC_MultiPartQuery(self, ctx:LcypherParser.OC_MultiPartQueryContext):
@@ -101,12 +122,82 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_ReadingClause.
     def visitOC_ReadingClause(self, ctx:LcypherParser.OC_ReadingClauseContext):
+        # oC_ReadingClause : oC_Match | oC_Unwind | oC_InQueryCall
         return self.visitChildren(ctx)
 
-
+    def visitGenOC_Match(self, ctx:LcypherParser.OC_MatchContext):
+        self.getMatchPatternChainLabelList() # 实例化
+        if(len(self.matchPatternChainLabelList)==0):
+            print('[WARNING]: No match pattern find in schema')
+        # 实例化
+        text=ctx.getText()
+        for child in ctx.getChildren():
+            if isinstance(child,ParserRuleContext):
+                ruleIndex=child.getRuleIndex()
+                ruleName = self.cypherBase.getRuleName(ruleIndex)
+                if (ruleName=='oC_Pattern'): # 待完善,暂时只支持一个patternChain
+                    queryList=["" for i in range(len(self.matchPatternChainLabelList))]
+                    for index,matchChainLabel in enumerate(self.matchPatternChainLabelList):
+                        patternChain=self.patternChainList[0] # 每个patern会生成两条语句
+                        genCount=1
+                        for i in range(genCount):
+                            if random.random()<0.1:
+                                query='OPTIONAL_ MATCH '
+                            else:
+                                query='MATCH '
+                            for i in range(len(patternChain.chainList)):
+                                label=matchChainLabel[i]
+                                chainNode=patternChain.chainList[i]
+                                instanceList=self.schema.getInstanceFromDb(label,1)
+                                instance=instanceList[0]
+                                if chainNode.type=='node':
+                                    query=query+'('
+                                    if (chainNode.variable!=''):
+                                        query=query+chainNode.variable
+                                    if(chainNode.labels!=[]):
+                                        query=query+':'+label
+                                    if(len(chainNode.properties)!=0):
+                                        query=query+"{"
+                                        properties=self.schema.getPropertiesByLable(label)
+                                        rand=random.randint(1, min(3,len(properties)))
+                                        for j in range(rand):
+                                            property_text=instance[properties[j]]
+                                            query=query+properties[j]+":"+property_text+','
+                                        query=query[:-1] # 去掉,
+                                        query+="}"
+                                    query=query+")"
+                                if chainNode.type=='edge':
+                                    if chainNode.leftArrow==True:
+                                        query+='<-['
+                                    else:
+                                        query+='-['
+                                    if (chainNode.variable!=''):
+                                        query=query+chainNode.variable
+                                    if(chainNode.labels!=[]):
+                                        query=query+':'+label
+                                    if(len(chainNode.properties)!=0):
+                                        query=query+"{"
+                                        properties=self.schema.getPropertiesByLable(label)
+                                        rand=random.randint(3, min(3,len(properties)))
+                                        property_text=instance[properties[rand]]
+                                        query=query+properties[rand]+":"+property_text+','
+                                        query=query[:-1] # 去掉,
+                                        query+="}"
+                                    if chainNode.rightArrow==True:
+                                        query+=']->'
+                                    else:
+                                        query+=']-'
+                            queryList[index]=query
+                    if (ruleName=='oC_Hint'):
+                        pass
+                    if (ruleName=='oC_Where'):
+                        pass # 待完善
+        self.genQueryList=queryList
+    
     # Visit a parse tree produced by LcypherParser#oC_Match.
     def visitOC_Match(self, ctx:LcypherParser.OC_MatchContext):
         # oC_Match : ( OPTIONAL_ SP )? MATCH SP? oC_Pattern ( SP? oC_Hint )* ( SP? oC_Where )? ;
+        # if(self.workMode=='translate'):
         matchDesc=self.cypherBase.getTokenDesc('MATCH')
         desc=matchDesc
         for child in ctx.getChildren():
@@ -121,6 +212,8 @@ class TransVisitor(LcypherVisitor):
                 if (ruleName=='oC_Where'):
                     self.visitOC_Where(child)
             # 待完善，Optional_，oC_Hint
+        if(self.workMode=='genQuery'):
+            self.visitGenOC_Match(ctx)
         return desc
 
 

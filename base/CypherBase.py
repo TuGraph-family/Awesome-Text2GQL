@@ -62,6 +62,16 @@ class CypherBase():
             desc = desc[:-1]
         return desc
     
+    def mergeQuery(self,queryList):
+        query=''
+        for i in range(len(queryList)):
+            query=query+queryList[i]+','
+            if(queryList[i]==''):
+                query = query[:-1]
+        if(query[-1]==','):
+            query = query[:-1]
+        return query
+    
     def loadDictFromFile(self,filePaths):
         for filePath in filePaths:
             with open(filePath, 'r') as file:

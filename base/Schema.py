@@ -2,6 +2,8 @@ import json
 import os
 import csv
 import random
+from base.Parse import PatternChain
+import copy
 
 class Vertex():
     def __init__(self) -> None:
@@ -95,7 +97,7 @@ class Schema():
             return desc
         return ''
     
-    def getItemFromDb(self,vertexOrEdge,count):
+    def getInstanceFromDb(self,vertexOrEdge,count):
         filePath=''
         if vertexOrEdge in self.vertexDict:
             filePath=self.vertexDict[vertexOrEdge].filePath
@@ -122,8 +124,43 @@ class Schema():
                     keyword=keywordList[index]
                     vertexOrEdgeInstance[keyword]=item
                 vertexOrEdgeInstanceList.append(vertexOrEdgeInstance)
+        return vertexOrEdgeInstanceList
+    
+    def getPropertiesByLable(self,label:str):
+        for key,value in self.vertexDict.items():
+            if key ==label:
+                return self.vertexDict[key].properties
+        for key,value in self.edgeDict:
+            if key == label:
+                return self.edgeDict[key].properties
             
+    def getpatternMatchList(self,chainList):
+        # 找到符合某个连接关系的网络并返回，返回labelList
+        # variableList=patternChain.getChainVariableList()
+        ALLlabelList=[]
+        # labelLsit=[]
+        edgeCount=int(len(chainList)/2)
+        if(edgeCount==1):
+            for i in range(edgeCount): # 待完善，暂时只能支持点边点的模式
+                edgeIndex=2*i+1
+                for leftNodeVariable, leftNode in self.vertexDict.items():
+                    if(chainList[edgeIndex].leftArrow==True and chainList[edgeIndex].rightArrow==False):
+                        for edge in leftNode.dstEdge:
+                            rightNodeVariable=self.edgeDict[edge].src
+                            ALLlabelList.append([leftNodeVariable,edge,rightNodeVariable])
+                    elif(chainList[edgeIndex].leftArrow==False and chainList[edgeIndex].rightArrow==True):
+                        for edge in self.vertexDict[leftNodeVariable].srcEdge:
+                            rightNodeVariable=self.edgeDict[edge].dst
+                            ALLlabelList.append([leftNodeVariable,edge,rightNodeVariable])
+                    else:# 双向箭头
+                        for edge in self.vertexDict[leftNodeVariable].dstEdge: # 作为目的
+                            rightNodeVariable=self.edgeDict[edge].src
+                            ALLlabelList.append([leftNodeVariable,edge,rightNodeVariable])
+                        for edge in self.vertexDict[leftNodeVariable].srcEdge:
+                            rightNodeVariable=self.edgeDict[edge].dst
+                            ALLlabelList.append([leftNodeVariable,edge,rightNodeVariable])
+        return ALLlabelList
 
 if __name__ == '__main__':
     schema=Schema('movie','Awesome-Text2GQL/data/schema/movie_schema.json')
-    print(schema.getItemFromDb('person',10))
+    print(schema.getInstanceFromDb('person',10))

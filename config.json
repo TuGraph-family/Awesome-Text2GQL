@@ -1,10 +1,19 @@
 {
     "db_id": "movie",
-    "work_mode": "translate",
+    "db_schema_path": {
+        "movie": "/root/work_repo/Awesome-Text2GQL/data/schema/movie_schema.json",
+        "the_three_body": "/root/work_repo/Awesome-Text2GQL/data/schema/the_three_body.json",
+        "finbench": "/root/work_repo/Awesome-Text2GQL/data/schema/finbench_schema.json",
+        "SNB": "/root/work_repo/Awesome-Text2GQL/data/schema/SNB_schema.json",
+        "three_kingdoms": "/root/work_repo/Awesome-Text2GQL/data/schema/three_kingdoms.json",
+        "wandering_earth": "/root/work_repo/Awesome-Text2GQL/data/schema/wandering_earth.json"
+    },
+    "work_mode": "genQuery",
     "input_query_path": "/root/work_repo/Awesome-Text2GQL/query.txt",
     "input_query_template_path": "/root/work_repo/Awesome-Text2GQL/query_template.txt",
     "schema_dict_path": [
         "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
     ],
-    "output_path": ""
+    "output_prompt_path": "/root/work_repo/Awesome-Text2GQL/output/output_prompt.txt",
+    "output_query_path": "/root/work_repo/Awesome-Text2GQL/output/output_query.txt"
 }

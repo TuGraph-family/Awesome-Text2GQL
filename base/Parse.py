@@ -94,7 +94,13 @@ class PatternChain():
         self.desc=''
         self.matchType=0
         self.parse_finised=False
-        
+    
+    def getChainVariableList(self):
+        variableList=[]
+        for chainNode in self.chainList:
+            variableList.append(chainNode.variable)
+        return variableList
+            
     def addNode(self,node:Node):
         # self.chainDict[node.variable]=node
         self.chainList.append(node)
@@ -159,15 +165,17 @@ class PatternChain():
         # 查询与叶文洁关联的人物有关的人物，返回子图。
     
     def genQuery(self,returnType:int=0):
+        queryList=[]
         # returnType==0 不生成返回子句
-        # return type 1, 返回子图
         returnQuery='RETURN '
-        if(returnType==1):
+        if(returnType==1): # return type 1, 直接返回子图
             mergeList=[]
             for chainNode in self.chainList:
-                mergeList.append(chainNode.variable)
-            returnQuery+=self.cypherBase.mergeDesc(mergeList)
-        return returnQuery
+                mergeList.append(chainNode.variable) # 变量名不会改变
+            returnQuery+=self.cypherBase.mergeQuery(mergeList)
+            for query in queryList:
+                query=query+' '+returnQuery
+        return queryList
         # return type 2, 返回
 
 class ReturnBody():
