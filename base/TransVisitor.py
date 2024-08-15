@@ -21,7 +21,7 @@ class TransVisitor(LcypherVisitor):
         self.returnBody=ReturnBody(self.cypherBase,self.config)
         self.patternChainList=[]
         self.curPatternChain=PatternChain(self.cypherBase)
-        self.workMode=self.config.workMode
+        self.genQuery=self.config.genQuery
         self.dbID=config.getDbId()
         schemaPath=self.config.getSchemaPath(self.dbID)
         self.schema=Schema(self.dbID,schemaPath)
@@ -30,15 +30,15 @@ class TransVisitor(LcypherVisitor):
         self.genQueryList=[]
     
     def save2File(self):
-        if self.workMode=='translate':
-            with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
-                file.write(self.query+'\n')
-                file.write(self.prompt+'\n')
-        elif self.workMode=='genQuery':
+        if self.genQuery:
             with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
                 for query in self.genQueryList:
                     file.write(query+'\n')
-                    
+        else:
+            with open(self.config.getOutputPath(), "a", encoding="utf-8") as file:
+                file.write(self.query+'\n')
+                file.write(self.prompt+'\n')
+
     def getMatchPatternChainLabelList(self): # 一对一生成, 查询所有符合条件的schema并生成
         if(len(self.patternChainList)==1):
             patternChain=self.patternChainList[0]
@@ -101,7 +101,7 @@ class TransVisitor(LcypherVisitor):
                     updateDesc+=self.visitOC_UpdatingClause(child)
                 if (ruleName=='oC_Return'):
                     returnDesc+=self.visitOC_Return(child)
-        if(self.workMode=='genQuery'):
+        if self.genQuery:
             pass
         descList.append(readingDesc)
         descList.append(updateDesc)
@@ -212,7 +212,7 @@ class TransVisitor(LcypherVisitor):
                 if (ruleName=='oC_Where'):
                     self.visitOC_Where(child)
             # 待完善，Optional_，oC_Hint
-        if(self.workMode=='genQuery'):
+        if self.genQuery:
             self.visitGenOC_Match(ctx)
         return desc
 
@@ -286,7 +286,57 @@ class TransVisitor(LcypherVisitor):
     def visitOC_With(self, ctx:LcypherParser.OC_WithContext):
         return self.visitChildren(ctx)
 
-
+    def visitGenOC_Return(self,ctx:LcypherParser.OC_ReturnContext):
+        if self.genQuery:
+            for queryIndex,query in enumerate(self.genQueryList):
+                propertyList=[]
+                if random.random()>0.9:
+                    query=query+" RETURN DISTINCT "
+                else:
+                    query=query+" RETURN "
+                for item in self.returnBody.returnItems: # # 元组列表，元组len=2即Expreesion，len=3即含AS
+                    variable=item[0]
+                    patternChain=self.patternChainList[0]
+                    index=patternChain.findVariableIndex(variable)
+                    label=self.matchPatternChainLabelList[queryIndex][index]
+                    if(len(item)==2 and item[1]==0): # 直接返回节点
+                        query=query+variable+","
+                    elif(len(item)==2 and item[1]!=0): # 返回节点和属性
+                        properties=self.schema.getPropertiesByLable(label)
+                        rand=random.randint(1, min(3,len(properties)))
+                        property=properties[rand]
+                        query=query+variable+"."+property+","
+                        propertyList.append((label,property))
+                    # elif(len(item)==3 and item[1]==0): # 直接返回节点并重命名
+                    #     query=query+variable+"AS"+variable+","
+                    elif(len(item)==3 and item[1]!=0): # 返回节点和属性并重命名
+                        properties=self.schema.getPropertiesByLable(label)
+                        rand=random.randint(1, min(3,len(properties)))
+                        property=properties[rand]
+                        query=query+variable+"."+property+"AS"+property+","
+                        propertyList.append((label,property))
+                query=query[:-1]
+                # orderby
+                if self.returnBody.orderBy!=[]:
+                    query=query+" ORDER BY "
+                    randNums = random.sample(range(0, len(propertyList)), len(self.returnBody.orderBy))
+                    for i in range(len(self.returnBody.orderBy)):
+                        item=propertyList[randNums[i]]
+                        query=query+item[0]+'.'+item[1]
+                        if random.random()>0.8:
+                            query=query+' DESC'
+                        elif random.random()>0.9:
+                            query=query+' ASC'
+                        query=query+','
+                    query=query[:-1]
+                # skip
+                if random.random()>0.95:
+                    query=query+" SKIP "+str(random.randint(1, 10))
+                # limit
+                if random.random()>0.95:
+                    query=query+" LIMIT "+str(random.randint(1, 1000))
+                self.genQueryList[queryIndex]= copy.deepcopy(query)
+        
     # Visit a parse tree produced by LcypherParser#oC_Return.
     def visitOC_Return(self, ctx:LcypherParser.OC_ReturnContext):
         #oC_Return : RETURN ( SP? DISTINCT )? SP oC_ReturnBody ;
@@ -295,6 +345,7 @@ class TransVisitor(LcypherVisitor):
                 self.visitOC_ReturnBody(child)
         if ctx.DISTINCT():
             self.returnBody.distinct=True
+        self.visitGenOC_Return(ctx)
         return self.returnBody.getDesc(self.patternChainList)
 
 

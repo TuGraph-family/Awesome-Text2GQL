@@ -100,6 +100,13 @@ class PatternChain():
         for chainNode in self.chainList:
             variableList.append(chainNode.variable)
         return variableList
+    
+    def findVariableIndex(self,variable):
+        find=False
+        for index,chainNode in enumerate(self.chainList):
+            if chainNode.variable==variable:
+                return index
+        print("[ERROR]: do not support generate only return part without match")
             
     def addNode(self,node:Node):
         # self.chainDict[node.variable]=node
