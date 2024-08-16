@@ -142,9 +142,11 @@ class TransVisitor(LcypherVisitor):
                         genCount=1
                         for i in range(genCount):
                             if random.random()<0.1:
-                                query='OPTIONAL_ MATCH '
+                                query='OPTIONAL MATCH '
                             else:
                                 query='MATCH '
+                            if patternChain.variable!='':
+                                query=query+patternChain.variable+"="
                             for i in range(len(patternChain.chainList)):
                                 label=matchChainLabel[i]
                                 chainNode=patternChain.chainList[i]
@@ -159,12 +161,16 @@ class TransVisitor(LcypherVisitor):
                                     if(len(chainNode.properties)!=0):
                                         query=query+"{"
                                         properties=self.schema.getPropertiesByLable(label)
-                                        rand=random.randint(1, min(3,len(properties)))
-                                        for j in range(rand):
+                                        # rand=random.randint(1, min(3,len(properties)))
+                                        size=min(3,len(properties))
+                                        assert(size>=0)
+                                        rand=random.randint(1, size)
+                                        for j in range(rand): # rand!=0
                                             property_text=instance[properties[j]]
-                                            query=query+properties[j]+":"+property_text+','
-                                        query=query[:-1] # 去掉,
-                                        query+="}"
+                                            property_text = f'"{property_text}"'
+                                            query=query+properties[j]+":"+property_text+","
+                                        query=query[:-1]
+                                        query=query+"}"
                                     query=query+")"
                                 if chainNode.type=='edge':
                                     if chainNode.leftArrow==True:
@@ -178,10 +184,12 @@ class TransVisitor(LcypherVisitor):
                                     if(len(chainNode.properties)!=0):
                                         query=query+"{"
                                         properties=self.schema.getPropertiesByLable(label)
-                                        rand=random.randint(3, min(3,len(properties)))
+                                        size=min(3,len(properties))
+                                        rand=random.randint(1, size)
                                         property_text=instance[properties[rand]]
-                                        query=query+properties[rand]+":"+property_text+','
-                                        query=query[:-1] # 去掉,
+                                        property_text = f'"{property_text}"'
+                                        query=query+properties[j]+":"+property_text+","
+                                        query=query[:-1]
                                         query+="}"
                                     if chainNode.rightArrow==True:
                                         query+=']->'
@@ -197,9 +205,11 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_Match.
     def visitOC_Match(self, ctx:LcypherParser.OC_MatchContext):
         # oC_Match : ( OPTIONAL_ SP )? MATCH SP? oC_Pattern ( SP? oC_Hint )* ( SP? oC_Where )? ;
-        # if(self.workMode=='translate'):
-        matchDesc=self.cypherBase.getTokenDesc('MATCH')
-        desc=matchDesc
+        desc=''
+        if ctx.OPTIONAL_():
+            desc='以可选的方式'
+        matchDesc=self.cypherBase.getTokenDesc('MATCH') #待完善，暂不支持OC_Hint、OC_WHERE
+        desc=desc+matchDesc
         for child in ctx.getChildren():
             if isinstance(child,ParserRuleContext):
                 ruleIndex=child.getRuleIndex()
@@ -211,7 +221,6 @@ class TransVisitor(LcypherVisitor):
                     self.visitOC_Hint(child)
                 if (ruleName=='oC_Where'):
                     self.visitOC_Where(child)
-            # 待完善，Optional_，oC_Hint
         if self.genQuery:
             self.visitGenOC_Match(ctx)
         return desc
@@ -298,31 +307,43 @@ class TransVisitor(LcypherVisitor):
                     variable=item[0]
                     patternChain=self.patternChainList[0]
                     index=patternChain.findVariableIndex(variable)
-                    label=self.matchPatternChainLabelList[queryIndex][index]
-                    if(len(item)==2 and item[1]==0): # 直接返回节点
-                        query=query+variable+","
-                    elif(len(item)==2 and item[1]!=0): # 返回节点和属性
-                        properties=self.schema.getPropertiesByLable(label)
-                        rand=random.randint(1, min(3,len(properties)))
-                        property=properties[rand]
-                        query=query+variable+"."+property+","
-                        propertyList.append((label,property))
-                    # elif(len(item)==3 and item[1]==0): # 直接返回节点并重命名
-                    #     query=query+variable+"AS"+variable+","
-                    elif(len(item)==3 and item[1]!=0): # 返回节点和属性并重命名
-                        properties=self.schema.getPropertiesByLable(label)
-                        rand=random.randint(1, min(3,len(properties)))
-                        property=properties[rand]
-                        query=query+variable+"."+property+"AS"+property+","
-                        propertyList.append((label,property))
+                    if index!=-1:
+                        label=self.matchPatternChainLabelList[queryIndex][index]
+                        if(len(item)==2 and item[1]==0): # 直接返回节点
+                            query=query+variable+","
+                        elif(len(item)==2 and item[1]!=0): # 返回节点和属性
+                            properties=self.schema.getPropertiesByLable(label)
+                            size=min(3,len(properties))-1
+                            if size <= 0:
+                                query=query+variable+","
+                            else:
+                                rand=random.randint(0, size)
+                                property=properties[rand]
+                                query=query+variable+"."+property+","
+                            propertyList.append((label,property))
+                        # elif(len(item)==3 and item[1]==0): # 直接返回节点并重命名
+                        #     query=query+variable+"AS"+variable+","
+                        elif(len(item)==3 and item[1]!=0): # 返回节点和属性并重命名
+                            properties=self.schema.getPropertiesByLable(label)
+                            size=min(3,len(properties))-1
+                            if size <= 0:
+                                query=query+variable+","
+                            else:
+                                rand=random.randint(0, size)
+                                property=properties[rand]
+                                query=query+variable+"."+property+" AS "+property+","
+                            propertyList.append((label,property))
+                    elif index==-1:
+                        query=query+variable+"," # RETURN p
                 query=query[:-1]
                 # orderby
                 if self.returnBody.orderBy!=[]:
                     query=query+" ORDER BY "
                     randNums = random.sample(range(0, len(propertyList)), len(self.returnBody.orderBy))
                     for i in range(len(self.returnBody.orderBy)):
-                        item=propertyList[randNums[i]]
-                        query=query+item[0]+'.'+item[1]
+                        variable=self.returnBody.orderBy[i][0]
+                        property=propertyList[randNums[i]] # (label,property)
+                        query=query+variable+'.'+property[1]
                         if random.random()>0.8:
                             query=query+' DESC'
                         elif random.random()>0.9:
@@ -473,7 +494,8 @@ class TransVisitor(LcypherVisitor):
                 ruleIndex=child.getRuleIndex()
                 ruleName = self.cypherBase.getRuleName(ruleIndex)
                 if (ruleName=='oC_PatternPart'):
-                    mergeList.append(self.visitOC_PatternPart(child))
+                    patternDesc=self.visitOC_PatternPart(child)
+                    mergeList.append(patternDesc)
                     self.curPatternChain.parse_finised=True
                     # patternChain=PatternChain(self.cypherBase)
                     patternChain=copy.deepcopy(self.curPatternChain) # 深拷贝
@@ -499,8 +521,9 @@ class TransVisitor(LcypherVisitor):
 
 
     # Visit a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    # def visitOC_AnonymousPatternPart(self, ctx:LcypherParser.OC_AnonymousPatternPartContext):
-    #     return self.visitChildren(ctx)
+    def visitOC_AnonymousPatternPart(self, ctx:LcypherParser.OC_AnonymousPatternPartContext):
+        # oC_AnonymousPatternPart : oC_PatternElement ;
+        return self.visitChildren(ctx)
 
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElement.
@@ -510,6 +533,7 @@ class TransVisitor(LcypherVisitor):
                 #   ;
         n = ctx.getChildCount()
         desc=''
+        self.curPatternChain.text=ctx.getText()
         ifOnlyOneNode=True
         lastNode=Node(0,self.cypherBase)
         for i in range(n):

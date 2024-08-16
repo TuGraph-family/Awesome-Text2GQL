@@ -9,14 +9,16 @@ login 登录用户名
 genre 流派
 name 姓名 名称 名字 名
 person 人
-born 出生日期
-keyword 关键字模板
+born 出生年份
+keyword 关键字
 is_friend 是朋友关系
 rate 打分
-has_genre 有流派
-has_keyword 有关键字
 duration 持续时间
 rated 评分 评价 打分
+acted_in 参演
+directed 导演
+produce 生产 出版
+write 写
 Person 人
 Company 公司
 Account 账户

@@ -12,6 +12,7 @@ class Node():
         self.labels=[] # 每个节点有且只有一个label
         self.desc=''
         self.type='node'
+        self.typeDesc='节点'
         # self.random_numbers = [random.randint(0, 9) for _ in range(30)]
         self.parse_finised=False
         self.cypherBase=cypherBase
@@ -28,23 +29,31 @@ class Node():
         self.labels+=labels
     def getDesc(self):
         # 1. (p:plan {name: "面壁计划"})
-        if(len(self.labels)==1 and len(self.properties)==1):
+        if(len(self.labels)==1):
             labelDesc=self.cypherBase.getSchemaDesc(self.labels[0])
-            propertyDesc=self.cypherBase.getSchemaDesc(self.properties[0])
-            rand=random.random()
-            if rand<0.2:
-                self.desc=labelDesc+propertyDesc+'为'+self.text_properties[self.properties[0]]+'的节点'+self.variable
-            elif rand>0.2 and rand<0.4:
-                self.desc=self.text_properties[self.properties[0]]
-            elif rand> 0.4 and rand<0.6:
-                self.desc=propertyDesc+'为'+self.text_properties[self.properties[0]]+'的'+labelDesc
+            if(len(self.properties)==1):
+                propertyDesc=self.cypherBase.getSchemaDesc(self.properties[0])
+                rand=random.random()
+                if rand<0.15:
+                    self.desc=labelDesc+propertyDesc+'为'+self.text_properties[self.properties[0]]+'的节点'+self.variable
+                elif rand>0.15 and rand<0.2:
+                    self.desc=self.text_properties[self.properties[0]]
+                elif rand> 0.2 and rand<0.95:
+                    self.desc=propertyDesc+'为'+self.text_properties[self.properties[0]]+'的'+labelDesc+self.variable
+                else:
+                    self.desc='节点'+self.variable+labelDesc+self.text_properties[self.properties[0]]
+            elif((self.properties)==0):
+                self.desc=labelDesc+'节点'+self.variable
             else:
-                self.desc=labelDesc+'节点'+self.variable+self.text_properties[self.properties[0]]
-        elif(len(self.labels)==1 and len(self.properties)==0):
-            labelDesc=self.cypherBase.getSchemaDesc(self.labels[0])
-            self.desc=labelDesc+'节点'+self.variable
+                self.desc=''
+                for property in self.properties:
+                    propertyDesc=self.cypherBase.getSchemaDesc(property)
+                    self.desc=self.desc+propertyDesc+'为'+self.text_properties[property]+','
+                self.desc=self.desc[:-1]
+                self.desc=self.desc+'的'+labelDesc+self.variable
         elif(len(self.labels)==0 and len(self.properties)==0):
             self.desc='节点'+self.variable
+
         return self.desc
 
 class EdgeInstance():
@@ -62,6 +71,8 @@ class EdgeInstance():
         self.type='edge'
         self.range=['0','0']
         self.parse_finised=False
+        self.typeDesc='边'
+        
     def addVariable(self,variable):
         self.variable=variable
     def addProperty(self,property):
@@ -88,6 +99,9 @@ class PatternChain():
         self.cypherBase=cypherBase
         self.matchType=0
         self.parse_finised=False
+        self.type='patterncChain'
+        self.typeDesc='匹配的链路'
+        self.text=''
     
     def clean(self):
         self.chainList=[]
@@ -101,12 +115,35 @@ class PatternChain():
             variableList.append(chainNode.variable)
         return variableList
     
+    def getVariableType(self,variable):
+        for chainNode in self.chainList:
+            if chainNode.variable==variable:
+                return chainNode.type
+        if variable==self.variable:
+            return self.type
+        print("[ERROR]: getVariableType failed!")
+        
+    def getVariableTypeDesc(self,variable):
+        for chainNode in self.chainList:
+            if chainNode.variable==variable:
+                return chainNode.typeDesc
+        if variable==self.variable:
+            return self.typeDesc
+        print("[ERROR]: getVariableTypeDesc failed!")
+        
     def findVariableIndex(self,variable):
-        find=False
         for index,chainNode in enumerate(self.chainList):
             if chainNode.variable==variable:
                 return index
+        if variable==self.variable:
+            return -1
         print("[ERROR]: do not support generate only return part without match")
+    
+    def getVariableLabel(self,variable):
+        for chainNode in self.chainList:
+            if chainNode.variable==variable and chainNode.labels!=[]:
+                return chainNode.labels[0]
+        return ''
             
     def addNode(self,node:Node):
         # self.chainDict[node.variable]=node
@@ -122,22 +159,23 @@ class PatternChain():
                 propertyDict={}
                 propertyDict[item[1]]=propertyText
                 chainNode.addProperties([item[1]],propertyDict)
+    def getText(self):
+        return self.text
 
     def patternMatch(self):
         if(len(self.chainList)==3):
             if(len(self.chainList[0].labels)==0 and len(self.chainList[1].labels)==1 and len(self.chainList[2].labels)==0):
                 # MATCH (n)-[e:person_person]-(m) RETURN n,e,m 查询
-                self.matchType=1
+                if(self.chainList[0].variable!='' and self.chainList[1].variable!='' and self.chainList[2].variable!=''):
+                    self.matchType=1
             elif(len(self.chainList[0].properties)!=0 and len(self.chainList[1].labels)==0 and len(self.chainList[2].labels)==1):
                 if(self.chainList[1].type=='edge' and self.chainList[1].leftArrow==False and self.chainList[1].rightArrow==False):
                     # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
                     self.matchType=2
-                elif(self.chainList[1].type=='edge' and self.chainList[1].leftArrow==True):
-                    # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
-                    self.matchType=3
-                else:
-                    self.matchType=0
-            elif(len(self.chainList[0].properties)!=0 and len(self.chainList[1].properties)!=0 and len(self.chainList[2].labels)==1):
+            elif(self.chainList[1].type=='edge' and self.chainList[1].leftArrow==True):
+                # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
+                self.matchType=3
+            elif(len(self.chainList[0].properties)!=0 and self.chainList[1].rightArrow==True and len(self.chainList[2].labels)==1):
                 # # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars
                 self.matchType=4
         return self.matchType
@@ -150,9 +188,9 @@ class PatternChain():
                 if(self.random_numbers.pop()<5):
                     self.desc='返回图中所有通过'+self.chainList[1].labels[0]+'关系相连的节点和关系。'
                 else:
-                    self.desc='所有通过'+self.chainList[1].labels[0]+'类型关系连接的节点对'+self.chainList[0]+'和'+self.chainList[2]+'，并返回这些节点对以及它们之间的person_person关系。'
+                    self.desc='所有通过'+self.chainList[1].labels[0]+'类型关系连接的节点对'+self.chainList[0].variable+'和'+self.chainList[2].variable+'，并返回这些节点对以及它们之间的person_person关系。'
             else:
-                self.desc='所有通过'+self.chainList[1].labels[0]+'类型关系连接的节点对'+self.chainList[0]+'和'+self.chainList[2]
+                self.desc='所有通过'+self.chainList[1].labels[0]+'类型关系连接的节点对'+self.chainList[0].variable+'和'+self.chainList[2].variable
         elif(matchType==2):
             # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
             nodeDesc=self.chainList[0].getDesc()
@@ -163,9 +201,20 @@ class PatternChain():
             self.desc=self.cypherBase.getSchemaDesc(self.chainList[1].labels[0])+nodeDesc+'的'+self.cypherBase.getSchemaDesc(self.chainList[2].labels[0])+'有哪些?'
         elif(matchType==4):
             # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars
-            return "pattern Match failed"
+            nodeDesc=self.chainList[0].getDesc()
+            self.desc=nodeDesc+self.cypherBase.getSchemaDesc(self.chainList[1].labels[0])+'的'+self.cypherBase.getSchemaDesc(self.chainList[2].labels[0])+'有哪些?'
         else:
-            return "pattern Match failed"
+            if random.random()<0.99999:
+                self.desc='符合'+self.getText()+'模式的节点和关系'
+            else:
+                pass
+            # MATCH p=(node{id:"579"})-[]->() RETURN p
+            # 从id为579的node节点到其他节点的所有直接相连的路径。
+            #[]任何关系
+            #()任何节点，所有节点，节点
+            # 找到一个节点，然后查找该节点通过任何关系指向的节点。->
+        if self.variable!='' and random.random()>0.5:
+            self.desc=self.desc+',将匹配到的路径赋值给变量'+self.variable
         return self.desc
         # MATCH (a:person {name: "叶文洁"})-[e1:person_person]->(n)<-[e2:person_person]-(b:person {name: "汪淼"}) RETURN a,b,n,e1,e2
         # 查询叶文洁和汪淼这两个人之间的的共同关联的人物都有谁。
@@ -217,7 +266,24 @@ class ReturnBody():
             else:
                 matchSuccess=False
             if(matchSuccess):
-                self.returnDesc='返回子图'
+                rand=random.random()
+                if rand<0.3:
+                    self.returnDesc='返回子图'
+                elif rand <0.7:
+                    self.returnDesc='返回相应的节点和关系'
+                else:
+                    self.returnDesc='返回对应的'
+                    mergeList=[]
+                    for item in self.returnItems:
+                        variable=item[0]
+                        label=''
+                        for patterncChain in patternChainList:
+                            label=patterncChain.getVariableLabel(variable)
+                            if label!='':break
+                        if label=='':
+                            label=variable
+                        mergeList.append(self.cypherBase.getSchemaDesc(label))
+                    self.returnDesc=self.returnDesc+self.cypherBase.mergeDesc(mergeList)
                 
             # type 2 待完善
             # RETURN n.name, n.age, n.belt ORDER BY n.name
@@ -239,26 +305,27 @@ class ReturnBody():
             returnDescList=[]
             self.returnDesc='返回'
             for item in self.returnItems:
+                typeDesc=patternChainList[0].getVariableTypeDesc(item[0]) # 待完善，暂时只支持一个patternchain 
                 if(len(item)==3 and item[1]!=0):
                     if(self.random_numbers.pop()<5):
-                        returnDescList.append(item[0]+'节点的'+item[1]+'属性值,并将该值重命名为'+item[2])
+                        returnDescList.append(item[0]+typeDesc+'的'+item[1]+'属性值,并将该值重命名为'+item[2])
                     else:
-                        returnDescList.append('节点'+item[0]+'的'+item[1]+'属性值,并将该值重命名为'+item[2])
+                        returnDescList.append(typeDesc+item[0]+'的'+item[1]+'属性值,并将该值重命名为'+item[2])
                 elif(len(item)==3 and item[1]==0):
-                    returnDescList.append('将该节点重命名为'+item[2])
+                    returnDescList.append('将该'+typeDesc+'重命名为'+item[2])
                 elif(len(item)==2 and item[1]==0):
-                    returnDescList.append(item[0]+'节点')
+                    returnDescList.append(typeDesc+item[0])
                 else:
-                    returnDescList.append(item[0]+'节点的'+item[1]+'属性值')
+                    returnDescList.append(item[0]+typeDesc+'的'+item[1]+'属性值')
             self.returnDesc+=self.cypherBase.mergeDesc(returnDescList)
         mergeList.append(self.returnDesc)
         
         # orderby
         if(len(self.orderBy)==1 and self.DISTINCT==False):
             if(self.random_numbers.pop()<5):
-                self.orderDesc='同时按照节点的'+self.orderBy[0][1]+'属性'+self.cypherBase.getTokenDesc(self.orderBy[0][2])+'排序'
+                self.orderDesc='同时按照'+typeDesc+'的'+self.orderBy[0][1]+'属性'+self.cypherBase.getTokenDesc(self.orderBy[0][2])+'排序'
             else:
-                self.orderDesc='按照节点的'+self.orderBy[0][1]+'属性'+self.cypherBase.getTokenDesc(self.orderBy[0][2])+'排列返回的结果'
+                self.orderDesc='按照'+typeDesc+'的'+self.orderBy[0][1]+'属性'+self.cypherBase.getTokenDesc(self.orderBy[0][2])+'排列返回的结果'
         elif(len(self.orderBy)==2 and self.DISTINCT==False):
             #  ORDER BY n.property1 DESC, n.property2 ASC
             self.orderDesc='返回结果首先按照'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值'+self.cypherBase.getTokenDesc(self.orderBy[0][2])+'排列，然后在'+self.orderBy[0][0]+'.'+self.orderBy[0][1]+'的值相同的情况下，按照'+self.orderBy[1][0]+'.'+self.orderBy[1][1]+'的值'+self.cypherBase.getTokenDesc(self.orderBy[1][2])+'排列'

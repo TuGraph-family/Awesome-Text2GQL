@@ -130,7 +130,7 @@ class Schema():
         for key,value in self.vertexDict.items():
             if key ==label:
                 return self.vertexDict[key].properties
-        for key,value in self.edgeDict:
+        for key,value in self.edgeDict.items():
             if key == label:
                 return self.edgeDict[key].properties
             
@@ -140,6 +140,9 @@ class Schema():
         ALLlabelList=[]
         # labelLsit=[]
         edgeCount=int(len(chainList)/2)
+        if(edgeCount==0):
+            for leftNodeVariable, leftNode in self.vertexDict.items():
+                ALLlabelList.append([leftNodeVariable])
         if(edgeCount==1):
             for i in range(edgeCount): # 待完善，暂时只能支持点边点的模式
                 edgeIndex=2*i+1

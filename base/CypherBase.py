@@ -58,8 +58,9 @@ class CypherBase():
                 desc = desc[:-1]
             elif(descList[i][-1]=='？' or descList[i][-1]=='?'):
                 desc = desc[:-1]
-        if(desc[-1]==','):
-            desc = desc[:-1]
+        if(desc!=''):
+            if(desc[-1]==','):
+                desc = desc[:-1]
         return desc
     
     def mergeQuery(self,queryList):
@@ -84,8 +85,11 @@ class CypherBase():
                     self.schemaDict[key] = values
                 
     def getSchemaDesc(self,key):
-        rand=random.randint(0, len(self.schemaDict[key])-1)
-        return self.schemaDict[key][rand]
+        try:
+            rand=random.randint(0, len(self.schemaDict[key])-1)
+            return self.schemaDict[key][rand]
+        except KeyError:
+            return key
 
 if __name__ == '__main__':
     schemaDictPath='/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt'
