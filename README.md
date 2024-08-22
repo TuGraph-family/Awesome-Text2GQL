@@ -1,14 +1,24 @@
 # Awesome-Text2GQL
 
-This is the repository for the text2GQL generator implementation.
+This is the repository for the text2GQL generator implementation. Awesome-Text2GQL aims to generate cyphers/gqls and corresponding prompts as training corpus for fine-tuning of large language models (LLMs). Based on TuGraph-DB, the training corpus helps to train the Text2GQL and Text2Cypher models that are suitable for TuGraph-DB query engine capabilities.
+![框架示意图](./images/框架示意图.jpg)
+
 
 ## Quick Start
-`query_generator.py` : 
-Query生成器:解析输入的query并得到抽象语法树AST,对AST进行扩展或剪枝,根据数据库的schema对扩展和剪枝后的AST实例化得到相应的query语句。
 
-`prompt_generator.py`: 
-Prompt生成器:对输入的query进行翻译,得到query对应的prompt语句。prompt在生成时按照一定的优先级进行模板匹配，优先匹配整句模板、其次是字句模板，没有对应模板的语句按照逐项翻译得到对应的prompt语句。prompt的生成具有一定的随机性。
+Just run ./run.sh
 
+```
+pip install -r requirements.txt
+sh ./run.sh
+```
 
-`test\test_cypher.py` : 
-测试输入的cypher语句的正确性。对输入的cypher语句依次进行语法测试和基于tugraph-db的执行层面的测试。
+Change `GEN_QUERY` in the `run.sh` to make sure the generator works at the proper mode you want.
+
+`GEN_QUERY=true` means generating cyphers according to cypher templates in batch.
+
+`GEN_QUERY=false` means generating prompts with the cyphers generated in the last step.
+
+## Attention
+
+This project is under development, suggestions or issues are welcome.
