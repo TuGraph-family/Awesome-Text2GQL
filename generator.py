@@ -9,15 +9,15 @@ import sys
 
 
 def test(config):
-    inputQueryPath = ""
-    if config.genQuery == False:
-        inputQueryPath = config.getInputQueryPath()  # 翻译
-        with open(config.getOutputPath(), "w", encoding="utf-8") as file:
-            file.write(config.getDbId() + "\n")
+    input_path = ""
+    if config.gen_query == False:
+        input_path = config.get_input_query_path()  # 翻译
+        with open(config.get_output_path(), "w", encoding="utf-8") as file:
+            file.write(config.get_db_id() + "\n")
     else:
-        inputQueryPath = config.getInputQueryTemplatePath()  # 生成query
+        input_path = config.get_input_query_template_path()  # 生成cypher
 
-    with open(inputQueryPath, "rb") as file:
+    with open(input_path, "rb") as file:
         for i, line in enumerate(file, start=1):
             line = line.strip()
             print(f"行 {i}: {line.decode('utf-8')}")
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
         config = Config(config_path)
-        config.genQuery = sys.argv[2].lower() == "true"
+        config.gen_query = sys.argv[2].lower() == "true"
         config.db_id = sys.argv[3]
     else:
         config = Config(config_path)

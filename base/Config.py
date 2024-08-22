@@ -5,7 +5,7 @@ class Config:
     def __init__(self, file_path):
         self.file_path = file_path
         self.config_data = self.load_config()
-        self.genQuery = self.config_data.get(
+        self.gen_query = self.config_data.get(
             "genQuery"
         )  # 默认是translate翻译生成prompt，还可以设置为genQuery
         self.db_id = ""
@@ -14,17 +14,17 @@ class Config:
         with open(self.file_path, "r") as file:
             return json.load(file)
 
-    def getInputQueryPath(self):
+    def get_input_query_path(self):
         return self.config_data.get("input_query_path")
 
-    def getInputQueryTemplatePath(self):
+    def get_input_query_template_path(self):
         return self.config_data.get("input_query_template_path")
 
     def get_input_corpus_list(self):
         return self.config_data.get("input_corpus_path_list")
 
-    def getOutputPath(self):
-        if self.genQuery:
+    def get_output_path(self):
+        if self.gen_query:
             return self.config_data.get("output_query_path")
         else:
             return self.config_data.get("output_prompt_path")
@@ -32,12 +32,12 @@ class Config:
     def get_output_corpus(self):
         return self.config_data.get("output_corpus_path")
 
-    def getschemaDictPath(self):
+    def get_schema_dict_path(self):
         return self.config_data.get("schema_dict_path")
 
-    def getDbId(self):
+    def get_db_id(self):
         return self.db_id
 
-    def getSchemaPath(self, db_id):
+    def get_schema_path(self, db_id):
         schema_dict = self.config_data.get("db_schema_path")
         return schema_dict[db_id]  # 待完善，判错

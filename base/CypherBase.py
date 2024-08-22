@@ -3,7 +3,7 @@ import random
 
 class CypherBase:
     def __init__(self, config):
-        self.ruleNames = [
+        self.rule_names = [
             "oC_Cypher",
             "oC_Statement",
             "oC_Query",
@@ -105,77 +105,76 @@ class CypherBase:
             "oC_RightArrowHead",
             "oC_Dash",
         ]
-        self.tokenDict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4}
+        self.token_dict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4}
 
-        # 关键字模板
-        # self.loadDictFromFile()
-        self.template = [[] for _ in range(len(self.tokenDict))]
-        self.template[self.tokenDict["MATCH"]].extend(
+
+        self.template = [[] for _ in range(len(self.token_dict))]
+        self.template[self.token_dict["MATCH"]].extend(
             ["找到", "获得", "查询", "查找图数据库中", "查找数据库中", "从数据库中查找", "在图中查找"]
         )
-        self.template[self.tokenDict["DISTINCT"]].extend(["将查询结果去重", "最后将结果去重"])
-        self.template[self.tokenDict["DESC"]].extend(["降序"])
-        self.template[self.tokenDict["ASC"]].extend(["升序", ""])
-        self.template[self.tokenDict["RETURN"]].extend(["返回子图", "返回相关的节点和关系", ""])
+        self.template[self.token_dict["DISTINCT"]].extend(["将查询结果去重", "最后将结果去重"])
+        self.template[self.token_dict["DESC"]].extend(["降序"])
+        self.template[self.token_dict["ASC"]].extend(["升序", ""])
+        self.template[self.token_dict["RETURN"]].extend(["返回子图", "返回相关的节点和关系", ""])
         # schema相关的关键字模板
-        self.schemaDict = {}
-        self.loadDictFromFile(config.getschemaDictPath())
+        self.schema_dict = {}
+        self.load_dict_from_file(config.get_schema_dict_path())
 
-    def getRuleName(self, ruleIndex):
-        return self.ruleNames[ruleIndex]
+    def get_rule_name(self, rule_index):
+        return self.rule_names[rule_index]
 
-    def getTokenDesc(self, tokenIndex: int):
+    def get_token_desc(self, token_index: int):
+        rand = random.randint(0, len(self.template[token_index]) - 1)
+        return self.template[token_index][rand]
+
+    def get_token_desc(self, token_name: str):
+        tokenIndex = self.token_dict[token_name]
         rand = random.randint(0, len(self.template[tokenIndex]) - 1)
         return self.template[tokenIndex][rand]
 
-    def getTokenDesc(self, tokenName: str):
-        tokenIndex = self.tokenDict[tokenName]
-        rand = random.randint(0, len(self.template[tokenIndex]) - 1)
-        return self.template[tokenIndex][rand]
-
-    def mergeDesc(self, descList):
+    def merge_desc(self, desc_list):
         desc = ""
-        for i in range(len(descList)):
-            desc = desc + descList[i] + ","
-            if descList[i] == "":
+        for i in range(len(desc_list)):
+            desc = desc + desc_list[i] + ","
+            if desc_list[i] == "":
                 desc = desc[:-1]
-            elif descList[i][-1] == "？" or descList[i][-1] == "?":
+            elif desc_list[i][-1] == "？" or desc_list[i][-1] == "?":
                 desc = desc[:-1]
         if desc != "":
             if desc[-1] == ",":
                 desc = desc[:-1]
         return desc
 
-    def mergeQuery(self, queryList):
+    def merge_query(self, query_list):
         query = ""
-        for i in range(len(queryList)):
-            query = query + queryList[i] + ","
-            if queryList[i] == "":
+        for i in range(len(query_list)):
+            query = query + query_list[i] + ","
+            if query_list[i] == "":
                 query = query[:-1]
         if query[-1] == ",":
             query = query[:-1]
         return query
 
-    def loadDictFromFile(self, filePaths):
-        for filePath in filePaths:
-            with open(filePath, "r") as file:
+    def load_dict_from_file(self, file_paths):
+        for file_path in file_paths:
+            with open(file_path, "r") as file:
                 lines = file.readlines()
             for line in lines:
                 elements = line.strip().split()
                 if elements:
                     key = elements[0]
                     values = elements[1:]
-                    self.schemaDict[key] = values
+                    self.schema_dict[key] = values
 
-    def getSchemaDesc(self, key):
+    def get_schema_desc(self, key):
         try:
-            rand = random.randint(0, len(self.schemaDict[key]) - 1)
-            return self.schemaDict[key][rand]
+            rand = random.randint(0, len(self.schema_dict[key]) - 1)
+            return self.schema_dict[key][rand]
         except KeyError:
             return key
 
 
 if __name__ == "__main__":
-    schemaDictPath = "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
-    cpherBase = CypherBase(schemaDictPath)
-    print(cpherBase.getSchemaDesc("rate"))
+    schema_dict_path = "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
+    cypher_base = CypherBase(schema_dict_path)
+    print(cypher_base.get_schema_desc("rate"))

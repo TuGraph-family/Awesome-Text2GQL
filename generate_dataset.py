@@ -11,20 +11,20 @@ def generate(config, input_path, output_path):
             db_id = line.decode("utf-8")
             db_id = db_id.strip()
             break
-    schema_path = config.getSchemaPath(db_id)
+    schema_path = config.get_schema_path(db_id)
     if db_id == "common":
-        schemaDesc = ""
+        schema_desc = ""
     else:
         schema = Schema(db_id, schema_path)
-        schemaDesc = schema.genDesc()
+        schema_desc = schema.gen_desc()
     instruction_beginning = '我希望你像一个Tugraph数据库前端一样工作，你只需要返回给我cypher语句。下面是一条描述任务的指令，写一条正确的response来完成这个请求.\n"\n##Instruction:\n'
     instruction_end = "\n\n"
-    instruction = instruction_beginning + schemaDesc + instruction_end
+    instruction = instruction_beginning + schema_desc + instruction_end
     dataSize = 0
     with open(input_path, "r") as file:
         dataSize = sum(1 for line in file) / 2
 
-    dataList = [
+    data_list = [
         {
             "db_id": db_id,
             "instruction": instruction,
@@ -42,11 +42,11 @@ def generate(config, input_path, output_path):
                 line = line.strip()
                 if index % 2 == 0:
                     data_temp = {"output": line.decode("utf-8")}
-                    dataList[int(index / 2)].update(data_temp)
+                    data_list[int(index / 2)].update(data_temp)
                 else:
                     data_temp = {"input": str(line.decode("utf-8"))}
-                    dataList[int(index / 2)].update(data_temp)
-    json_data = json.dumps(dataList, ensure_ascii=False, indent=4)
+                    data_list[int(index / 2)].update(data_temp)
+    json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
     with open(output_path, "a") as file:
         file.write(json_data)
     print("JSON数据已写入文件。")

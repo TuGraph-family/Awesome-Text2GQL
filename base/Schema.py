@@ -10,9 +10,9 @@ class Vertex:
     def __init__(self) -> None:
         self.label = ""
         self.properties = []
-        self.srcEdge = []  # 节点作为源节点的相关边
-        self.dstEdge = []  # 节点作为目标节点的相关边
-        self.filePath = ""
+        self.src_edge = []  # 节点作为源节点的相关边
+        self.dst_edge = []  # 节点作为目标节点的相关边
+        self.file_path = ""
 
 
 class Edge:
@@ -21,30 +21,30 @@ class Edge:
         self.properties = []
         self.src = ""
         self.dst = ""
-        self.filePath = ""
+        self.file_path = ""
 
 
 class Schema:
-    def __init__(self, dbId, schemaPath):
-        self.vertexDict = {}
-        self.edgeDict = {}
-        self.dbId = dbId
-        self.schemaPath = schemaPath
+    def __init__(self, db_id, schema_path):
+        self.vertex_dict = {}
+        self.edge_dict = {}
+        self.db_id = db_id
+        self.schema_path = schema_path
         self.dirPath = os.path.dirname(
-            os.path.dirname(os.path.abspath(schemaPath))
+            os.path.dirname(os.path.abspath(schema_path))
         )  # 上上级文件夹
-        self.parseFinished = False
-        self.parseSchema()
+        self.is_parse_finished = False
+        self.parse_schema()
 
-    def parseSchema(self):
+    def parse_schema(self):
         try:
-            with open(self.schemaPath, "r") as file:
+            with open(self.schema_path, "r") as file:
                 data = json.load(file)
-                self.parseSchemaImpl(data)
+                self.parse_schema_impl(data)
         except FileNotFoundError:
-            print("schema文件未找到", self.schemaPath)
+            print("schema文件未找到", self.schema_path)
 
-    def parseSchemaImpl(self, json):
+    def parse_schema_impl(self, json):
         schema = json["schema"]
         for item in schema:
             if item["type"] == "VERTEX":
@@ -52,140 +52,140 @@ class Schema:
                 vertex.label = item["label"]
                 for property in item["properties"]:
                     vertex.properties.append(property["name"])
-                self.vertexDict[vertex.label] = vertex
+                self.vertex_dict[vertex.label] = vertex
             elif item["type"] == "EDGE":
                 edge = Edge()
                 edge.label = item["label"]
                 if "properties" in item:
                     for property in item["properties"]:
                         edge.properties.append(property["name"])
-                self.edgeDict[edge.label] = edge
+                self.edge_dict[edge.label] = edge
 
         vertex_path = json["files"]
         for item in vertex_path:
-            if item["label"] in self.edgeDict:
-                edgeName = item["label"]
-                edge = self.edgeDict[item["label"]]
+            if item["label"] in self.edge_dict:
+                edge_name = item["label"]
+                edge = self.edge_dict[item["label"]]
                 edge.src = item["SRC_ID"]
                 edge.dst = item["DST_ID"]
-                self.vertexDict[edge.src].srcEdge.append(edgeName)
-                self.vertexDict[edge.dst].dstEdge.append(edgeName)
-                edge.filePath = os.path.join(self.dirPath, item["path"])
-            if item["label"] in self.vertexDict:
-                self.vertexDict[item["label"]].filePath = os.path.join(
+                self.vertex_dict[edge.src].src_edge.append(edge_name)
+                self.vertex_dict[edge.dst].dst_edge.append(edge_name)
+                edge.file_path = os.path.join(self.dirPath, item["path"])
+            if item["label"] in self.vertex_dict:
+                self.vertex_dict[item["label"]].file_path = os.path.join(
                     self.dirPath, item["path"]
                 )
-        self.parseFinished = True
+        self.is_parse_finished = True
 
-    def genDesc(self):
-        if self.parseFinished:
-            desc = self.dbId + "包含节点"
-            for vertex in self.vertexDict:
+    def gen_desc(self):
+        if self.is_parse_finished:
+            desc = self.db_id + "包含节点"
+            for vertex in self.vertex_dict:
                 desc = desc + vertex + "、"
             desc = desc[:-1]
             desc += "和边"
-            for edge in self.edgeDict:
+            for edge in self.edge_dict:
                 desc = desc + edge + "、"
             desc = desc[:-1]
             desc += "。"
-            for vertex in self.vertexDict:
+            for vertex in self.vertex_dict:
                 desc = desc + "节点" + vertex + "有属性"
-                for property in self.vertexDict[vertex].properties:
+                for property in self.vertex_dict[vertex].properties:
                     desc = desc + property + "、"
                 desc = desc[:-1]
                 desc += "。"
-            for edge in self.edgeDict:
-                if self.edgeDict[edge].properties != []:
+            for edge in self.edge_dict:
+                if self.edge_dict[edge].properties != []:
                     desc = desc + "边" + edge + "有属性"
-                    for property in self.edgeDict[edge].properties:
+                    for property in self.edge_dict[edge].properties:
                         desc = desc + property + "、"
                     desc = desc[:-1]
                     desc += "。"
             return desc
         return ""
 
-    def getInstanceFromDb(self, vertexOrEdge, count):
-        filePath = ""
-        if vertexOrEdge in self.vertexDict:
-            filePath = self.vertexDict[vertexOrEdge].filePath
-        elif vertexOrEdge in self.edgeDict:
-            filePath = self.edgeDict[vertexOrEdge].filePath
+    def get_instance_from_db(self, vertex_or_edge, count):
+        file_path = ""
+        if vertex_or_edge in self.vertex_dict:
+            file_path = self.vertex_dict[vertex_or_edge].file_path
+        elif vertex_or_edge in self.edge_dict:
+            file_path = self.edge_dict[vertex_or_edge].file_path
         else:
             print("[ERROR]: vertexOrEdge is not exist")
             return
-        if os.path.exists(filePath):
-            keywordList = []
-            vertexOrEdgeInstanceList = []
-        with open(filePath, newline="") as csvfile:
+        if os.path.exists(file_path):
+            keyword_list = []
+            vertex_or_edge_instance_list = []
+        with open(file_path, newline="") as csvfile:
             reader = list(csv.reader(csvfile))
             second_row = reader[1]
             for item in second_row:
-                itemList = item.split(":")
-                keywordList.append(itemList[0])
+                item_list = item.split(":")
+                keyword_list.append(item_list[0])
             data_from_third_row = reader[2:]
             count = min(count, len(data_from_third_row))
             random_rows = random.sample(data_from_third_row, count)
             for row in random_rows:
-                vertexOrEdgeInstance = {}
+                vertex_or_edge_instance = {}
                 for index, item in enumerate(row):
-                    keyword = keywordList[index]
-                    vertexOrEdgeInstance[keyword] = item
-                vertexOrEdgeInstanceList.append(vertexOrEdgeInstance)
-        return vertexOrEdgeInstanceList
+                    keyword = keyword_list[index]
+                    vertex_or_edge_instance[keyword] = item
+                vertex_or_edge_instance_list.append(vertex_or_edge_instance)
+        return vertex_or_edge_instance_list
 
-    def getPropertiesByLable(self, label: str):
-        for key, value in self.vertexDict.items():
+    def get_properties_by_lable(self, label: str):
+        for key, value in self.vertex_dict.items():
             if key == label:
-                return self.vertexDict[key].properties
-        for key, value in self.edgeDict.items():
+                return self.vertex_dict[key].properties
+        for key, value in self.edge_dict.items():
             if key == label:
-                return self.edgeDict[key].properties
+                return self.edge_dict[key].properties
 
-    def getpatternMatchList(self, chainList):
+    def get_pattern_match_list(self, chain_list):
         # 找到符合某个连接关系的网络并返回，返回labelList
         # variableList=patternChain.getChainVariableList()
-        ALLlabelList = []
+        all_label_list = []
         # labelLsit=[]
-        edgeCount = int(len(chainList) / 2)
-        if edgeCount == 0:
-            for leftNodeVariable, leftNode in self.vertexDict.items():
-                ALLlabelList.append([leftNodeVariable])
-        if edgeCount == 1:
-            for i in range(edgeCount):  # 待完善，暂时只能支持点边点的模式
-                edgeIndex = 2 * i + 1
-                for leftNodeVariable, leftNode in self.vertexDict.items():
+        edge_count = int(len(chain_list) / 2)
+        if edge_count == 0:
+            for left_node_variable, left_node in self.vertex_dict.items():
+                all_label_list.append([left_node_variable])
+        if edge_count == 1:
+            for i in range(edge_count):  # 待完善，暂时只能支持点边点的模式
+                edge_index = 2 * i + 1
+                for left_node_variable, left_node in self.vertex_dict.items():
                     if (
-                        chainList[edgeIndex].leftArrow == True
-                        and chainList[edgeIndex].rightArrow == False
+                        chain_list[edge_index].left_arrow == True
+                        and chain_list[edge_index].right_arrow == False
                     ):
-                        for edge in leftNode.dstEdge:
-                            rightNodeVariable = self.edgeDict[edge].src
-                            ALLlabelList.append(
-                                [leftNodeVariable, edge, rightNodeVariable]
+                        for edge in left_node.dst_edge:
+                            right_node_variable = self.edge_dict[edge].src
+                            all_label_list.append(
+                                [left_node_variable, edge, right_node_variable]
                             )
                     elif (
-                        chainList[edgeIndex].leftArrow == False
-                        and chainList[edgeIndex].rightArrow == True
+                        chain_list[edge_index].left_arrow == False
+                        and chain_list[edge_index].right_arrow == True
                     ):
-                        for edge in self.vertexDict[leftNodeVariable].srcEdge:
-                            rightNodeVariable = self.edgeDict[edge].dst
-                            ALLlabelList.append(
-                                [leftNodeVariable, edge, rightNodeVariable]
+                        for edge in self.vertex_dict[left_node_variable].src_edge:
+                            right_node_variable = self.edge_dict[edge].dst
+                            all_label_list.append(
+                                [left_node_variable, edge, right_node_variable]
                             )
                     else:  # 双向箭头
-                        for edge in self.vertexDict[leftNodeVariable].dstEdge:  # 作为目的
-                            rightNodeVariable = self.edgeDict[edge].src
-                            ALLlabelList.append(
-                                [leftNodeVariable, edge, rightNodeVariable]
+                        for edge in self.vertex_dict[left_node_variable].dst_edge:  # 作为目的
+                            right_node_variable = self.edge_dict[edge].src
+                            all_label_list.append(
+                                [left_node_variable, edge, right_node_variable]
                             )
-                        for edge in self.vertexDict[leftNodeVariable].srcEdge:
-                            rightNodeVariable = self.edgeDict[edge].dst
-                            ALLlabelList.append(
-                                [leftNodeVariable, edge, rightNodeVariable]
+                        for edge in self.vertex_dict[left_node_variable].src_edge:
+                            right_node_variable = self.edge_dict[edge].dst
+                            all_label_list.append(
+                                [left_node_variable, edge, right_node_variable]
                             )
-        return ALLlabelList
+        return all_label_list
 
 
 if __name__ == "__main__":
     schema = Schema("movie", "Awesome-Text2GQL/data/schema/movie_schema.json")
-    print(schema.getInstanceFromDb("person", 10))
+    print(schema.get_instance_from_db("person", 10))
