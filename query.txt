@@ -1,2 +1,0 @@
-MATCH (a {name: 'Carrie-Anne Moss'}) RETURN a.age AS SomethingTotallyDifferent ORDER BY a.born DESC, a.age ASC SKIP 1 LIMIT 1
-MATCH (tom {name: "Tom Hanks"}) RETURN tom

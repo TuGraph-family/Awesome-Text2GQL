@@ -1,1 +1,0 @@
-./lgraph_server -d run -c lgraph_standalone.json --log_dir ""

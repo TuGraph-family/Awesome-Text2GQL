@@ -1,1 +1,0 @@
-./lgraph_import -c import.conf --dir /root/tugraph-db/build/output/lgraph_db --graph default --overwrite true
