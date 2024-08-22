@@ -1,19 +1,25 @@
 {
-    "db_id": "the_three_body",
-    "db_schema_path": {
-        "movie": "/root/work_repo/Awesome-Text2GQL/data/schema/movie_schema.json",
-        "the_three_body": "/root/work_repo/Awesome-Text2GQL/data/schema/the_three_body.json",
-        "finbench": "/root/work_repo/Awesome-Text2GQL/data/schema/finbench_schema.json",
-        "SNB": "/root/work_repo/Awesome-Text2GQL/data/schema/SNB_schema.json",
-        "three_kingdoms": "/root/work_repo/Awesome-Text2GQL/data/schema/three_kingdoms.json",
-        "wandering_earth": "/root/work_repo/Awesome-Text2GQL/data/schema/wandering_earth.json"
-    },
+    "db_id": "movie",
     "genQuery": false,
-    "input_query_path": "Awesome-Text2GQL/output/output_query.txt",
-    "input_query_template_path": "/root/work_repo/Awesome-Text2GQL/query_template.txt",
-    "schema_dict_path": [
-        "/root/work_repo/Awesome-Text2GQL/base/template/schema_dict.txt"
+    "db_schema_path": {
+        "common": "",
+        "yago": "/root/work_repo/data/schema/yago.json",
+        "movie": "./data/schema/movie_schema.json",
+        "the_three_body": "/root/work_repo/data/schema/the_three_body.json",
+        "finbench": "/root/work_repo/data/schema/finbench_schema.json",
+        "SNB": "/root/work_repo/data/schema/SNB_schema.json",
+        "three_kingdoms": "/root/work_repo/data/schema/three_kingdoms.json",
+        "wandering_earth": "/root/work_repo/data/schema/wandering_earth.json"
+    },
+    "input_query_template_path": "./query_template.txt",
+    "output_query_path": "./output/output_query.txt",
+    "input_query_path": "./output/output_query.txt",
+    "output_prompt_path": "./output/output_prompt.txt",
+    "input_corpus_path_list": [
+        "./output/output_prompt.txt"
     ],
-    "output_prompt_path": "/root/work_repo/Awesome-Text2GQL/output/output_prompt.txt",
-    "output_query_path": "/root/work_repo/Awesome-Text2GQL/output/output_query.txt"
+    "output_corpus_path": "./output/text2gql_train.json",
+    "schema_dict_path": [
+        "./base/template/schema_dict.txt"
+    ]
 }
