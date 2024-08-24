@@ -128,9 +128,9 @@ class CypherBase:
         return self.template[token_index][rand]
 
     def get_token_desc(self, token_name: str):
-        tokenIndex = self.token_dict[token_name]
-        rand = random.randint(0, len(self.template[tokenIndex]) - 1)
-        return self.template[tokenIndex][rand]
+        token_index = self.token_dict[token_name]
+        rand = random.randint(0, len(self.template[token_index]) - 1)
+        return self.template[token_index][rand]
 
     def merge_desc(self, desc_list):
         desc = ""

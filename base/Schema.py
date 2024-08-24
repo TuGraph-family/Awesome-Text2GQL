@@ -30,7 +30,7 @@ class Schema:
         self.edge_dict = {}
         self.db_id = db_id
         self.schema_path = schema_path
-        self.dirPath = os.path.dirname(
+        self.dir_path = os.path.dirname(
             os.path.dirname(os.path.abspath(schema_path))
         )  # 上上级文件夹
         self.is_parse_finished = False
@@ -70,10 +70,10 @@ class Schema:
                 edge.dst = item["DST_ID"]
                 self.vertex_dict[edge.src].src_edge.append(edge_name)
                 self.vertex_dict[edge.dst].dst_edge.append(edge_name)
-                edge.file_path = os.path.join(self.dirPath, item["path"])
+                edge.file_path = os.path.join(self.dir_path, item["path"])
             if item["label"] in self.vertex_dict:
                 self.vertex_dict[item["label"]].file_path = os.path.join(
-                    self.dirPath, item["path"]
+                    self.dir_path, item["path"]
                 )
         self.is_parse_finished = True
 

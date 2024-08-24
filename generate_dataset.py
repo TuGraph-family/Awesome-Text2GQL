@@ -20,9 +20,9 @@ def generate(config, input_path, output_path):
     instruction_beginning = '我希望你像一个Tugraph数据库前端一样工作，你只需要返回给我cypher语句。下面是一条描述任务的指令，写一条正确的response来完成这个请求.\n"\n##Instruction:\n'
     instruction_end = "\n\n"
     instruction = instruction_beginning + schema_desc + instruction_end
-    dataSize = 0
+    data_size = 0
     with open(input_path, "r") as file:
-        dataSize = sum(1 for line in file) / 2
+        data_size = sum(1 for line in file) / 2
 
     data_list = [
         {
@@ -32,7 +32,7 @@ def generate(config, input_path, output_path):
             "output": "",
             "history": [],
         }
-        for i in range(int(dataSize))
+        for i in range(int(data_size))
     ]
 
     with open(input_path, "rb") as file:
