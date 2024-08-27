@@ -8,7 +8,7 @@ from base.Config import Config
 import sys
 
 
-def test(config):
+def generate(config):
     input_path = ""
     if config.gen_query == False:
         input_path = config.get_input_query_path()  # translate
@@ -43,4 +43,4 @@ if __name__ == "__main__":
         config.db_id = sys.argv[3]
     else:
         config = Config(config_path)
-    test(config)
+    generate(config)
