@@ -9,8 +9,8 @@ class Node:
         self.node_id = node_id
         self.variable = ""
         self.properties = []
-        self.text_properties = {}  ## 待定
-        self.labels = []  # 每个节点有且只有一个label
+        self.text_properties = {}
+        self.labels = []
         self.desc = ""
         self.type = "node"
         self.type_desc = "节点"
@@ -29,7 +29,7 @@ class Node:
 
     def add_properties(self, properties, text_properties):
         self.properties += properties
-        self.text_properties.update(text_properties)  # 不能有两个相同属性！！
+        self.text_properties.update(text_properties)
 
     def add_labels(self, labels):
         self.labels += labels
@@ -94,7 +94,7 @@ class EdgeInstance:
         # self.node_id=node_id
         self.variable = ""
         self.properties = []
-        self.text_properties = {}  # 直接用一个字典不就行了？
+        self.text_properties = {}
         self.labels = []
         self.left_node = ""
         self.right_node = ""
@@ -212,7 +212,7 @@ class PatternChain:
                 and len(self.chain_list[1].labels) == 1
                 and len(self.chain_list[2].labels) == 0
             ):
-                # MATCH (n)-[e:person_person]-(m) RETURN n,e,m 查询
+                # MATCH (n)-[e:person_person]-(m) RETURN n,e,m
                 if (
                     self.chain_list[0].variable != ""
                     and self.chain_list[1].variable != ""
@@ -248,7 +248,7 @@ class PatternChain:
     def get_desc(self, gen_return=False):
         match_type = self.pattern_match()
         if match_type == 1:
-            # MATCH (n)-[e:person_person]-(m) RETURN n,e,m 查询
+            # MATCH (n)-[e:person_person]-(m) RETURN n,e,m
             if gen_return:
                 if self.random_numbers.pop() < 5:
                     self.desc = "返回图中所有通过" + self.chain_list[1].labels[0] + "关系相连的节点和关系。"
@@ -320,17 +320,16 @@ class PatternChain:
 
     def gen_query(self, return_type: int = 0):
         query_list = []
-        # returnType==0 不生成返回子句
         return_query = "RETURN "
-        if return_type == 1:  # return type 1, 直接返回子图
+        if return_type == 1:
             merge_list = []
             for chain_node in self.chain_list:
-                merge_list.append(chain_node.variable)  # 变量名不会改变
+                merge_list.append(chain_node.variable) 
             return_query += self.cypher_base.merge_query(merge_list)
             for query in query_list:
                 query = query + " " + return_query
         return query_list
-        # return type 2, 返回
+        # return type 2
 
 
 class ReturnBody:
@@ -340,8 +339,8 @@ class ReturnBody:
         self.DISTINCT = False
         self.skip = 0
         self.limit = 0
-        self.order_by = []  # 元组列表，variable及其label/property
-        self.return_items = []  # 元组列表，元组len=2即Expreesion，len=3即含AS
+        self.order_by = []  # tuple list，variable and its label/property
+        self.return_items = []  # tuple list，len=2 Expreesion，len=3 means AS
         self.desc = ""
         self.order_desc = ""
         self.return_desc = ""
@@ -391,11 +390,10 @@ class ReturnBody:
                         merge_list
                     )
 
-            # type 2 待完善
+            # type 2 todo
             # RETURN n.name, n.age, n.belt ORDER BY n.name
-            # 返回这些节点n的name、age和belt属性，同时按照节点的name属性排序。
         elif len(pattern_chain_list) == 2:
-            # 待完善MATCH (n:person), (m:movie)
+            # todo :MATCH (n:person), (m:movie)
             match_success = False
         else:
             match_success = False
@@ -404,16 +402,14 @@ class ReturnBody:
     def get_desc(self, pattern_chain_list):
         merge_list = []
         assert len(self.return_items) != 0
-        # 模板1，返回子图
         # self.returnDesc=self.patternMatch(matchPattern)
         if self.pattern_match(pattern_chain_list) == False:
-            # 逐项翻译:
             return_desc_list = []
             self.return_desc = "返回"
             for item in self.return_items:
                 type_desc = pattern_chain_list[0].get_variable_type_desc(
                     item[0]
-                )  # 待完善，暂时只支持一个patternchain
+                )  # todo ，only support one patternchain
                 if len(item) == 3 and item[1] != 0:
                     if self.random_numbers.pop() < 5:
                         return_desc_list.append(
@@ -486,8 +482,8 @@ class ReturnBody:
                 + "排列"
             )
         else:
-            pass  # 多条sort的情况
-            # 待完善
+            pass
+            # todo : multi sort
         merge_list.append(self.order_desc)
 
         if self.skip != 0 and self.limit != 0:

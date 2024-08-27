@@ -10,8 +10,8 @@ class Vertex:
     def __init__(self) -> None:
         self.label = ""
         self.properties = []
-        self.src_edge = []  # 节点作为源节点的相关边
-        self.dst_edge = []  # 节点作为目标节点的相关边
+        self.src_edge = []
+        self.dst_edge = []
         self.file_path = ""
 
 
@@ -32,7 +32,7 @@ class Schema:
         self.schema_path = schema_path
         self.dir_path = os.path.dirname(
             os.path.dirname(os.path.abspath(schema_path))
-        )  # 上上级文件夹
+        ) 
         self.is_parse_finished = False
         self.parse_schema()
 
@@ -42,7 +42,7 @@ class Schema:
                 data = json.load(file)
                 self.parse_schema_impl(data)
         except FileNotFoundError:
-            print("schema文件未找到", self.schema_path)
+            print("[ERROR] schema file not found", self.schema_path)
 
     def parse_schema_impl(self, json):
         schema = json["schema"]
@@ -142,7 +142,6 @@ class Schema:
                 return self.edge_dict[key].properties
 
     def get_pattern_match_list(self, chain_list):
-        # 找到符合某个连接关系的网络并返回，返回labelList
         # variableList=patternChain.getChainVariableList()
         all_label_list = []
         # labelLsit=[]
@@ -151,7 +150,7 @@ class Schema:
             for left_node_variable, left_node in self.vertex_dict.items():
                 all_label_list.append([left_node_variable])
         if edge_count == 1:
-            for i in range(edge_count):  # 待完善，暂时只能支持点边点的模式
+            for i in range(edge_count):  # todo
                 edge_index = 2 * i + 1
                 for left_node_variable, left_node in self.vertex_dict.items():
                     if (
@@ -172,8 +171,8 @@ class Schema:
                             all_label_list.append(
                                 [left_node_variable, edge, right_node_variable]
                             )
-                    else:  # 双向箭头
-                        for edge in self.vertex_dict[left_node_variable].dst_edge:  # 作为目的
+                    else:
+                        for edge in self.vertex_dict[left_node_variable].dst_edge:
                             right_node_variable = self.edge_dict[edge].src
                             all_label_list.append(
                                 [left_node_variable, edge, right_node_variable]

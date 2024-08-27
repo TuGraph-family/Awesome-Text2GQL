@@ -7,7 +7,7 @@ class Config:
         self.config_data = self.load_config()
         self.gen_query = self.config_data.get(
             "genQuery"
-        )  # 默认是translate翻译生成prompt，还可以设置为genQuery
+        )  # default translate，can be set as genQuery
         self.db_id = ""
 
     def load_config(self):
@@ -40,4 +40,4 @@ class Config:
 
     def get_schema_path(self, db_id):
         schema_dict = self.config_data.get("db_schema_path")
-        return schema_dict[db_id]  # 待完善，判错
+        return schema_dict[db_id] # todo error check

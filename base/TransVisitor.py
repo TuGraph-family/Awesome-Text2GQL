@@ -1,4 +1,3 @@
-# Generated from /root/work_repo/antlr_python/cypher/Lcypher.g4 by ANTLR 4.13.1
 from antlr4 import *
 from cypher.LcypherParser import LcypherParser
 from cypher.LcypherVisitor import LcypherVisitor
@@ -8,9 +7,6 @@ from base.Schema import Schema
 from base import Config
 import copy
 import random
-
-# This class defines a complete generic visitor for a parse tree produced by LcypherParser.
-
 
 class TransVisitor(LcypherVisitor):
     def __init__(self, config: Config):
@@ -26,8 +22,8 @@ class TransVisitor(LcypherVisitor):
         self.db_id = config.get_db_id()
         schema_path = self.config.get_schema_path(self.db_id)
         self.schema = Schema(self.db_id, schema_path)
-        # queryGen相关
-        self.match_pattern_chain_label_list = []  # 暂时只支持单个matchpattern,保存 label List
+        # queryGen
+        self.match_pattern_chain_label_list = []  # todo support multi matchpattern, save label list
         self.gen_query_list = []
 
     def save2file(self):
@@ -40,7 +36,7 @@ class TransVisitor(LcypherVisitor):
                 file.write(self.query + "\n")
                 file.write(self.prompt + "\n")
 
-    def get_match_pattern_chain_label_list(self):  # 一对一生成, 查询所有符合条件的schema并生成
+    def get_match_pattern_chain_label_list(self):
         if len(self.pattern_chain_list) == 1:
             pattern_chain = self.pattern_chain_list[0]
             self.match_pattern_chain_label_list = self.schema.get_pattern_match_list(
@@ -93,8 +89,8 @@ class TransVisitor(LcypherVisitor):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_ReadingClause":
-                    # readingDesc+=self.visit(ctx.oC_ReadingClause()) # 报错 list没有accept方法 易错点
-                    reading_desc += self.visitOC_ReadingClause(child)  # 0次或多次
+                    # readingDesc+=self.visit(ctx.oC_ReadingClause())
+                    reading_desc += self.visitOC_ReadingClause(child)
                 if rule_name == "oC_UpdatingClause":
                     update_desc += self.visitOC_UpdatingClause(child)
                 if rule_name == "oC_Return":
@@ -121,23 +117,22 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext):
-        self.get_match_pattern_chain_label_list()  # 实例化
+        self.get_match_pattern_chain_label_list() 
         if len(self.match_pattern_chain_label_list) == 0:
             print("[WARNING]: No match pattern find in schema")
-        # 实例化
         text = ctx.getText()
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
-                if rule_name == "oC_Pattern":  # 待完善,暂时只支持一个patternChain
+                if rule_name == "oC_Pattern":  # todo, only support one patternChain
                     query_list = [
                         "" for i in range(len(self.match_pattern_chain_label_list))
                     ]
                     for index, match_chain_label in enumerate(
                         self.match_pattern_chain_label_list
                     ):
-                        pattern_chain = self.pattern_chain_list[0]  # 每个patern会生成两条语句
+                        pattern_chain = self.pattern_chain_list[0]
                         gen_num = 1
                         for i in range(gen_num):
                             if random.random() < 0.1:
@@ -214,7 +209,7 @@ class TransVisitor(LcypherVisitor):
                     if rule_name == "oC_Hint":
                         pass
                     if rule_name == "oC_Where":
-                        pass  # 待完善
+                        pass  # todo
         self.gen_query_list = query_list
 
     # Visit a parse tree produced by LcypherParser#oC_Match.
@@ -223,13 +218,13 @@ class TransVisitor(LcypherVisitor):
         desc = ""
         if ctx.OPTIONAL_():
             desc = "以可选的方式"
-        match_desc = self.cypher_base.get_token_desc("MATCH")  # 待完善，暂不支持OC_Hint、OC_WHERE
+        match_desc = self.cypher_base.get_token_desc("MATCH")  # todo support OC_Hint、OC_WHERE
         desc = desc + match_desc
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
-                if rule_name == "oC_Pattern":  # 待完善，可能有多个组成
+                if rule_name == "oC_Pattern":  # todo
                     pattern_desc = self.visitOC_Pattern(child)
                     desc += pattern_desc
                 if rule_name == "oC_Hint":
@@ -268,31 +263,24 @@ class TransVisitor(LcypherVisitor):
     def visitOC_Delete(self, ctx: LcypherParser.OC_DeleteContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_Remove.
     def visitOC_Remove(self, ctx: LcypherParser.OC_RemoveContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_RemoveItem.
     def visitOC_RemoveItem(self, ctx: LcypherParser.OC_RemoveItemContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_InQueryCall.
     def visitOC_InQueryCall(self, ctx: LcypherParser.OC_InQueryCallContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_StandaloneCall.
     def visitOC_StandaloneCall(self, ctx: LcypherParser.OC_StandaloneCallContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_YieldItems.
     def visitOC_YieldItems(self, ctx: LcypherParser.OC_YieldItemsContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_YieldItem.
     def visitOC_YieldItem(self, ctx: LcypherParser.OC_YieldItemContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_With.
     def visitOC_With(self, ctx: LcypherParser.OC_WithContext):
         return self.visitChildren(ctx)
 
@@ -306,15 +294,15 @@ class TransVisitor(LcypherVisitor):
                     query = query + " RETURN "
                 for (
                     item
-                ) in self.return_body.return_items:  # # 元组列表，元组len=2即Expreesion，len=3即含AS
+                ) in self.return_body.return_items:
                     variable = item[0]
                     pattern_chain = self.pattern_chain_list[0]
                     index = pattern_chain.find_variable_index(variable)
                     if index != -1:
                         label = self.match_pattern_chain_label_list[query_index][index]
-                        if len(item) == 2 and item[1] == 0:  # 直接返回节点
+                        if len(item) == 2 and item[1] == 0:
                             query = query + variable + ","
-                        elif len(item) == 2 and item[1] != 0:  # 返回节点和属性
+                        elif len(item) == 2 and item[1] != 0: 
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
                             if size <= 0:
@@ -324,9 +312,9 @@ class TransVisitor(LcypherVisitor):
                                 property = properties[rand]
                                 query = query + variable + "." + property + ","
                             property_list.append((label, property))
-                        # elif(len(item)==3 and item[1]==0): # 直接返回节点并重命名
+                        # elif(len(item)==3 and item[1]==0):
                         #     query=query+variable+"AS"+variable+","
-                        elif len(item) == 3 and item[1] != 0:  # 返回节点和属性并重命名
+                        elif len(item) == 3 and item[1] != 0:
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
                             if size <= 0:
@@ -431,7 +419,7 @@ class TransVisitor(LcypherVisitor):
         order_by = []
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
-                order_by.append(self.visitOC_SortItem(child))  # 会返回一个元组
+                order_by.append(self.visitOC_SortItem(child))  # return tuple
         return order_by
 
     # Visit a parse tree produced by LcypherParser#oC_Skip.
@@ -467,13 +455,10 @@ class TransVisitor(LcypherVisitor):
             sort_item += ("ASC",)
         return sort_item
 
-    # Visit a parse tree produced by LcypherParser#oC_Hint.
     def visitOC_Hint(self, ctx: LcypherParser.OC_HintContext):
         return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_Where.
     def visitOC_Where(self, ctx: LcypherParser.OC_WhereContext):
-        # 待完善，如果含有=，应该更新到节点或边的property里面
         # oC_Where : WHERE SP oC_Expression ;
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -483,16 +468,15 @@ class TransVisitor(LcypherVisitor):
                     exprs = self.visitOC_Expression(child)
         for expr in exprs:
             if len(expr) == 3 and expr[1] == "=":  # leftExpr,symbol,rightExpr
-                item = [expr[0][0], expr[0][1], expr[2][0]]  # property的类型？
+                item = [expr[0][0], expr[0][1], expr[2][0]]
                 for pattern_chain in self.pattern_chain_list:
                     pattern_chain.add_item(item)
-                # 待完善，暂时只支持AND
+                # todo only support AND now
         # return self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_Pattern.
     def visitOC_Pattern(self, ctx: LcypherParser.OC_PatternContext):
         # oC_Pattern : oC_PatternPart ( SP? ',' SP? oC_PatternPart )* ;
-        # 多个MatchPattern # MATCH (n:person), (m:movie)
+        # MATCH (n:person), (m:movie)
         merge_list = []
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -503,13 +487,12 @@ class TransVisitor(LcypherVisitor):
                     merge_list.append(pattern_desc)
                     self.cur_pattern_chain.parse_finised = True
                     # patternChain=PatternChain(self.cypher_base)
-                    pattern_chain = copy.deepcopy(self.cur_pattern_chain)  # 深拷贝
+                    pattern_chain = copy.deepcopy(self.cur_pattern_chain)
                     self.cur_pattern_chain.clean()
                     self.pattern_chain_list.append(pattern_chain)
         desc = self.cypher_base.merge_desc(merge_list)
         return desc
 
-    # Visit a parse tree produced by LcypherParser#oC_PatternPart.
     def visitOC_PatternPart(self, ctx: LcypherParser.OC_PatternPartContext):
         # oC_PatternPart : ( oC_Variable SP? '=' SP? oC_AnonymousPatternPart )
         #    | oC_AnonymousPatternPart
@@ -601,7 +584,7 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_NodePattern":
                     node = self.visitOC_NodePattern(c)
                 if rule_name == "oC_RelationshipPattern":
-                    # 待完成，添加边的左右节点
+                    # todo，add left and right node of an edge
                     edge = self.visitOC_RelationshipPattern(c)
         return edge, node
 
@@ -721,18 +704,16 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_OrExpression.
     def visitOC_OrExpression(self, ctx: LcypherParser.OC_OrExpressionContext):
-        # 参考visitOC_AndExpression()的实现，或的运算优先级最低
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_XorExpression.
     def visitOC_XorExpression(self, ctx: LcypherParser.OC_XorExpressionContext):
-        # 参考visitOC_AndExpression()的实现，或的运算优先级最低，与的运算优先级最高
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_AndExpression.
     def visitOC_AndExpression(self, ctx: LcypherParser.OC_AndExpressionContext):
         # oC_AndExpression : oC_NotExpression ( SP AND SP oC_NotExpression )* ;
-        # 运算优先级 And > Xor > Or
+        # And > Xor > Or
         text = ctx.getText()
         expr_list = []
         if "AND" in text:
@@ -741,7 +722,7 @@ class TransVisitor(LcypherVisitor):
                     rule_index = child.getRuleIndex()
                     rule_name = self.cypher_base.get_rule_name(rule_index)
                     if rule_name == "oC_NotExpression":
-                        expr_list.append(self.visitOC_NotExpression(child))  # list的嵌套
+                        expr_list.append(self.visitOC_NotExpression(child))
                         expr_list.append("AND")
             expr_list.pop()
             return expr_list
@@ -765,7 +746,7 @@ class TransVisitor(LcypherVisitor):
                     left_expr = self.visitOC_AddOrSubtractExpression(child)
                 if rule_name == "oC_PartialComparisonExpression":
                     symbol, right_expr = self.visitOC_PartialComparisonExpression(child)
-                    # 待完善，暂不支持多个oC_PartialComparisonExpression
+                    # todo ，support multi oC_PartialComparisonExpression
         if symbol != "":
             return [left_expr, symbol, right_expr]
         return left_expr
@@ -830,7 +811,7 @@ class TransVisitor(LcypherVisitor):
                     tokens.append(str(self.visitOC_Atom(child)))
                 if rule_name == "oC_PropertyLookup":
                     tokens.append(str(self.visitOC_PropertyLookup(child)))
-                if rule_name == "oC_NodeLabels":  ## ？？？什么含义？
+                if rule_name == "oC_NodeLabels":
                     self.visitOC_NodeLabels(child)
         if len(tokens) == 1:
             return (tokens[0], 0)
@@ -852,8 +833,7 @@ class TransVisitor(LcypherVisitor):
         #    ;
         if ctx.StringLiteral():
             ret = str(ctx.StringLiteral()).replace("'", "")
-            return ret  # 叶子节点,返回属性的值，Tom Hanks
-        # // 处理其他分支...
+            return ret
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_BooleanLiteral.
@@ -874,7 +854,7 @@ class TransVisitor(LcypherVisitor):
         #                            | ( '>' SP? oC_AddOrSubtractExpression )
         #                            | ( '<=' SP? oC_AddOrSubtractExpression )
         #                            | ( '>=' SP? oC_AddOrSubtractExpression )
-        text = ctx.getText()  # 取前两个字符。
+        text = ctx.getText()
         symbol = text[:2]
         if symbol != "<>" and symbol != "<=" or symbol != ">=":
             symbol = symbol[:1]
@@ -1007,11 +987,10 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_IntegerLiteral.
     def visitOC_IntegerLiteral(self, ctx: LcypherParser.OC_IntegerLiteralContext):
         # # oC_IntegerLiteral : HexInteger
-        #           | OctalInteger # 八进制
-        #           | DecimalInteger #十进制
-        #           ; # 三种词法
+        #           | OctalInteger 
+        #           | DecimalInteger
         if ctx.DecimalInteger():
-            return str(ctx.DecimalInteger())  # 叶子节点
+            return str(ctx.DecimalInteger())
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_DoubleLiteral.
@@ -1025,7 +1004,7 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_SymbolicName.
     def visitOC_SymbolicName(self, ctx: LcypherParser.OC_SymbolicNameContext):
         return ctx.getText()
-        # return ctx.INT().getText() # 获取叶子节点的值
+        # return ctx.INT().getText()
 
     # Visit a parse tree produced by LcypherParser#oC_ReservedWord.
     def visitOC_ReservedWord(self, ctx: LcypherParser.OC_ReservedWordContext):

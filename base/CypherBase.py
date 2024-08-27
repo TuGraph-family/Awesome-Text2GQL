@@ -116,7 +116,7 @@ class CypherBase:
         self.template[self.token_dict["DESC"]].extend(["降序"])
         self.template[self.token_dict["ASC"]].extend(["升序", ""])
         self.template[self.token_dict["RETURN"]].extend(["返回子图", "返回相关的节点和关系", ""])
-        # schema相关的关键字模板
+        # schema
         self.schema_dict = {}
         self.load_dict_from_file(config.get_schema_dict_path())
 
