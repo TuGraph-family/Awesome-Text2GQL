@@ -2,13 +2,13 @@
 
 This is the repository for the text2GQL generator implementation. Awesome-Text2GQL aims to generate cyphers/gqls and corresponding prompts as training corpus for fine-tuning of large language models (LLMs). Based on TuGraph-DB, the training corpus helps to train the Text2GQL and Text2Cypher models that are suitable for TuGraph-DB query engine capabilities.
 
-![框架示意图](./images/image1.jpg)
+![image](./images/image1.jpg)
 
 
 ## Quick Start
 
 ### Preparation
-For Linux, it is recommended to use miniconda to manage your python environment while other tools may also works.
+For Linux, it is recommended to use miniconda to manage your python environment while other tools may also work.
 ```
 git clone https://github.com/TuGraph-contrib/Awesome-Text2GQL
 cd Awesome-Text2GQL
