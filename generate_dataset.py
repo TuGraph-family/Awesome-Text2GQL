@@ -49,12 +49,12 @@ def generate(config, input_path, output_path):
     json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
     with open(output_path, "a") as file:
         file.write(json_data)
-    print("JSON数据已写入文件。")
+    print("prompt and query have been written into JSON file: ",output_path)
 
 
 if __name__ == "__main__":
     current_working_directory = os.getcwd()
-    config_path = "/root/work_repo/Awesome-Text2GQL/config.json"
+    config_path = "config.json"
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
         config = Config(config_path)

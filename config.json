@@ -3,12 +3,12 @@
     "genQuery": false,
     "db_schema_path": {
         "common": "",
-        "yago": "/root/work_repo/data/schema/yago.json",
+        "yago": "./db_data/schema/yago.json",
         "movie": "./db_data/schema/movie_schema.json",
-        "the_three_body": "/root/work_repo/data/schema/the_three_body.json",
-        "finbench": "/root/work_repo/data/schema/finbench_schema.json",
-        "SNB": "/root/work_repo/data/schema/SNB_schema.json",
-        "three_kingdoms": "/root/work_repo/data/schema/three_kingdoms.json",
+        "the_three_body": "./db_data/schema/the_three_body.json",
+        "finbench": "./db_data/schema/finbench_schema.json",
+        "SNB": "./db_data/schema/SNB_schema.json",
+        "three_kingdoms": "./db_data/schema/three_kingdoms.json",
         "wandering_earth": "/root/work_repo/db_data/schema/wandering_earth.json"
     },
     "input_query_template_path": "./cypher_template/query_template.txt",

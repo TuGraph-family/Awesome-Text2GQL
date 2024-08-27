@@ -83,9 +83,22 @@ class Node:
                     )
                 self.desc = self.desc[:-1]
                 self.desc = self.desc + "的" + label_desc + self.variable
-        elif len(self.labels) == 0 and len(self.properties) == 0:
-            self.desc = "节点" + self.variable
-
+        elif len(self.labels) == 0:
+            if len(self.properties) == 0:
+                self.desc = "节点" + self.variable
+            else:
+                self.desc = ""
+                for property in self.properties:
+                    property_desc = self.cypher_base.get_schema_desc(property)
+                    self.desc = (
+                        self.desc
+                        + property_desc
+                        + "为"
+                        + self.text_properties[property]
+                        + ","
+                    )
+                self.desc = self.desc[:-1]
+                self.desc = self.desc + "的节点" + self.variable
         return self.desc
 
 
