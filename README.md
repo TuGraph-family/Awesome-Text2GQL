@@ -12,6 +12,7 @@ For Linux, it is recommended to use miniconda to manage your python environment 
 ```
 git clone https://github.com/TuGraph-contrib/Awesome-Text2GQL
 cd Awesome-Text2GQL
+mkdir output
 conda create --name antlr4 python=3.10 
 conda activate antlr4
 ```
