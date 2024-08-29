@@ -1,0 +1,7 @@
+MATCH (a {name: 'Carrie-Anne Moss'}) RETURN a.born AS born
+MATCH p = (michael {name: 'Michael Douglas'})-[]->() RETURN p
+MATCH (n:person) RETURN n.name, n.age ORDER BY n.name
+MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN p,e,neighbor
+MATCH (n)-[e:person_person]-(m) RETURN n,e,m
+MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m
+MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) RETURN m.title, r.stars
