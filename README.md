@@ -16,11 +16,16 @@ mkdir output
 conda create --name text2gql python=3.10 
 conda activate text2gql
 ```
-
-### Run
-Install related python dependency package and the run ./run.sh
+Install related python dependency packages
 ```
 python setup.py install -v
+sh ./run.sh
+```
+
+### Run
+1. Corpus generation
+Run ./run.sh
+```
 sh ./run.sh
 ```
 The generator can be run in two modes, that is generating query and generating prompt.
@@ -30,6 +35,18 @@ Change `GEN_QUERY` in the `run.sh` to make sure the generator works at the prope
 
 `GEN_QUERY=false` means generating prompts while taking the cyphers generated in the last step as input.
 
-## Attention
+2. Corpus generalization
+Set API-KEY via environment variables (recommended)
+```
+# replace YOUR_DASHSCOPE_API_KEY with your API-KEY
+echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
+source ~/.bashrc
+echo $DASHSCOPE_API_KEY
+```
+Run
+```
+python ./generalize_llm.py
+```
 
+## Attention
 This project is still under development, suggestions or issues are welcome.
