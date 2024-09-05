@@ -31,6 +31,6 @@ class CorpusPreProcess():
                 output.append(prompt)
         return output
 
-    def process(self,cypher,raw_prompts):
+    def process(self,raw_prompts):
         prompts=self.remove_process(raw_prompts)
         return prompts

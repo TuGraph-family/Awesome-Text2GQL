@@ -3,9 +3,10 @@ from http import HTTPStatus
 from dashscope import Generation
 from llm_process.PreProcess import CorpusPreProcess
 from llm_process.Status import Status
+import os
 
-def gen_prompt_directly(): # generate multi prompts according to input cypher
-    # 1. read files
+def gen_prompt_directly(input_path,output_path): # generate multi prompts according to input cypher
+    # 1. readt files
     with open(input_path, "rb") as file:
         for line in file:
             cypher=line.strip().decode('utf-8')
@@ -16,29 +17,63 @@ def gen_prompt_directly(): # generate multi prompts according to input cypher
             # 3. get response
             responses=call_with_messages(massages)
             if responses!='':
-                prompts=process_handle.process(cypher,responses)
+                prompts=process_handle.process(responses)
                 # 4. save to file
-                save2file(cypher,prompts)
+                save2file(cypher,prompts,output_path)
+
+# deprecated
+def general_prompt_directly(input_path,output_path): # generate multi prompts according to input prompt
+    # 1. read file
+    with open(input_path, 'r') as file:
+        lines = file.readlines()
+    db_id=lines[0].strip()
+    for i in range(1, len(lines), 2):
+        cypher=lines[i].strip()
+        prompt=lines[i+1].strip()
+        # 2. gen massages
+        massages=[{'role': 'system', 'content': "我希望你模仿一个图数据库使用者的口吻，将我给你的语句进一步泛化，不改变表达的含义，可以修改为问句或者陈述句，这是一个例子：Roy Redgrave的第二代及其所有后代有哪些？可以泛化为：怎么查询Roy Redgrave的所有后代？\n查询Roy Redgrave的所有后代。\n输出Roy Redgrave的所有后代。\nRoy Redgrave的所有后代有哪些？\n查找数据库中名叫Roy Redgrave的人的所有后代。Roy Redgrave有哪些后代？下面我将给你一些句子，请你按顺序为每条语句输出10条泛化的结果，不需要注明是对那条语句进行的泛化，结果直接按照换行符隔开，不要有空格"},
+                {'role': 'user', 'content': prompt}]
+            # 3. get response
+        responses=call_with_messages(massages)
+        # 4. postprocess and save
+        if responses!='':
+            prompts=process_handle.process(responses)
+            save2file(db_id,cypher,prompts,output_path)
+
+# recommended
+def generalization(input_path,output_path): # generate multi prompts according to input cypher and prompt
+    # 1. read file
+    with open(input_path, 'r') as file:
+        lines = file.readlines()
+    db_id=lines[0].strip()
+    for i in range(1, len(lines), 2):
+        cypher=lines[i].strip()
+        prompt=lines[i+1].strip()
+        content='cypher:'+cypher+',prompt'+prompt
+        # 2. gen massages
+        massages=[{'role': 'system', 'content': "我希望你模仿一个图数据库使用者的口吻，将我给你的prompt语句进一步泛化，不改变prompt表达的含义，并且泛化后的表达要符合我给你的cypher的含义，可以修改为问句或者陈述句，这是一个例子：cypher:MATCH (van:Person {name:'Vanessa Redgrave'})-[:HAS_CHILD*2..]-(n) RETURN n,prompt:Roy Redgrave的第二代及其所有后代有哪些？你应该给我：怎么查询Roy Redgrave的所有后代？\n查询Roy Redgrave的所有后代。\n输出Roy Redgrave的所有后代。\nRoy Redgrave的所有后代有哪些？\n查找数据库中名叫Roy Redgrave的人的所有后代。Roy Redgrave有哪些后代？下面我将给你一些句子，请你按顺序为每条语句输出10条泛化的结果，不需要注明是对那条语句进行的泛化，结果直接按照换行符隔开，不要有空格"},
+                {'role': 'user', 'content': content}]
+            # 3. get response
+        responses=call_with_messages(massages)
+        # 4. postprocess and save
+        if responses!='':
+            prompts=process_handle.process(responses)
+            save2file(db_id,cypher,prompts,output_path)
 
 # to do
-def generalization(cypher,prompt): # generate multi prompts according to input cypher and prompt
-    messages_list = [{'role': 'system', 'content': "我希望你帮助我提取cypher语句的实际含义和查询意图，我给你一个cypher语句，你应该给我5条表达查询意图的中文表达，每条中文的表达方式应该有差别，不需要给我每个步骤的解释，每条表达不需要加粗。这是一个例子：'MATCH (p:Person)-[:LIKES]->(b:Book) WHERE p <> b\nWITH p, collect(b) as books WHERE all(x in books WHERE x.rating > 4)\nRETURN p.name AS PersonName, books ORDER BY size(books) DESC'，你应该回答：找出那些至少有一本评分大于4的书的用户，并按照他们拥有的这类书籍的数量进行排序。\n查询所有评分大于4的人以及他们最喜欢的书籍\n找出那些对书籍评分大于4的人，并按他们喜欢的书籍数量排序，返回这些人及其相关书籍。\n"},
-                {'role': 'user', 'content': cypher}]
-    return messages_list
-
-def gen_prompt_with_keywords(cypher,keywords): # generate multi prompts according to input cypher and keywords
+def gen_prompt_with_keywords(input_path,output_path,cypher): # generate multi prompts according to input cypher and keywords
     messages_list = [{'role': 'system', 'content': "我希望你帮助我提取cypher语句的实际含义和查询意图，我给你一个cypher语句，你应该给我5条表达查询意图的中文表达，每条中文的表达方式应该有差别，不需要给我每个步骤的解释，每条表达不需要加粗。这是一个例子：'MATCH (p:Person)-[:LIKES]->(b:Book) WHERE p <> b\nWITH p, collect(b) as books WHERE all(x in books WHERE x.rating > 4)\nRETURN p.name AS PersonName, books ORDER BY size(books) DESC'，你应该回答：找出那些至少有一本评分大于4的书的用户，并按照他们拥有的这类书籍的数量进行排序。\n查询所有评分大于4的人以及他们最喜欢的书籍\n找出那些对书籍评分大于4的人，并按他们喜欢的书籍数量排序，返回这些人及其相关书籍。\n"},
                 {'role': 'user', 'content': cypher}]
     return messages_list
 
 # to do
-def gen_prompt_with_template(cypher):
+def gen_prompt_with_template(input_path,output_path,cypher):
     messages_list = [{'role': 'system', 'content': "我希望你帮助我提取cypher语句的实际含义和查询意图，我给你一个cypher语句，你应该给我5条表达查询意图的中文表达，每条中文的表达方式应该有差别，不需要给我每个步骤的解释，每条表达不需要加粗。这是一个例子：'MATCH (p:Person)-[:LIKES]->(b:Book) WHERE p <> b\nWITH p, collect(b) as books WHERE all(x in books WHERE x.rating > 4)\nRETURN p.name AS PersonName, books ORDER BY size(books) DESC'，你应该回答：找出那些至少有一本评分大于4的书的用户，并按照他们拥有的这类书籍的数量进行排序。\n查询所有评分大于4的人以及他们最喜欢的书籍\n找出那些对书籍评分大于4的人，并按他们喜欢的书籍数量排序，返回这些人及其相关书籍。\n"},
                 {'role': 'user', 'content': cypher}]
     return messages_list
-        
+
 def call_with_messages(messages):
-    response = Generation.call(model="qwen-turbo",
+    response = Generation.call(model="qwen-plus-0723",
                                messages=messages, 
                                seed=random.randint(1, 10000),
                                temperature=0.8,
@@ -57,25 +92,54 @@ def call_with_messages(messages):
         print('Failed!',messages[1]['content'])
         return ''
 
-def save2file(cypher,prompts):
+def save2file(db_id,cypher,prompts,output_path):
+    if not os.path.isfile(output_path):
+        with open(output_path, 'w',encoding="utf-8") as file:
+            file.write(db_id + "\n")
     with open(output_path, "a+", encoding="utf-8") as file:
         for prompt in prompts:
             file.write(cypher + "\n")
             file.write(prompt + "\n")
-    
-def main():
+    print('corpus have been written into the file:',output_path)
+
+def state_machine(input_path,output_path):
     if mode==Status.GEN_PROMPT_DIRECTLY.value[0]:
-        gen_prompt_directly()
+        gen_prompt_directly(input_path,output_path)
+    elif mode==Status.GENERAL_PROMPT_DIRECTLY.value[0]:
+        general_prompt_directly(input_path,output_path)
     elif mode==Status.GENERALIZATION.value[0]:
-        generalization()
+        generalization(input_path,output_path)
     elif mode==Status.GEN_PROMPT_WITH_KEYWORDS.value[0]:
-        gen_prompt_with_keywords()
+        gen_prompt_with_keywords(input_path,output_path)
     elif mode==Status.GEN_PROMPT_WITH_TEMPLATE.value[0]:
-        gen_prompt_with_template()
-        
+        gen_prompt_with_template(input_path,output_path)
+
+def main():
+    # 0. parse dir
+    if os.path.isfile(input_dir_or_path):
+        input_path=input_dir_or_path
+        dir, file_name = os.path.split(input_path)
+        file_base, file_extension = os.path.splitext(file_name)
+        output_path=os.path.join(output_dir,file_base+'_llm.txt')
+        # output_path=os.path.join(dir,file_base+'_llm.txt')
+        state_machine(input_path,output_path)
+    elif os.path.isdir(input_dir_or_path):
+        input_dir=input_dir_or_path
+        for root, dirs, file_names in os.walk(input_dir):
+            for file_name in file_names:
+                input_path=os.path.join(root, file_name)
+                file_base, file_extension = os.path.splitext(input_path)
+                if file_extension!='.txt':
+                    break
+                file_name=file_base+'_llm'+file_extension
+                output_path = os.path.join(root,file_name).replace(input_dir,output_dir)
+                state_machine(input_path,output_path)
+
 if __name__ == '__main__':
-    input_path='/root/work_repo/Awesome-Text2GQL/test_input.txt'
-    output_path='/root/work_repo/Awesome-Text2GQL/test_output.txt'
-    mode=100
+    # input can be a dir or a file_path，if dir, process all the .txt files in batch
+    input_dir_or_path='/root/work_repo/Awesome-Text2GQL/corpus/hand_marked/movie.txt'
+    output_dir='/root/work_repo/Awesome-Text2GQL/output'
+    assert(os.path.isdir(output_dir))
+    mode=300
     process_handle=CorpusPreProcess()
     main()
