@@ -49,6 +49,12 @@ def generate(config, input_path, output_path):
     with open(output_path, "a+") as file:
         file.write(json_data)
     print("prompt and query have been written into JSON file: ",output_path)
+    
+    with open(output_path, 'r') as file:
+        content = file.read()
+    modified_content = content.replace('][', ',')
+    with open(output_path, 'w') as file:
+        file.write(modified_content)
 
 def generate_trainset(config_path):
     config = Config(config_path)
