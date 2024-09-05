@@ -1,6 +1,6 @@
 {
     "db_id": "movie",
-    "genQuery": false,
+    "genQuery": true,
     "db_schema_path": {
         "common": "",
         "yago": "./db_data/schema/yago.json",
@@ -15,9 +15,7 @@
     "output_query_path": "./output/output_query.txt",
     "input_query_path": "./output/output_query.txt",
     "output_prompt_path": "./output/output_prompt.txt",
-    "input_corpus_path_list": [
-        "./output/output_prompt.txt"
-    ],
+    "input_corpus_dir_or_path": "./output/output_prompt.txt",
     "output_corpus_path": "./output/text2gql_train.json",
     "schema_dict_path": [
         "./base/template/schema_dict.txt"

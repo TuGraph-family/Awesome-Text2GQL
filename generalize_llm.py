@@ -4,6 +4,7 @@ from dashscope import Generation
 from llm_process.PreProcess import CorpusPreProcess
 from llm_process.Status import Status
 import os
+from generate_dataset import generate_trainset
 
 def gen_prompt_directly(input_path,output_path): # generate multi prompts according to input cypher
     # 1. readt files
@@ -134,12 +135,18 @@ def main():
                 file_name=file_base+'_llm'+file_extension
                 output_path = os.path.join(root,file_name).replace(input_dir,output_dir)
                 state_machine(input_path,output_path)
+    else:
+        print('[ERROR]: input file is not exsit',input_dir_or_path)
 
 if __name__ == '__main__':
     # input can be a dir or a file_path，if dir, process all the .txt files in batch
     input_dir_or_path='/root/work_repo/Awesome-Text2GQL/corpus/hand_marked/movie.txt'
     output_dir='/root/work_repo/Awesome-Text2GQL/output'
     assert(os.path.isdir(output_dir))
-    mode=300
+    mode=Status.GENERALIZATION.value[0]
     process_handle=CorpusPreProcess()
     main()
+    
+    # generate into json format, pls mak sure the input_corpus_dir_or_path in the config.json is correct!
+    config_path = "config.json"
+    generate_trainset(config_path)
