@@ -17,10 +17,16 @@ conda create --name text2gql python=3.10
 conda activate text2gql
 ```
 
-### Run
-Install related python dependency package and the run ./run.sh
+Install related python dependency packages
 ```
 python setup.py install -v
+sh ./run.sh
+```
+
+### Run
+#### Corpus generation
+Run ./run.sh
+```
 sh ./run.sh
 ```
 The generator can be run in two modes, that is generating query and generating prompt.
@@ -30,6 +36,25 @@ Change `GEN_QUERY` in the `run.sh` to make sure the generator works at the prope
 
 `GEN_QUERY=false` means generating prompts while taking the cyphers generated in the last step as input.
 
-## Attention
+#### Corpus generalization
+1. Apply API-KEY
 
+We build the corpus generalization architecture based on Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/create-and-authorize-a-ram-user?spm=a2c4g.11186623.0.0.4a514bb0RnwdnK) to apply the API-KEY.
+
+2. Set API-KEY via environment variables (recommended)
+
+```
+# replace YOUR_DASHSCOPE_API_KEY with your API-KEY
+echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
+source ~/.bashrc
+echo $DASHSCOPE_API_KEY
+```
+
+3. Run
+
+```
+python ./generalize_llm.py
+```
+
+## Attention
 This project is still under development, suggestions or issues are welcome.

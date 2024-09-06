@@ -23,7 +23,9 @@ class TransVisitor(LcypherVisitor):
         schema_path = self.config.get_schema_path(self.db_id)
         self.schema = Schema(self.db_id, schema_path)
         # queryGen
-        self.match_pattern_chain_label_list = []  # todo support multi matchpattern, save label list
+        self.match_pattern_chain_label_list = (
+            []
+        )  # todo support multi matchpattern, save label list
         self.gen_query_list = []
 
     def save2file(self):
@@ -117,7 +119,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext):
-        self.get_match_pattern_chain_label_list() 
+        self.get_match_pattern_chain_label_list()
         if len(self.match_pattern_chain_label_list) == 0:
             print("[WARNING]: No match pattern find in schema")
         text = ctx.getText()
@@ -144,7 +146,9 @@ class TransVisitor(LcypherVisitor):
                             for i in range(len(pattern_chain.chain_list)):
                                 label = match_chain_label[i]
                                 chain_node = pattern_chain.chain_list[i]
-                                instance_list = self.schema.get_instance_from_db(label, 1)
+                                instance_list = self.schema.get_instance_from_db(
+                                    label, 1
+                                )
                                 instance = instance_list[0]
                                 if chain_node.type == "node":
                                     query = query + "("
@@ -154,8 +158,8 @@ class TransVisitor(LcypherVisitor):
                                         query = query + ":" + label
                                     if len(chain_node.properties) != 0:
                                         query = query + "{"
-                                        properties = self.schema.get_properties_by_lable(
-                                            label
+                                        properties = (
+                                            self.schema.get_properties_by_lable(label)
                                         )
                                         # rand=random.randint(1, min(3,len(properties)))
                                         size = min(3, len(properties))
@@ -185,8 +189,8 @@ class TransVisitor(LcypherVisitor):
                                         query = query + ":" + label
                                     if len(chain_node.properties) != 0:
                                         query = query + "{"
-                                        properties = self.schema.get_properties_by_lable(
-                                            label
+                                        properties = (
+                                            self.schema.get_properties_by_lable(label)
                                         )
                                         size = min(3, len(properties))
                                         rand = random.randint(1, size)
@@ -218,7 +222,9 @@ class TransVisitor(LcypherVisitor):
         desc = ""
         if ctx.OPTIONAL_():
             desc = "以可选的方式"
-        match_desc = self.cypher_base.get_token_desc("MATCH")  # todo support OC_Hint、OC_WHERE
+        match_desc = self.cypher_base.get_token_desc(
+            "MATCH"
+        )  # todo support OC_Hint、OC_WHERE
         desc = desc + match_desc
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -292,9 +298,7 @@ class TransVisitor(LcypherVisitor):
                     query = query + " RETURN DISTINCT "
                 else:
                     query = query + " RETURN "
-                for (
-                    item
-                ) in self.return_body.return_items:
+                for item in self.return_body.return_items:
                     variable = item[0]
                     pattern_chain = self.pattern_chain_list[0]
                     index = pattern_chain.find_variable_index(variable)
@@ -302,7 +306,7 @@ class TransVisitor(LcypherVisitor):
                         label = self.match_pattern_chain_label_list[query_index][index]
                         if len(item) == 2 and item[1] == 0:
                             query = query + variable + ","
-                        elif len(item) == 2 and item[1] != 0: 
+                        elif len(item) == 2 and item[1] != 0:
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
                             if size <= 0:
@@ -987,7 +991,7 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_IntegerLiteral.
     def visitOC_IntegerLiteral(self, ctx: LcypherParser.OC_IntegerLiteralContext):
         # # oC_IntegerLiteral : HexInteger
-        #           | OctalInteger 
+        #           | OctalInteger
         #           | DecimalInteger
         if ctx.DecimalInteger():
             return str(ctx.DecimalInteger())

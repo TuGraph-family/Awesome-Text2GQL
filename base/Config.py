@@ -20,8 +20,8 @@ class Config:
     def get_input_query_template_path(self):
         return self.config_data.get("input_query_template_path")
 
-    def get_input_corpus_list(self):
-        return self.config_data.get("input_corpus_path_list")
+    def get_input_corpus_dir_or_path(self):
+        return self.config_data.get("input_corpus_dir_or_path")
 
     def get_output_path(self):
         if self.gen_query:
@@ -40,4 +40,4 @@ class Config:
 
     def get_schema_path(self, db_id):
         schema_dict = self.config_data.get("db_schema_path")
-        return schema_dict[db_id] # todo error check
+        return schema_dict[db_id]  # todo error check

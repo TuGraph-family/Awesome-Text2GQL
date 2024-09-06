@@ -47,9 +47,33 @@ def generate(config, input_path, output_path):
                     data_temp = {"input": str(line.decode("utf-8"))}
                     data_list[int(index / 2)].update(data_temp)
     json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
-    with open(output_path, "a") as file:
+    with open(output_path, "a+") as file:
         file.write(json_data)
-    print("prompt and query have been written into JSON file: ",output_path)
+    print("prompt and query have been written into JSON file: ", output_path)
+
+    with open(output_path, "r") as file:
+        content = file.read()
+    modified_content = content.replace("][", ",")
+    with open(output_path, "w") as file:
+        file.write(modified_content)
+
+
+def generate_trainset(config_path):
+    config = Config(config_path)
+    output_path = config.get_output_corpus()
+    input_dir_or_path = config.get_input_corpus_dir_or_path()
+    if os.path.isdir(input_dir_or_path):
+        for root, dirs, file_names in os.walk(input_dir_or_path):
+            for file_name in file_names:
+                input_path = os.path.join(root, file_name)
+                file_base, file_extension = os.path.splitext(input_path)
+                if file_extension != ".txt":
+                    break
+                generate(config, input_path, output_path)
+    elif os.path.isfile(input_dir_or_path):
+        generate(config, input_dir_or_path, output_path)
+    else:
+        print("[ERROR]: input file is not exsit", input_dir_or_path)
 
 
 if __name__ == "__main__":
@@ -57,12 +81,4 @@ if __name__ == "__main__":
     config_path = "config.json"
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
-        config = Config(config_path)
-    else:
-        config = Config(config_path)
-
-    input_path_list = config.get_input_corpus_list()
-    output_path = config.get_output_corpus()
-
-    for input_path in input_path_list:
-        generate(config, input_path, output_path)
+    generate_trainset(config_path)
