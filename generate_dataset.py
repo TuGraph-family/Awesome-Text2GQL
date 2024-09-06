@@ -4,6 +4,7 @@ from base.Config import Config
 import sys
 import os
 
+
 def generate(config, input_path, output_path):
     with open(input_path, "rb") as file:
         for line in file:
@@ -48,31 +49,33 @@ def generate(config, input_path, output_path):
     json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
     with open(output_path, "a+") as file:
         file.write(json_data)
-    print("prompt and query have been written into JSON file: ",output_path)
-    
-    with open(output_path, 'r') as file:
+    print("prompt and query have been written into JSON file: ", output_path)
+
+    with open(output_path, "r") as file:
         content = file.read()
-    modified_content = content.replace('][', ',')
-    with open(output_path, 'w') as file:
+    modified_content = content.replace("][", ",")
+    with open(output_path, "w") as file:
         file.write(modified_content)
+
 
 def generate_trainset(config_path):
     config = Config(config_path)
     output_path = config.get_output_corpus()
-    input_dir_or_path=config.get_input_corpus_dir_or_path()
+    input_dir_or_path = config.get_input_corpus_dir_or_path()
     if os.path.isdir(input_dir_or_path):
         for root, dirs, file_names in os.walk(input_dir_or_path):
             for file_name in file_names:
-                input_path=os.path.join(root, file_name)
+                input_path = os.path.join(root, file_name)
                 file_base, file_extension = os.path.splitext(input_path)
-                if file_extension!='.txt':
+                if file_extension != ".txt":
                     break
                 generate(config, input_path, output_path)
     elif os.path.isfile(input_dir_or_path):
         generate(config, input_dir_or_path, output_path)
     else:
-        print('[ERROR]: input file is not exsit',input_dir_or_path)
-    
+        print("[ERROR]: input file is not exsit", input_dir_or_path)
+
+
 if __name__ == "__main__":
     current_working_directory = os.getcwd()
     config_path = "config.json"

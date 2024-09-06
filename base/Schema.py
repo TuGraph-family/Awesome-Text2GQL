@@ -30,9 +30,7 @@ class Schema:
         self.edge_dict = {}
         self.db_id = db_id
         self.schema_path = schema_path
-        self.dir_path = os.path.dirname(
-            os.path.dirname(os.path.abspath(schema_path))
-        ) 
+        self.dir_path = os.path.dirname(os.path.dirname(os.path.abspath(schema_path)))
         self.is_parse_finished = False
         self.parse_schema()
 

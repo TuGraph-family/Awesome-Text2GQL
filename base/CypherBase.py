@@ -107,7 +107,6 @@ class CypherBase:
         ]
         self.token_dict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4}
 
-
         self.template = [[] for _ in range(len(self.token_dict))]
         self.template[self.token_dict["MATCH"]].extend(
             ["找到", "获得", "查询", "查找图数据库中", "查找数据库中", "从数据库中查找", "在图中查找"]
