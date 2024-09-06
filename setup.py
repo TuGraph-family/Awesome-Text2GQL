@@ -2,7 +2,6 @@ from setuptools import find_packages, setup
 from typing import Dict, List
 from collections import OrderedDict
 
-
 class SetupSpec:
     def __init__(self) -> None:
         self.extras: Dict[str, List[str]] = {}

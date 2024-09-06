@@ -16,6 +16,7 @@ mkdir output
 conda create --name text2gql python=3.10 
 conda activate text2gql
 ```
+
 Install related python dependency packages
 ```
 python setup.py install -v

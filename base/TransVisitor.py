@@ -8,7 +8,6 @@ from base import Config
 import copy
 import random
 
-
 class TransVisitor(LcypherVisitor):
     def __init__(self, config: Config):
         self.prompt = ""
