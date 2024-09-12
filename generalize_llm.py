@@ -5,6 +5,7 @@ from llm_process.PreProcess import CorpusPreProcess
 from llm_process.Status import Status
 import os
 from generate_dataset import generate_trainset
+import copy
 
 
 def gen_prompt_directly(
@@ -89,16 +90,30 @@ def generalization(
             save2file(db_id, cypher, prompts, output_path)
 
 
-# to do
-def gen_prompt_with_template(input_path, output_path, cypher):
-    messages_list = [
-        {
-            "role": "system",
-            "content": "我希望你帮助我提取cypher语句的实际含义和查询意图，我给你一个cypher语句，你应该给我5条表达查询意图的中文表达，每条中文的表达方式应该有差别，不需要给我每个步骤的解释，每条表达不需要加粗。这是一个例子：'MATCH (p:Person)-[:LIKES]->(b:Book) WHERE p <> b\nWITH p, collect(b) as books WHERE all(x in books WHERE x.rating > 4)\nRETURN p.name AS PersonName, books ORDER BY size(books) DESC'，你应该回答：找出那些至少有一本评分大于4的书的用户，并按照他们拥有的这类书籍的数量进行排序。\n查询所有评分大于4的人以及他们最喜欢的书籍\n找出那些对书籍评分大于4的人，并按他们喜欢的书籍数量排序，返回这些人及其相关书籍。\n",
-        },
-        {"role": "user", "content": cypher},
-    ]
-    return messages_list
+def gen_prompt_with_template(input_path, output_path):
+    db_id,tmplt_cypher_list,tmplt_prompt_list,cyphers_list=load_file_gen_prompt_with_template(input_path)
+    for index, tmplt_cypher in enumerate(tmplt_cypher_list):
+        tmplt_prompt=tmplt_prompt_list[index]
+        cyphers=cyphers_list[index]
+        for cypher_trunk in chunk_list(cyphers):
+            cypher_content=''
+            for cypher in cypher_trunk:
+                cypher_content=cypher_content+cypher+'\n'
+            content='template:\n'+tmplt_cypher+','+tmplt_prompt+'cyphers:\n'+cypher_content
+            massages = [
+                {
+                    "role": "system",
+                    "content": "设想你是一个图数据库的前端，用户给你一个提问，你要给出对应的cypher语句。现在需要你反过来，将我给你的cypher语句翻译为使用者可能输入的提问，要求符合图数据库使用者的口吻，尽量准确地符合cypher含义，不要遗漏cypher中关键字如DISTINCT、OPTIONAL等，可以修改为问句或者陈述句，必须是中文。我每次会给你一个跟需要翻译的cypher相同句式的template帮助你理解cypher的含义。这是一个例子：\ntempalte:\nMATCH (m:keyword{name: 'news report'})<-[:has_keyword]-(a:movie) RETURN a,m ,关键词是news report的电影有哪些？返回相应的节点。cypher:MATCH (m:movie{title: 'The Dark Knight'})<-[:write]-(a:person) RETURN a,m\nMATCH (m:user{login: 'Sherman'})<-[:is_friend]-(a:user) RETURN a,m\n你应当回答：电影The Dark Knight的作者有哪些？返回相关节点。\n在图中找到登录用户Sheman的朋友节点，返回相关的节点信息。\n下面请你对cyphers逐条cypher语句输出翻译的结果，不需要注明是对哪条语句进行的泛化，结果按照换行符隔开，注意句子应当有标点符号",
+                },
+                {"role": "user", "content": content},
+            ]
+            # 3. get response
+            responses = call_with_messages(massages)
+            # 4. postprocess and save
+            if responses != "":
+                prompts = process_handle.process(responses)
+                save2file_t(db_id, cypher_trunk, prompts, output_path)
+    print("corpus have been written into the file:", output_path)
 
 
 def call_with_messages(messages):
@@ -128,6 +143,30 @@ def call_with_messages(messages):
         print("Failed!", messages[1]["content"])
         return ""
 
+def load_file_gen_prompt_with_template(input_path):
+    with open(input_path, "r") as file:
+        lines = file.readlines()
+    db_id = lines[0].strip()
+    index=1
+    tmplt_cypher_list=[]
+    tmplt_prompt_list=[]
+    cyphers_list=[]
+    while(len(lines[index:])>3 and lines[index].strip()=='template'):
+        tmplt_cypher_list.append(lines[index+1].strip())
+        tmplt_prompt_list.append(lines[index+2].strip())
+        if lines[index+3].strip()!='cyphers':
+            print('[ERROR]: the input file format is not right as the input of GEN_PROMPT_WITH_TEMPLATE')
+        cyphers=[]
+        index=index+4
+        for line in lines[index:]:
+            if lines[index].strip()=='END':
+                index=index+1
+                cyphers_list.append(copy.deepcopy(cyphers))
+                break
+            index=index+1
+            cyphers.append(line.strip())
+    return db_id,tmplt_cypher_list,tmplt_prompt_list,cyphers_list
+    
 
 def save2file(db_id, cypher, prompts, output_path):
     if not os.path.isfile(output_path):
@@ -139,6 +178,18 @@ def save2file(db_id, cypher, prompts, output_path):
             file.write(prompt + "\n")
     print("corpus have been written into the file:", output_path)
 
+def save2file_t(db_id, cyphers, prompts, output_path):
+    if not os.path.isfile(output_path):
+        with open(output_path, "w", encoding="utf-8") as file:
+            file.write(db_id + "\n")
+    with open(output_path, "a+", encoding="utf-8") as file:
+        for index,prompt in enumerate(prompts):
+            file.write(cyphers[index] + "\n")
+            file.write(prompt + "\n")
+    
+def chunk_list(lst, chunk_size=5):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]
 
 def state_machine(input_path, output_path):
     if mode == Status.GEN_PROMPT_DIRECTLY.value[0]:
@@ -167,7 +218,7 @@ def main():
                 file_base, file_extension = os.path.splitext(input_path)
                 if file_extension != ".txt":
                     break
-                file_name = file_base + "_llm" + file_extension
+                file_name = file_base + suffix + file_extension
                 output_path = os.path.join(root, file_name).replace(
                     input_dir, output_dir
                 )
@@ -179,12 +230,12 @@ def main():
 if __name__ == "__main__":
     # input can be a dir or a file_path，if dir, process all the .txt files in batch
     input_dir_or_path = (
-        "/root/work_repo/Awesome-Text2GQL/test_input.txt"
+        "./test_input.txt"
     )
-    output_dir = "/root/work_repo/Awesome-Text2GQL/output"
-    suffix='_llm'
+    output_dir = "./output"
+    suffix='_t'
     assert os.path.isdir(output_dir)
-    mode = Status.GENERALIZATION.value[0]
+    mode = Status.GEN_PROMPT_WITH_TEMPLATE.value[0]
     process_handle = CorpusPreProcess()
     main()
 
