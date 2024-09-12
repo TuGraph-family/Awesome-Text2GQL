@@ -123,6 +123,7 @@ class TransVisitor(LcypherVisitor):
         if len(self.match_pattern_chain_label_list) == 0:
             print("[WARNING]: No match pattern find in schema")
         text = ctx.getText()
+        self.chain_instance_list=self.schema.get_instance_of_pattern_match_list(self.match_pattern_chain_label_list)
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -134,6 +135,7 @@ class TransVisitor(LcypherVisitor):
                     for index, match_chain_label in enumerate(
                         self.match_pattern_chain_label_list
                     ):
+                        chain_instance=self.chain_instance_list[index]
                         pattern_chain = self.pattern_chain_list[0]
                         gen_num = 1
                         for i in range(gen_num):
@@ -146,10 +148,7 @@ class TransVisitor(LcypherVisitor):
                             for i in range(len(pattern_chain.chain_list)):
                                 label = match_chain_label[i]
                                 chain_node = pattern_chain.chain_list[i]
-                                instance_list = self.schema.get_instance_from_db(
-                                    label, 1
-                                )
-                                instance = instance_list[0]
+                                instance=chain_instance[i]
                                 if chain_node.type == "node":
                                     query = query + "("
                                     if chain_node.variable != "":
@@ -158,25 +157,19 @@ class TransVisitor(LcypherVisitor):
                                         query = query + ":" + label
                                     if len(chain_node.properties) != 0:
                                         query = query + "{"
-                                        properties = (
-                                            self.schema.get_properties_by_lable(label)
-                                        )
-                                        # rand=random.randint(1, min(3,len(properties)))
-                                        size = min(3, len(properties))
-                                        assert size >= 0
+                                        size = max(0,min(2, len(instance)-1))
                                         rand = random.randint(1, size)
-                                        for j in range(rand):  # rand!=0
-                                            property_text = instance[properties[j]]
-                                            property_text = f'"{property_text}"'
-                                            query = (
-                                                query
-                                                + properties[j]
-                                                + ":"
-                                                + property_text
-                                                + ","
-                                            )
-                                        query = query[:-1]
-                                        query = query + "}"
+                                        property_key = list(instance.keys())[rand]
+                                        property_text = instance[property_key]
+                                        if type(property_text)==str:
+                                            property_text=f'"{property_text}"'
+                                        query = (
+                                            query
+                                            + property_key
+                                            + ": "
+                                            + str(property_text)
+                                            + "}"
+                                        )
                                     query = query + ")"
                                 if chain_node.type == "edge":
                                     if chain_node.left_arrow == True:
@@ -189,22 +182,20 @@ class TransVisitor(LcypherVisitor):
                                         query = query + ":" + label
                                     if len(chain_node.properties) != 0:
                                         query = query + "{"
-                                        properties = (
-                                            self.schema.get_properties_by_lable(label)
-                                        )
-                                        size = min(3, len(properties))
+                                        size = min(3, len(instance))
+                                        assert size >= 0
                                         rand = random.randint(1, size)
-                                        property_text = instance[properties[rand]]
-                                        property_text = f'"{property_text}"'
+                                        property_key = list(instance.keys())[rand]
+                                        property_text = instance[property_key]
+                                        if type(property_text)==str:
+                                            property_text=f'"{property_text}"'
                                         query = (
                                             query
-                                            + properties[j]
+                                            + property_key
                                             + ":"
-                                            + property_text
-                                            + ","
+                                            + str(property_text)
+                                            + "}"
                                         )
-                                        query = query[:-1]
-                                        query += "}"
                                     if chain_node.right_arrow == True:
                                         query += "]->"
                                     else:
@@ -221,10 +212,13 @@ class TransVisitor(LcypherVisitor):
         # oC_Match : ( OPTIONAL_ SP )? MATCH SP? oC_Pattern ( SP? oC_Hint )* ( SP? oC_Where )? ;
         desc = ""
         if ctx.OPTIONAL_():
-            desc = "以可选的方式"
+            desc = self.cypher_base.get_token_desc(
+            "OPTIONAL"
+        )
         match_desc = self.cypher_base.get_token_desc(
             "MATCH"
-        )  # todo support OC_Hint、OC_WHERE
+        )
+        # todo support OC_Hint、OC_WHERE
         desc = desc + match_desc
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -299,36 +293,37 @@ class TransVisitor(LcypherVisitor):
                 else:
                     query = query + " RETURN "
                 for item in self.return_body.return_items:
-                    variable = item[0]
+                    tmp_variable = item[0]
+                    tmp_property = item[1]
                     pattern_chain = self.pattern_chain_list[0]
-                    index = pattern_chain.find_variable_index(variable)
+                    index = pattern_chain.find_variable_index(tmp_variable)
                     if index != -1:
                         label = self.match_pattern_chain_label_list[query_index][index]
-                        if len(item) == 2 and item[1] == 0:
-                            query = query + variable + ","
-                        elif len(item) == 2 and item[1] != 0:
+                        if len(item) == 2 and tmp_property == 0:
+                            query = query + tmp_variable + ","
+                        elif len(item) == 2 and tmp_property != 0:
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
                             if size <= 0:
-                                query = query + variable + ","
+                                query = query + tmp_variable + ","
                             else:
                                 rand = random.randint(0, size)
                                 property = properties[rand]
-                                query = query + variable + "." + property + ","
+                                query = query + tmp_variable + "." + property + ","
                             property_list.append((label, property))
                         # elif(len(item)==3 and item[1]==0):
                         #     query=query+variable+"AS"+variable+","
-                        elif len(item) == 3 and item[1] != 0:
+                        elif len(item) == 3 and tmp_property != 0:
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
                             if size <= 0:
-                                query = query + variable + ","
+                                query = query + tmp_variable + ","
                             else:
                                 rand = random.randint(0, size)
                                 property = properties[rand]
                                 query = (
                                     query
-                                    + variable
+                                    + tmp_variable
                                     + "."
                                     + property
                                     + " AS "
@@ -337,7 +332,7 @@ class TransVisitor(LcypherVisitor):
                                 )
                             property_list.append((label, property))
                     elif index == -1:
-                        query = query + variable + ","  # RETURN p
+                        query = query + tmp_variable + ","  # RETURN p
                 query = query[:-1]
                 # orderby
                 if self.return_body.order_by != []:
@@ -346,9 +341,9 @@ class TransVisitor(LcypherVisitor):
                         range(0, len(property_list)), len(self.return_body.order_by)
                     )
                     for i in range(len(self.return_body.order_by)):
-                        variable = self.return_body.order_by[i][0]
+                        tmp_variable = self.return_body.order_by[i][0]
                         property = property_list[rand_nums[i]]  # (label,property)
-                        query = query + variable + "." + property[1]
+                        query = query + tmp_variable + "." + property[1]
                         if random.random() > 0.8:
                             query = query + " DESC"
                         elif random.random() > 0.9:

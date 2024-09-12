@@ -37,6 +37,9 @@ Change `GEN_QUERY` in the `run.sh` to make sure the generator works at the prope
 `GEN_QUERY=false` means generating prompts while taking the cyphers generated in the last step as input.
 
 #### Corpus generalization
+
+Before you run corpus generation, please run corpus generation above to make sure the input file of this step exsits.
+
 1. Apply API-KEY
 
 We build the corpus generalization architecture based on Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/create-and-authorize-a-ram-user?spm=a2c4g.11186623.0.0.4a514bb0RnwdnK) to apply the API-KEY.
@@ -55,6 +58,8 @@ echo $DASHSCOPE_API_KEY
 ```
 python ./generalize_llm.py
 ```
+### Format of input
+
 
 ## Attention
 This project is still under development, suggestions or issues are welcome.

@@ -17,13 +17,8 @@ class Status(Enum):
         "generalization",
         "generate multi prompts according to input cypher and prompt",
     )
-    GEN_PROMPT_WITH_KEYWORDS = (
-        400,
-        "gen_prompt_with_keywords",
-        "generate multi prompts according to input cypher and keywords",
-    )
     GEN_PROMPT_WITH_TEMPLATE = (
-        500,
+        400,
         "gen_prompt_with_template",
         "# generate multi prompts according to input cypher, tempelate cypher and template prompt",
     )
