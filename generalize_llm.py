@@ -113,7 +113,7 @@ def gen_prompt_with_template(input_path, output_path):
             if responses != "":
                 prompts = process_handle.process(responses)
                 save2file_t(db_id, cypher_trunk, prompts, output_path)
-    print("corpus have been written into the file:", output_path)
+        print("corpus have been written into the file:", output_path)
 
 
 def call_with_messages(messages):
@@ -131,17 +131,20 @@ def call_with_messages(messages):
         print(content)
         return content
     else:
-        print(
-            "Request id: %s, Status code: %s, error code: %s, error message: %s"
-            % (
-                response.request_id,
-                response.status_code,
-                response.code,
-                response.message,
+        if response.code== 429: #Requests rate limit exceeded
+            call_with_messages(messages)
+        else:
+            print(
+                "Request id: %s, Status code: %s, error code: %s, error message: %s"
+                % (
+                    response.request_id,
+                    response.status_code,
+                    response.code,
+                    response.message,
+                )
             )
-        )
-        print("Failed!", messages[1]["content"])
-        return ""
+            print("Failed!", messages[1]["content"])
+            return ""
 
 def load_file_gen_prompt_with_template(input_path):
     with open(input_path, "r") as file:
@@ -173,6 +176,8 @@ def save2file(db_id, cypher, prompts, output_path):
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(db_id + "\n")
     with open(output_path, "a+", encoding="utf-8") as file:
+        if os.path.getsize(output_path) == 0:
+            file.write(db_id + "\n")
         for prompt in prompts:
             file.write(cypher + "\n")
             file.write(prompt + "\n")
@@ -183,6 +188,8 @@ def save2file_t(db_id, cyphers, prompts, output_path):
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(db_id + "\n")
     with open(output_path, "a+", encoding="utf-8") as file:
+        if os.path.getsize(output_path) == 0:
+            file.write(db_id + "\n")
         for index,prompt in enumerate(prompts):
             file.write(cyphers[index] + "\n")
             file.write(prompt + "\n")
@@ -230,7 +237,7 @@ def main():
 if __name__ == "__main__":
     # input can be a dir or a file_path，if dir, process all the .txt files in batch
     input_dir_or_path = (
-        "./test_input.txt"
+        "./output/output_query.txt"
     )
     output_dir = "./output"
     suffix='_t'

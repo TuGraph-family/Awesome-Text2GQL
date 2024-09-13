@@ -31,8 +31,10 @@ class TransVisitor(LcypherVisitor):
     def save2file(self):
         if self.gen_query:
             with open(self.config.get_output_path(), "a", encoding="utf-8") as file:
+                file.write('cyphers' + "\n")
                 for query in self.gen_query_list:
                     file.write(query + "\n")
+                file.write('END' + "\n")
         else:
             with open(self.config.get_output_path(), "a", encoding="utf-8") as file:
                 file.write(self.query + "\n")

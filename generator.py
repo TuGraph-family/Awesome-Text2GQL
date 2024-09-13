@@ -18,17 +18,23 @@ def generate(config):
         input_path = config.get_input_query_template_path()  # generate cypher
 
     with open(input_path, "rb") as file:
-        for i, line in enumerate(file, start=1):
-            line = line.strip()
-            print(f"line {i}: {line.decode('utf-8')}")
-            input_stream = CypherStream(line)
+        lines = file.readlines()
+        for i in range(0, len(lines), 2):
+            cypher = lines[i].strip()
+            prompt = lines[i + 1].strip()
+            print(f"line {i+1}: {cypher.decode('utf-8')}")
+            with open(config.get_output_path(), "a", encoding="utf-8") as file:
+                file.write('template' + "\n")
+                file.write(cypher.decode('utf-8')+'\n')
+                file.write(prompt.decode('utf-8')+'\n')
+            
+            input_stream = CypherStream(cypher)
             lexer = LcypherLexer(input_stream)
             token_stream = CommonTokenStream(lexer)
             parser = LcypherParser(token_stream)
             tree = parser.oC_Cypher()
-
             if parser.getNumberOfSyntaxErrors() > 0:
-                print(f"line {i}: grammar check failed!")
+                print(f"line {i+1}: grammar check failed!")
                 continue
             visitor = TransVisitor(config)
             visitor.visit(tree)
