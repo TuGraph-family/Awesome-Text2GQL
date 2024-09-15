@@ -1,0 +1,8 @@
+movie
+template
+MATCH (m:genre{name: "Adventure"})<-[:has_genre]-(a:movie) RETURN a,m
+在图中查找Adventure流派的电影有哪些？返回相关节点。
+cyphers
+OPTIONAL MATCH (m:keyword{name: "news report"})<-[:has_keyword]-(a:movie) RETURN a,m
+MATCH (m:movie{title: "The Dark Knight Rises"})<-[:acted_in]-(a:person) RETURN a,m
+END

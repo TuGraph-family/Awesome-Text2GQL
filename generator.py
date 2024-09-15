@@ -6,16 +6,26 @@ from utils.CypherStream import CypherStream
 from base.TransVisitor import TransVisitor
 from base.Config import Config
 import sys
+import os
 
 
 def generate(config):
     input_path = ""
     if config.gen_query == False:
         input_path = config.get_input_query_path()  # translate
+        # if file exsits , the content would be cleaned
         with open(config.get_output_path(), "w", encoding="utf-8") as file:
             file.write(config.get_db_id() + "\n")
     else:
         input_path = config.get_input_query_template_path()  # generate cypher
+        output_path=config.get_output_path()
+        if not os.path.exists(output_path):
+            with open(output_path, 'w') as file:
+                pass
+        with open(output_path, 'r+') as file:
+            content = file.read()
+            if not content:
+                file.write(config.get_db_id() + "\n")
 
     with open(input_path, "rb") as file:
         lines = file.readlines()

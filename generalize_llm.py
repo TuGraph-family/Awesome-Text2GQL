@@ -150,6 +150,8 @@ def load_file_gen_prompt_with_template(input_path):
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
+    if db_id=='template':
+        print('[ERROR]: the input file format is not right, pls give schema name!')
     index=1
     tmplt_cypher_list=[]
     tmplt_prompt_list=[]

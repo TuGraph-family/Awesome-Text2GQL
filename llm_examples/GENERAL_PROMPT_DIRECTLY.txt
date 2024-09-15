@@ -1,0 +1,9 @@
+与Laurence Fishburne有关的电影有哪些？
+Carrie-Anne Moss与哪些不同的节点存在关系？
+Laurence Fishburne出演或参与的电影（仅限电影节点）有哪些？
+所有人中有哪些不同的出生年份？
+怎么查询Carrie-Anne Moss的出生年份？
+Laurence Fishburne与电影之间的关系类型有哪些？
+查询所有电影的标题。
+出演《黑客帝国》的演员有哪些？
+查询在《黑客帝国》中，演员们分别扮演了什么角色？
