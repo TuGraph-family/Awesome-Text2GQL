@@ -93,7 +93,7 @@ sh ./scripts/gen_question_directly_llm.sh
 Set `GEN_QUERY=false`  to generate questions using translator of the generation module based on Antlr4.
 
 ```
-scripts/gen_question.sh
+sh ./scripts/gen_question.sh
 ```
 
 ##### Corpus generalization
@@ -115,7 +115,7 @@ sh ./scripts/general_questions_directly_llm.sh
 transform the corpus generated above into model training format.
 
 ```
-sh ./scripts/scripts/generate_dataset.sh
+sh ./scripts/generate_dataset.sh
 ```
 
 
