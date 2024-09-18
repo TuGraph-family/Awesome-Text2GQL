@@ -30,7 +30,7 @@ sh ./run.sh
 
 #### Setup for LLMs
 
-If you want to run 
+To run generating qusetions and generalization functions based on LLMs，apply API-KEY before you run the whole flow.
 
 1. Apply API-KEY
 
@@ -49,7 +49,7 @@ echo $DASHSCOPE_API_KEY
 
 #### The whole flow
 
-Make sure you have done the preparation above. To experience the whole flow recommended, you can run as below：
+Make sure you have done the preparations above. To experience the whole flow recommended, you can run as below：
 
 ```
 sh ./scripts/run_the_whole_flow.sh
@@ -70,7 +70,7 @@ The following steps will be exexcted in sequence:
 sh ./scripts/gen_query.sh
 ```
 
-The corpus generation module can be run in two modes, that is generating querys by instantiaor and generating questions by translator.
+The corpus generation module can be run in two modes, that is generating querys by instantiator and generating questions by translator.
 
 Set `GEN_QUERY=true` to generate querys according to templates in batch.
 
