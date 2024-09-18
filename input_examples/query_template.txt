@@ -1,0 +1,2 @@
+MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born
+查找Carrie-Anne Moss的出生年份

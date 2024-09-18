@@ -1,0 +1,5 @@
+movie
+MATCH (m:genre{name: "Adventure"})<-[:has_genre]-(a:movie) RETURN a,m
+在图中查找Adventure流派的电影有哪些？返回相关节点。
+CREATE (n:person {id:2001, name: 'Andres'})
+创建一个标签为person的节点，其id属性为2001，name属性值为Anders。
