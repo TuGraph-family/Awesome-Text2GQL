@@ -55,7 +55,7 @@ Make sure you have done the preparations above. To experience the whole flow rec
 sh ./scripts/run_the_whole_flow.sh
 ```
 
-The following steps will be exexcted in sequence:
+The following steps will be execuated in sequence:
 
 - generate cyphers by generation module based on Antlr4 with templates as input.
 - generate questions by generalization module based on LLMs with the cyphers generated in the last step as input.
