@@ -8,8 +8,8 @@ class Node:
     def __init__(self, node_id, cypher_base: CypherBase):
         self.node_id = node_id
         self.variable = ""
-        self.properties = []
-        self.text_properties = {}
+        self.properties = [] # keynames
+        self.text_properties = {} # dict:keyname,property
         self.labels = []
         self.desc = ""
         self.type = "node"
@@ -24,7 +24,7 @@ class Node:
     def add_property(self, property):
         self.properties.append(property)
 
-    def addLable(self, lable):
+    def add_lable(self, lable):
         self.labels.append(lable)
 
     def add_properties(self, properties, text_properties):

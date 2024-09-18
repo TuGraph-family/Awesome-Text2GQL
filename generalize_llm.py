@@ -1,12 +1,14 @@
 import random
 from http import HTTPStatus
 from dashscope import Generation
-from llm_process.PreProcess import CorpusPreProcess
+from llm_process.PreProcess import CorpusPostProcess
 from llm_process.Status import Status
-import os
+from base.Config import Config
 from generate_dataset import generate_trainset
+from tqdm import tqdm
+import os
 import copy
-
+import sys
 
 def gen_prompt_directly(
     input_path, output_path
@@ -15,7 +17,7 @@ def gen_prompt_directly(
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
-    for i in range(1, len(lines)):
+    for i in tqdm(range(1, len(lines))):
         cypher = lines[i].strip()
         # 2. gen massages
         # massages=[{'role': 'system', 'content': "我希望你帮助我做一些cypher语句的翻译工作，我给你一个cypher语句，你给我对应的中文，下面是两个例子，提问：MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars\n回答：Michael讨厌的电影有哪些？\n提问：MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars\n\n回答：查找用户Michael评分低于3星的电影，返回电影的标题和评分。之后我将给你一些cypher，请你帮我翻译一下，最好可以翻译成问句\n"},
@@ -30,7 +32,7 @@ def gen_prompt_directly(
         # 3. get response
         responses = call_with_messages(massages)
         if responses != "":
-            prompts = process_handle.process(responses)
+            prompts = process_handler.process(responses)
             # 4. save to file
         save2file(db_id, cypher, prompts, output_path)
 
@@ -43,7 +45,7 @@ def general_prompt_directly(
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
-    for i in range(1, len(lines), 2):
+    for i in tqdm(range(1, len(lines), 2)):
         cypher = lines[i].strip()
         prompt = lines[i + 1].strip()
         # 2. gen massages
@@ -58,7 +60,7 @@ def general_prompt_directly(
         responses = call_with_messages(massages)
         # 4. postprocess and save
         if responses != "":
-            prompts = process_handle.process(responses)
+            prompts = process_handler.process(responses)
             save2file(db_id, cypher, prompts, output_path)
 
 
@@ -70,7 +72,7 @@ def generalization(
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
-    for i in range(1, len(lines), 2):
+    for i in tqdm(range(1, len(lines), 2)):
         cypher = lines[i].strip()
         prompt = lines[i + 1].strip()
         content = "cypher:" + cypher + ",prompt" + prompt
@@ -86,13 +88,14 @@ def generalization(
         responses = call_with_messages(massages)
         # 4. postprocess and save
         if responses != "":
-            prompts = process_handle.process(responses)
+            prompts = process_handler.process(responses)
             save2file(db_id, cypher, prompts, output_path)
 
 
 def gen_prompt_with_template(input_path, output_path):
     db_id,tmplt_cypher_list,tmplt_prompt_list,cyphers_list=load_file_gen_prompt_with_template(input_path)
-    for index, tmplt_cypher in enumerate(tmplt_cypher_list):
+    for index in tqdm(range(len(tmplt_cypher_list))):
+        tmplt_cypher=tmplt_cypher_list[index]
         tmplt_prompt=tmplt_prompt_list[index]
         cyphers=cyphers_list[index]
         for cypher_trunk in chunk_list(cyphers):
@@ -111,7 +114,7 @@ def gen_prompt_with_template(input_path, output_path):
             responses = call_with_messages(massages)
             # 4. postprocess and save
             if responses != "":
-                prompts = process_handle.process(responses)
+                prompts = process_handler.process(responses)
                 save2file_t(db_id, cypher_trunk, prompts, output_path)
         print("corpus have been written into the file:", output_path)
 
@@ -128,7 +131,7 @@ def call_with_messages(messages):
     )
     if response.status_code == HTTPStatus.OK:
         content = response.output.choices[0].message.content
-        print(content)
+        # print(content)
         return content
     else:
         if response.code== 429: #Requests rate limit exceeded
@@ -195,32 +198,34 @@ def save2file_t(db_id, cyphers, prompts, output_path):
         for index,prompt in enumerate(prompts):
             file.write(cyphers[index] + "\n")
             file.write(prompt + "\n")
-    
+
 def chunk_list(lst, chunk_size=5):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
 
 def state_machine(input_path, output_path):
-    if mode == Status.GEN_PROMPT_DIRECTLY.value[0]:
+    if mode == Status.GEN_PROMPT_DIRECTLY.value[0]: # 100
         gen_prompt_directly(input_path, output_path)
-    elif mode == Status.GENERAL_PROMPT_DIRECTLY.value[0]:
-        general_prompt_directly(input_path, output_path) # deprecated
+    elif mode == Status.GENERAL_PROMPT_DIRECTLY.value[0]: # 200
+        general_prompt_directly(input_path, output_path) # deprecated # 300
     elif mode == Status.GENERALIZATION.value[0]:
-        generalization(input_path, output_path) # recommended
+        generalization(input_path, output_path) # recommended # 400
     elif mode == Status.GEN_PROMPT_WITH_TEMPLATE.value[0]:
         gen_prompt_with_template(input_path, output_path)
+    else:
+        print("[ERROR]: work_mode is not proper, current work_mode is:", mode)
 
 
 def main():
     # 0. parse dir
-    if os.path.isfile(input_dir_or_path):
-        input_path = input_dir_or_path
+    if os.path.isfile(input_dir_or_file):
+        input_path = input_dir_or_file
         dir, file_name = os.path.split(input_path)
         file_base, file_extension = os.path.splitext(file_name)
         output_path = os.path.join(output_dir, file_base + suffix + ".txt")
         state_machine(input_path, output_path)
-    elif os.path.isdir(input_dir_or_path):
-        input_dir = input_dir_or_path
+    elif os.path.isdir(input_dir_or_file):
+        input_dir = input_dir_or_file
         for root, dirs, file_names in os.walk(input_dir):
             for file_name in file_names:
                 input_path = os.path.join(root, file_name)
@@ -233,21 +238,25 @@ def main():
                 )
                 state_machine(input_path, output_path)
     else:
-        print("[ERROR]: input file is not exsit", input_dir_or_path)
+        print("[ERROR]: input file is not exsit", input_dir_or_file)
 
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
     # input can be a dir or a file_path，if dir, process all the .txt files in batch
-    input_dir_or_path = (
-        "./output/output_query.txt"
-    )
-    output_dir = "./output"
-    suffix='_t'
-    assert os.path.isdir(output_dir)
-    mode = Status.GEN_PROMPT_WITH_TEMPLATE.value[0]
-    process_handle = CorpusPreProcess()
+        mode=int(sys.argv[1])
+        input_dir_or_file = sys.argv[2]
+        output_dir = sys.argv[3]
+        suffix=sys.argv[4]
+        assert os.path.isdir(output_dir)
+    else:
+        config_path = "config.json"
+        config = Config(config_path)
+        configs=config.get_config("generalizer")
+        mode=int(configs['work_mode'])
+        input_dir_or_file = configs['input_dir_or_file']
+        output_dir = configs['output_dir']
+        suffix=configs['suffix']
+        assert os.path.isdir(output_dir)
+    process_handler = CorpusPostProcess()
     main()
-
-    # generate into json format, pls mak sure the input_corpus_dir_or_path in the config.json is correct!
-    # config_path = "config.json"
-    # generate_trainset(config_path)

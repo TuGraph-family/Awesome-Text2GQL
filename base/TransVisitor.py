@@ -35,10 +35,12 @@ class TransVisitor(LcypherVisitor):
                 for query in self.gen_query_list:
                     file.write(query + "\n")
                 file.write('END' + "\n")
+            print("querys have been written into the file:", self.config.get_output_path())
         else:
             with open(self.config.get_output_path(), "a", encoding="utf-8") as file:
                 file.write(self.query + "\n")
                 file.write(self.prompt + "\n")
+            # print("questions have been written into the file:", self.config.get_output_path())
 
     def get_match_pattern_chain_label_list(self):
         if len(self.pattern_chain_list) == 1:

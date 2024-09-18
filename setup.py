@@ -19,7 +19,7 @@ setup_spec = SetupSpec()
 
 
 def core_dependencies():
-    setup_spec.extras["core"] = ["antlr4-python3-runtime==4.13.1", "graphviz==0.20.1","dashscope"]
+    setup_spec.extras["core"] = ["antlr4-python3-runtime==4.13.1", "graphviz==0.20.1","dashscope","tqdm"]
 
 
 def init_install_requires():

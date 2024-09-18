@@ -5,8 +5,10 @@ from cypher.LcypherParser import LcypherParser
 from utils.CypherStream import CypherStream
 from base.TransVisitor import TransVisitor
 from base.Config import Config
+from tqdm import tqdm
 import sys
 import os
+import copy
 
 
 def generate(config):
@@ -16,6 +18,7 @@ def generate(config):
         # if file exsits , the content would be cleaned
         with open(config.get_output_path(), "w", encoding="utf-8") as file:
             file.write(config.get_db_id() + "\n")
+        generate_question(input_path)
     else:
         input_path = config.get_input_query_template_path()  # generate cypher
         output_path=config.get_output_path()
@@ -26,13 +29,15 @@ def generate(config):
             content = file.read()
             if not content:
                 file.write(config.get_db_id() + "\n")
+        generate_query(input_path)
 
+def generate_query(input_path):
     with open(input_path, "rb") as file:
         lines = file.readlines()
-        for i in range(0, len(lines), 2):
+        for i in tqdm(range(0, len(lines), 2)):
             cypher = lines[i].strip()
             prompt = lines[i + 1].strip()
-            print(f"line {i+1}: {cypher.decode('utf-8')}")
+            # print(f"line {i+1}: {cypher.decode('utf-8')}")
             with open(config.get_output_path(), "a", encoding="utf-8") as file:
                 file.write('template' + "\n")
                 file.write(cypher.decode('utf-8')+'\n')
@@ -48,7 +53,43 @@ def generate(config):
                 continue
             visitor = TransVisitor(config)
             visitor.visit(tree)
+            print("querys have been written into the file:", config.get_output_path())
 
+def generate_question(input_path):
+    with open(input_path, "rb") as file:
+        lines = file.readlines()
+    db_id = lines[0].decode('utf-8').strip()
+    config.db_id=db_id
+    if db_id=='template':
+        print('[ERROR]: the input file format is not right, pls give schema name!')
+    index=1
+    cyphers=[]
+    while(len(lines[index:])>3 and lines[index].decode('utf-8').strip()=='template'):
+        if lines[index+3].strip()!='cyphers':
+            print('[ERROR]: the input file format is not right as the input of generate_question')
+        index=index+4
+        for line in lines[index:]:
+            if lines[index].decode('utf-8').strip()=='END':
+                index=index+1
+                break
+            index=index+1
+            cyphers.append(line.strip())
+    if cyphers==[]:
+        print('[WARNING]: the input file format is not right as there is no cyphers')
+        
+    for i in tqdm(range(len(cyphers))):
+        # print(f"line {i+1}: {cypher.decode('utf-8')}")
+        input_stream = CypherStream(cyphers[i])
+        lexer = LcypherLexer(input_stream)
+        token_stream = CommonTokenStream(lexer)
+        parser = LcypherParser(token_stream)
+        tree = parser.oC_Cypher()
+        if parser.getNumberOfSyntaxErrors() > 0:
+            print(f"line {i+1}: grammar check failed!")
+            continue
+        visitor = TransVisitor(config)
+        visitor.visit(tree)
+    print("questions have been written into the file:", config.get_output_path())
 
 if __name__ == "__main__":
     config_path = "config.json"

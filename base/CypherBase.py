@@ -105,12 +105,13 @@ class CypherBase:
             "oC_RightArrowHead",
             "oC_Dash",
         ]
-        self.token_dict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4}
+        self.token_dict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4,"OPTIONAL":5}
 
         self.template = [[] for _ in range(len(self.token_dict))]
         self.template[self.token_dict["MATCH"]].extend(
             ["找到", "获得", "查询", "查找图数据库中", "查找数据库中", "从数据库中查找", "在图中查找"]
         )
+        self.template[self.token_dict["OPTIONAL"]].extend(["以可选的方式", "尝试"])
         self.template[self.token_dict["DISTINCT"]].extend(["将查询结果去重", "最后将结果去重"])
         self.template[self.token_dict["DESC"]].extend(["降序"])
         self.template[self.token_dict["ASC"]].extend(["升序", ""])
