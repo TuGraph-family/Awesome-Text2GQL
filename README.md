@@ -2,13 +2,17 @@
 
 This is the repository for the text2GQL generator implementation. Awesome-Text2GQL aims to generate cyphers/gqls and corresponding prompts as training corpus for fine-tuning of large language models (LLMs). Based on TuGraph-DB, the training corpus helps to train the Text2GQL and Text2Cypher models that are suitable for TuGraph-DB query engine capabilities.
 
-![image](./images/image1.jpg)
+![image](./images/overview.jpg)
 
 
 ## Quick Start
 
 ### Preparation
+
+#### Environment
+
 For Linux, it is recommended to use miniconda to manage your python environment while other tools may also work.
+
 ```
 git clone https://github.com/TuGraph-contrib/Awesome-Text2GQL
 cd Awesome-Text2GQL
@@ -18,31 +22,19 @@ conda activate text2gql
 ```
 
 Install related python dependency packages
+
 ```
 python setup.py install -v
 sh ./run.sh
 ```
 
-### Run
-#### Corpus generation
-Run ./run.sh
-```
-sh ./run.sh
-```
-The generator can be run in two modes, that is generating query and generating prompt.
-Change `GEN_QUERY` in the `run.sh` to make sure the generator works at the proper mode you want.
+#### Setup for LLMs
 
-`GEN_QUERY=true` means generating cyphers according to cypher templates in batch.
-
-`GEN_QUERY=false` means generating prompts while taking the cyphers generated in the last step as input.
-
-#### Corpus generalization
-
-Before you run corpus generation, please run corpus generation above to make sure the input file of this step exsits.
+If you want to run 
 
 1. Apply API-KEY
 
-We build the corpus generalization architecture based on Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/create-and-authorize-a-ram-user?spm=a2c4g.11186623.0.0.4a514bb0RnwdnK) to apply the API-KEY.
+We build the corpus generalization module based on the Qwen Inference Service served by Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/create-and-authorize-a-ram-user?spm=a2c4g.11186623.0.0.4a514bb0RnwdnK) to apply the API-KEY.
 
 2. Set API-KEY via environment variables (recommended)
 
@@ -53,13 +45,80 @@ source ~/.bashrc
 echo $DASHSCOPE_API_KEY
 ```
 
-3. Run
+### Run
+
+#### The whole flow
+
+Make sure you have done the preparation above. To experience the whole flow recommended, you can run as below：
 
 ```
-python ./generalize_llm.py
+sh ./scripts/run_the_whole_flow.sh
 ```
-### Format of input
+
+The following steps will be exexcted in sequence:
+
+- generate cyphers by generation module based on Antlr4 with templates as input.
+- generate questions by generalization module based on LLMs with the cyphers generated in the last step as input.
+- generalize the questions generated in the last step by generalization module based on LLMs.
+- transform the corpus generated above into model training format.
+
+#### Run parts seperately
+
+##### Cypher generation
+
+```
+sh ./scripts/gen_query.sh
+```
+
+The corpus generation module can be run in two modes, that is generating querys by instantiaor and generating questions by translator.
+
+Set `GEN_QUERY=true` to generate querys according to templates in batch.
+
+##### Question generation
+
+1. generate questions based on LLMs with template as additional input(recommened)
+
+```
+sh ./scripts/gen_question_with_template_llm.sh
+```
+
+2. generate questions based on LLMs without template as input. It helps to generate questions which don't have corresponding template initially.
+
+```
+sh ./scripts/gen_question_directly_llm.sh
+```
+
+3. generate questions based on Antlr4(deprecated)
+
+Set `GEN_QUERY=false`  to generate questions using translator of the generation module based on Antlr4.
+
+```
+scripts/gen_question.sh
+```
+
+##### Corpus generalization
+
+1. generalize corpus with query and question as input(recommened)
+
+```
+sh ./scripts/generalize_llm.sh
+```
+
+2. generalize question without querys as input(deprecated)
+
+```
+sh ./scripts/general_questions_directly_llm.sh
+```
+
+##### Transform
+
+transform the corpus generated above into model training format.
+
+```
+sh ./scripts/scripts/generate_dataset.sh
+```
 
 
 ## Attention
+
 This project is still under development, suggestions or issues are welcome.

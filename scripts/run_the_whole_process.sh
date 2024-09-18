@@ -3,7 +3,7 @@
 OUTPUT_DIR="./output"
 if [ ! -d "$OUTPUT_DIR" ]; then
     mkdir -p "$OUTPUT_DIR"
-    echo "create outpu dir: $OUTPUT_DIR"
+    echo "create output dir: $OUTPUT_DIR"
 fi
 
 CONFIG_PATH='./config.json'
