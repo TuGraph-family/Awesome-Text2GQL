@@ -24,7 +24,7 @@ conda activate text2gql
 Install related python dependency packages
 
 ```
-python setup.py install -v
+pip install .
 ```
 
 #### Setup for LLMs
