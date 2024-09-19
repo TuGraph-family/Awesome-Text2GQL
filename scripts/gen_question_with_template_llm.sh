@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MODE=400
-INPUT_DIR_OR_FILE='./llm_examples/gen_question_llm.txt'
+INPUT_DIR_OR_FILE='./input_examples/gen_question_llm.txt'
 OUTPUT_DIR="./output"
 SUFFIX='_t'
 

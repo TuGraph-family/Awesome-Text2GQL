@@ -1,4 +1,4 @@
-class CorpusPreProcess:
+class CorpusPostProcess:
     def __init__(self) -> None:
         self.keywords_to_remove = [
             "提问：",

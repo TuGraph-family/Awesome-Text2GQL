@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MODE=100
-INPUT_DIR_OR_FILE='./llm_examples/input_cyphers.txt'
+INPUT_DIR_OR_FILE='./input_examples/query_only.txt'
 OUTPUT_DIR="./output"
 SUFFIX='_gen'
 

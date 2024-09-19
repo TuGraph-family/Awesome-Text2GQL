@@ -1,7 +1,7 @@
 import random
 from http import HTTPStatus
 from dashscope import Generation
-from llm_process.PreProcess import CorpusPostProcess
+from llm_process.PostProcess import CorpusPostProcess
 from llm_process.Status import Status
 from base.Config import Config
 from generate_dataset import generate_trainset
@@ -9,6 +9,7 @@ from tqdm import tqdm
 import os
 import copy
 import sys
+
 
 def gen_prompt_directly(
     input_path, output_path
@@ -24,7 +25,6 @@ def gen_prompt_directly(
         massages = [
             {
                 "role": "system",
-
                 "content": "我希望你模仿一个图数据库使用者的口吻，将我给你的cypher语句转换为2条表示数据库使用者查询意图的中文表达，每条中文的表达方式应该有差别，可以是陈诉句或者是问句，不需要给我每个步骤的解释，每条表达不需要加粗，不需要额外的提示词，以换行分隔开就行，句子中可以有标点符号，但是尽量不要有空格。这是三个例子，例子1：MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars\n怎样查询Michael讨厌的电影？\n例子2：MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars\n查找用户Michael评分低于3星的电影，返回电影的标题和评分。\n例子3：MATCH (rachel:Person {name:'Rachel Kempson'})-[]->(family:Person)-[:ACTED_IN]->(film)<-[:ACTED_IN]-(richard:Person {name:'Richard Harris'}) USING JOIN ON film RETURN family.name\n查询在与Rachel Kempson相关的家庭成员中与Richard Harris共同出演过同一部电影的人有哪些？返回该家庭成员的名字。\n下面我将给你一个cypher，请你帮我翻译一下",
             },
             {"role": "user", "content": cypher},
@@ -96,16 +96,28 @@ def generalization(
 
 
 def gen_prompt_with_template(input_path, output_path):
-    db_id,tmplt_cypher_list,tmplt_prompt_list,cyphers_list=load_file_gen_prompt_with_template(input_path)
+    (
+        db_id,
+        tmplt_cypher_list,
+        tmplt_prompt_list,
+        cyphers_list,
+    ) = load_file_gen_prompt_with_template(input_path)
     for index in tqdm(range(len(tmplt_cypher_list))):
-        tmplt_cypher=tmplt_cypher_list[index]
-        tmplt_prompt=tmplt_prompt_list[index]
-        cyphers=cyphers_list[index]
+        tmplt_cypher = tmplt_cypher_list[index]
+        tmplt_prompt = tmplt_prompt_list[index]
+        cyphers = cyphers_list[index]
         for cypher_trunk in chunk_list(cyphers):
-            cypher_content=''
+            cypher_content = ""
             for cypher in cypher_trunk:
-                cypher_content=cypher_content+cypher+'\n'
-            content='template:\n'+tmplt_cypher+','+tmplt_prompt+'cyphers:\n'+cypher_content
+                cypher_content = cypher_content + cypher + "\n"
+            content = (
+                "template:\n"
+                + tmplt_cypher
+                + ","
+                + tmplt_prompt
+                + "cyphers:\n"
+                + cypher_content
+            )
             massages = [
                 {
                     "role": "system",
@@ -137,7 +149,7 @@ def call_with_messages(messages):
         # print(content)
         return content
     else:
-        if response.code== 429: #Requests rate limit exceeded
+        if response.code == 429:  # Requests rate limit exceeded
             call_with_messages(messages)
         else:
             print(
@@ -152,32 +164,35 @@ def call_with_messages(messages):
             print("Failed!", messages[1]["content"])
             return ""
 
+
 def load_file_gen_prompt_with_template(input_path):
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
-    if db_id=='template':
-        print('[ERROR]: the input file format is not right, pls give schema name!')
-    index=1
-    tmplt_cypher_list=[]
-    tmplt_prompt_list=[]
-    cyphers_list=[]
-    while(len(lines[index:])>3 and lines[index].strip()=='template'):
-        tmplt_cypher_list.append(lines[index+1].strip())
-        tmplt_prompt_list.append(lines[index+2].strip())
-        if lines[index+3].strip()!='cyphers':
-            print('[ERROR]: the input file format is not right as the input of GEN_PROMPT_WITH_TEMPLATE')
-        cyphers=[]
-        index=index+4
+    if db_id == "template":
+        print("[ERROR]: the input file format is not right, pls give schema name!")
+    index = 1
+    tmplt_cypher_list = []
+    tmplt_prompt_list = []
+    cyphers_list = []
+    while len(lines[index:]) > 3 and lines[index].strip() == "template":
+        tmplt_cypher_list.append(lines[index + 1].strip())
+        tmplt_prompt_list.append(lines[index + 2].strip())
+        if lines[index + 3].strip() != "cyphers":
+            print(
+                "[ERROR]: the input file format is not right as the input of GEN_PROMPT_WITH_TEMPLATE"
+            )
+        cyphers = []
+        index = index + 4
         for line in lines[index:]:
-            if lines[index].strip()=='END':
-                index=index+1
+            if lines[index].strip() == "END":
+                index = index + 1
                 cyphers_list.append(copy.deepcopy(cyphers))
                 break
-            index=index+1
+            index = index + 1
             cyphers.append(line.strip())
-    return db_id,tmplt_cypher_list,tmplt_prompt_list,cyphers_list
-    
+    return db_id, tmplt_cypher_list, tmplt_prompt_list, cyphers_list
+
 
 def save2file(db_id, cypher, prompts, output_path):
     if not os.path.isfile(output_path):
@@ -191,6 +206,7 @@ def save2file(db_id, cypher, prompts, output_path):
             file.write(prompt + "\n")
     # print("corpus have been written into the file:", output_path)
 
+
 def save2file_t(db_id, cyphers, prompts, output_path):
     if not os.path.isfile(output_path):
         with open(output_path, "w", encoding="utf-8") as file:
@@ -198,21 +214,23 @@ def save2file_t(db_id, cyphers, prompts, output_path):
     with open(output_path, "a+", encoding="utf-8") as file:
         if os.path.getsize(output_path) == 0:
             file.write(db_id + "\n")
-        for index,prompt in enumerate(prompts):
+        for index, prompt in enumerate(prompts):
             file.write(cyphers[index] + "\n")
             file.write(prompt + "\n")
 
+
 def chunk_list(lst, chunk_size=5):
     for i in range(0, len(lst), chunk_size):
-        yield lst[i:i + chunk_size]
+        yield lst[i : i + chunk_size]
+
 
 def state_machine(input_path, output_path):
-    if mode == Status.GEN_PROMPT_DIRECTLY.value[0]: # 100
+    if mode == Status.GEN_PROMPT_DIRECTLY.value[0]:  # 100
         gen_prompt_directly(input_path, output_path)
-    elif mode == Status.GENERAL_PROMPT_DIRECTLY.value[0]: # 200
-        general_prompt_directly(input_path, output_path) # deprecated # 300
+    elif mode == Status.GENERAL_PROMPT_DIRECTLY.value[0]:  # 200
+        general_prompt_directly(input_path, output_path)  # deprecated # 300
     elif mode == Status.GENERALIZATION.value[0]:
-        generalization(input_path, output_path) # recommended # 400
+        generalization(input_path, output_path)  # recommended # 400
     elif mode == Status.GEN_PROMPT_WITH_TEMPLATE.value[0]:
         gen_prompt_with_template(input_path, output_path)
     else:
@@ -232,7 +250,9 @@ def main():
         for root, dirs, file_names in os.walk(input_dir):
             for file_name in file_names:
                 input_path = os.path.join(root, file_name)
-                file_base, file_extension = os.path.splitext(os.path.basename(input_path))
+                file_base, file_extension = os.path.splitext(
+                    os.path.basename(input_path)
+                )
                 if file_extension != ".txt":
                     break
                 file_name = file_base + suffix + file_extension
@@ -246,20 +266,20 @@ def main():
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
-    # input can be a dir or a file_path，if dir, process all the .txt files in batch
-        mode=int(sys.argv[1])
+        # input can be a dir or a file_path，if dir, process all the .txt files in batch
+        mode = int(sys.argv[1])
         input_dir_or_file = sys.argv[2]
         output_dir = sys.argv[3]
-        suffix=sys.argv[4]
+        suffix = sys.argv[4]
         assert os.path.isdir(output_dir)
     else:
         config_path = "config.json"
         config = Config(config_path)
-        configs=config.get_config("generalizer")
-        mode=int(configs['work_mode'])
-        input_dir_or_file = configs['input_dir_or_file']
-        output_dir = configs['output_dir']
-        suffix=configs['suffix']
+        configs = config.get_config("generalizer")
+        mode = int(configs["work_mode"])
+        input_dir_or_file = configs["input_dir_or_file"]
+        output_dir = configs["output_dir"]
+        suffix = configs["suffix"]
         assert os.path.isdir(output_dir)
     process_handler = CorpusPostProcess()
     main()

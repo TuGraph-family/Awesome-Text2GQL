@@ -23,9 +23,9 @@ class Config:
     def get_input_corpus_dir_or_file(self):
         return self.config_data.get("input_corpus_dir_or_path")
 
-    def set_input_corpus_dir_or_file(self,dir_or_file):
-        self.config_data["input_corpus_dir_or_path"]=dir_or_file
-    
+    def set_input_corpus_dir_or_file(self, dir_or_file):
+        self.config_data["input_corpus_dir_or_path"] = dir_or_file
+
     def get_output_path(self):
         if self.gen_query:
             return self.config_data.get("output_query_path")
@@ -44,6 +44,6 @@ class Config:
     def get_schema_path(self, db_id):
         schema_dict = self.config_data.get("db_schema_path")
         return schema_dict[db_id]  # todo error check
-    
-    def get_config(self,module_name):
+
+    def get_config(self, module_name):
         return self.config_data.get(module_name)

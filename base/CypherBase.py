@@ -105,7 +105,14 @@ class CypherBase:
             "oC_RightArrowHead",
             "oC_Dash",
         ]
-        self.token_dict = {"MATCH": 0, "DISTINCT": 1, "DESC": 2, "ASC": 3, "RETURN": 4,"OPTIONAL":5}
+        self.token_dict = {
+            "MATCH": 0,
+            "DISTINCT": 1,
+            "DESC": 2,
+            "ASC": 3,
+            "RETURN": 4,
+            "OPTIONAL": 5,
+        }
 
         self.template = [[] for _ in range(len(self.token_dict))]
         self.template[self.token_dict["MATCH"]].extend(

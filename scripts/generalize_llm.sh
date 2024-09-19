@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MODE=300
-INPUT_DIR_OR_FILE='./llm_examples/corpus.txt'
+INPUT_DIR_OR_FILE='./input_examples/corpus.txt'
 OUTPUT_DIR="./output"
 SUFFIX='_general'
 

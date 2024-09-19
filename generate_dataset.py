@@ -46,11 +46,13 @@ def generate(config, input_path, output_path):
                 else:
                     data_temp = {"input": str(line.decode("utf-8"))}
                     data_list[int(index / 2)].update(data_temp)
-    cnt=len(data_list)
+    cnt = len(data_list)
     json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
     with open(output_path, "a+") as file:
         file.write(json_data)
-    print(f"prompt and query have been written into JSON file: {output_path}, cnt:{cnt}")
+    print(
+        f"prompt and query have been written into JSON file: {output_path}, cnt:{cnt}"
+    )
 
     with open(output_path, "r") as file:
         content = file.read()
@@ -59,12 +61,12 @@ def generate(config, input_path, output_path):
         file.write(modified_content)
 
 
-def generate_trainset(config_path,input_dir_or_file=''):
+def generate_trainset(config_path, input_dir_or_file=""):
     config = Config(config_path)
-    configs = config.get_config('generate_dataset')
-    output_path=configs['output_corpus_path']
-    if input_dir_or_file=='':
-        input_dir_or_file = configs['input_corpus_dir_or_file']
+    configs = config.get_config("generate_dataset")
+    output_path = configs["output_corpus_path"]
+    if input_dir_or_file == "":
+        input_dir_or_file = configs["input_corpus_dir_or_file"]
     if os.path.isdir(input_dir_or_file):
         for root, dirs, file_names in os.walk(input_dir_or_file):
             for file_name in file_names:
@@ -82,9 +84,9 @@ def generate_trainset(config_path,input_dir_or_file=''):
 if __name__ == "__main__":
     current_working_directory = os.getcwd()
     config_path = "config.json"
-    input_dir_or_file=''
+    input_dir_or_file = ""
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
         if len(sys.argv) > 2:
-            input_dir_or_file=sys.argv[2]
-    generate_trainset(config_path,input_dir_or_file)
+            input_dir_or_file = sys.argv[2]
+    generate_trainset(config_path, input_dir_or_file)

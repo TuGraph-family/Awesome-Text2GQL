@@ -20,5 +20,5 @@ class Status(Enum):
     GEN_PROMPT_WITH_TEMPLATE = (
         400,
         "gen_prompt_with_template",
-        "# generate multi prompts according to input cypher, tempelate cypher and template prompt",
+        "generate multi prompts according to input cypher, tempelate cypher and template prompt",
     )
