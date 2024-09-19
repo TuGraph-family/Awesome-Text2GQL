@@ -35,6 +35,7 @@ def gen_prompt_directly(
             prompts = process_handler.process(responses)
             # 4. save to file
         save2file(db_id, cypher, prompts, output_path)
+    print("corpus output file:", output_path)
 
 
 # deprecated
@@ -62,6 +63,7 @@ def general_prompt_directly(
         if responses != "":
             prompts = process_handler.process(responses)
             save2file(db_id, cypher, prompts, output_path)
+    print("corpus output file:", output_path)
 
 
 # recommended
@@ -90,6 +92,7 @@ def generalization(
         if responses != "":
             prompts = process_handler.process(responses)
             save2file(db_id, cypher, prompts, output_path)
+    print("corpus output file:", output_path)
 
 
 def gen_prompt_with_template(input_path, output_path):
@@ -116,7 +119,7 @@ def gen_prompt_with_template(input_path, output_path):
             if responses != "":
                 prompts = process_handler.process(responses)
                 save2file_t(db_id, cypher_trunk, prompts, output_path)
-        print("corpus have been written into the file:", output_path)
+    print("output file:", output_path)
 
 
 def call_with_messages(messages):
@@ -186,7 +189,7 @@ def save2file(db_id, cypher, prompts, output_path):
         for prompt in prompts:
             file.write(cypher + "\n")
             file.write(prompt + "\n")
-    print("corpus have been written into the file:", output_path)
+    # print("corpus have been written into the file:", output_path)
 
 def save2file_t(db_id, cyphers, prompts, output_path):
     if not os.path.isfile(output_path):
@@ -229,7 +232,7 @@ def main():
         for root, dirs, file_names in os.walk(input_dir):
             for file_name in file_names:
                 input_path = os.path.join(root, file_name)
-                file_base, file_extension = os.path.splitext(input_path)
+                file_base, file_extension = os.path.splitext(os.path.basename(input_path))
                 if file_extension != ".txt":
                     break
                 file_name = file_base + suffix + file_extension
