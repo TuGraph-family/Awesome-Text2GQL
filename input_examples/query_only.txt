@@ -1,0 +1,5 @@
+movie
+MATCH (n {name: 'Carrie-Anne Moss'})-[r:acted_in]->(c) RETURN r
+MATCH (matrix:movie {title: 'The Matrix'})<-[:acted_in]-(actor) RETURN actor.name
+MATCH (matrix {title: 'The Matrix'})<-[r:acted_in]-(actor) RETURN r.role
+MATCH (matrix {title: 'The Matrix'})<-[:acted_in|:directed]-(person) RETURN person.name

@@ -46,23 +46,47 @@ def generate(config, input_path, output_path):
                 else:
                     data_temp = {"input": str(line.decode("utf-8"))}
                     data_list[int(index / 2)].update(data_temp)
+    cnt = len(data_list)
     json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
-    with open(output_path, "a") as file:
+    with open(output_path, "a+") as file:
         file.write(json_data)
-    print("prompt and query have been written into JSON file: ",output_path)
+    print(
+        f"prompt and query have been written into JSON file: {output_path}, cnt:{cnt}"
+    )
+
+    with open(output_path, "r") as file:
+        content = file.read()
+    modified_content = content.replace("][", ",")
+    with open(output_path, "w") as file:
+        file.write(modified_content)
+
+
+def generate_trainset(config_path, input_dir_or_file=""):
+    config = Config(config_path)
+    configs = config.get_config("generate_dataset")
+    output_path = configs["output_corpus_path"]
+    if input_dir_or_file == "":
+        input_dir_or_file = configs["input_corpus_dir_or_file"]
+    if os.path.isdir(input_dir_or_file):
+        for root, dirs, file_names in os.walk(input_dir_or_file):
+            for file_name in file_names:
+                input_path = os.path.join(root, file_name)
+                file_base, file_extension = os.path.splitext(input_path)
+                if file_extension != ".txt":
+                    break
+                generate(config, input_path, output_path)
+    elif os.path.isfile(input_dir_or_file):
+        generate(config, input_dir_or_file, output_path)
+    else:
+        print("[ERROR]: input file is not exsit", input_dir_or_file)
 
 
 if __name__ == "__main__":
     current_working_directory = os.getcwd()
     config_path = "config.json"
+    input_dir_or_file = ""
     if len(sys.argv) > 1:
         config_path = sys.argv[1]
-        config = Config(config_path)
-    else:
-        config = Config(config_path)
-
-    input_path_list = config.get_input_corpus_list()
-    output_path = config.get_output_corpus()
-
-    for input_path in input_path_list:
-        generate(config, input_path, output_path)
+        if len(sys.argv) > 2:
+            input_dir_or_file = sys.argv[2]
+    generate_trainset(config_path, input_dir_or_file)

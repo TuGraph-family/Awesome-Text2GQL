@@ -23,7 +23,7 @@ class Cypher2Dot(object):
     def Cypher2Dot(cls, t: Tree, ruleNames: list = None, recog: Parser = None):
         if recog is not None:
             ruleNames = recog.ruleNames
-        s = escapeWhitespace(cls.getNodeText(t, ruleNames), False) 
+        s = escapeWhitespace(cls.getNodeText(t, ruleNames), False)
         if t.getChildCount() == 0:
             if s != " ":
                 cls.dot.node(str(cls.node_cnt), label=s)
@@ -33,9 +33,7 @@ class Cypher2Dot(object):
         cls.dot.node(str(cls.node_cnt), label=s)
         for i in range(0, t.getChildCount()):
             cls.node_cnt += 1
-            cls.dot.edge(
-                str(cls.root_list[-1]), str(cls.node_cnt)
-            )
+            cls.dot.edge(str(cls.root_list[-1]), str(cls.node_cnt))
             cls.Cypher2Dot(t.getChild(i), ruleNames)
 
         cls.root_list.pop()

@@ -8,8 +8,8 @@ class Node:
     def __init__(self, node_id, cypher_base: CypherBase):
         self.node_id = node_id
         self.variable = ""
-        self.properties = []
-        self.text_properties = {}
+        self.properties = []  # keynames
+        self.text_properties = {}  # dict:keyname,property
         self.labels = []
         self.desc = ""
         self.type = "node"
@@ -24,7 +24,7 @@ class Node:
     def add_property(self, property):
         self.properties.append(property)
 
-    def addLable(self, lable):
+    def add_lable(self, lable):
         self.labels.append(lable)
 
     def add_properties(self, properties, text_properties):
@@ -245,7 +245,8 @@ class PatternChain:
                     # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
                     self.match_type = 2
             elif (
-                self.chain_list[1].type == "edge" and self.chain_list[1].left_arrow == True
+                self.chain_list[1].type == "edge"
+                and self.chain_list[1].left_arrow == True
             ):
                 # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
                 self.match_type = 3
@@ -264,7 +265,9 @@ class PatternChain:
             # MATCH (n)-[e:person_person]-(m) RETURN n,e,m
             if gen_return:
                 if self.random_numbers.pop() < 5:
-                    self.desc = "返回图中所有通过" + self.chain_list[1].labels[0] + "关系相连的节点和关系。"
+                    self.desc = (
+                        "返回图中所有通过" + self.chain_list[1].labels[0] + "关系相连的节点和关系。"
+                    )
                 else:
                     self.desc = (
                         "所有通过"
@@ -337,7 +340,7 @@ class PatternChain:
         if return_type == 1:
             merge_list = []
             for chain_node in self.chain_list:
-                merge_list.append(chain_node.variable) 
+                merge_list.append(chain_node.variable)
             return_query += self.cypher_base.merge_query(merge_list)
             for query in query_list:
                 query = query + " " + return_query
