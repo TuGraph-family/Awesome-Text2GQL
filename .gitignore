@@ -1,16 +1,15 @@
+# specific
+output/
+corpus/
+demo/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# 暂时不提交的文件
-QueryGenVisitor.py
-query_generator.py
-data/
-
 # C extensions
 *.so
-demo/lgraph_server
 
 # Distribution / packaging
 .Python
