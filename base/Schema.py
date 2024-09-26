@@ -90,18 +90,20 @@ class Schema:
             desc = desc[:-1]
             desc += "。"
             for vertex in self.vertex_dict:
-                desc = desc + "节点" + vertex + "有属性"
-                for property in self.vertex_dict[vertex].property_type.keys():
-                    desc = desc + property + "、"
-                desc = desc[:-1]
-                desc += "。"
-            for edge in self.edge_dict:
-                if self.edge_dict[edge].property_type.keys() != []:
-                    desc = desc + "边" + edge + "有属性"
-                    for property in self.edge_dict[edge].property_type.keys():
+                if len(self.edge_dict[edge].property_type)>0:
+                    desc = desc + "节点" + vertex + "有属性"
+                    for property in self.vertex_dict[vertex].property_type.keys():
                         desc = desc + property + "、"
                     desc = desc[:-1]
                     desc += "。"
+            for edge in self.edge_dict:
+                if self.edge_dict[edge].property_type.keys() != []:
+                    if len(self.edge_dict[edge].property_type)>0:
+                        desc = desc + "边" + edge + "有属性"
+                        for property in self.edge_dict[edge].property_type.keys():
+                            desc = desc + property + "、"
+                        desc = desc[:-1]
+                        desc += "。"
             return desc
         return ""
 
@@ -271,26 +273,7 @@ if __name__ == "__main__":
     config = Config("config.json")
     cypher_base = CypherBase(config)
     schema = Schema(
-        "movie", "/root/work_repo/Awesome-Text2GQL/db_data/schema/movie_schema.json"
+        "yago", "/root/work_repo/Awesome-Text2GQL/db_data/schema/yago.json"
     )
-    # print(schema.get_instance_by_label("person", 1))
-    # print(schema.get_vertex_by_id('movie',1768))
-    node1 = Node(0, cypher_base)
-    # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m
-    node1.add_ariable("m")
-    node1.add_lable("movie")
-    node1.add_properties(["title"], {"title": "Forrest Gump"})
-    edge = EdgeInstance()
-    edge.add_lable("acted_in")
-    edge.add_left_node(node1)
-    edge.left_arrow = True
-    node2 = Node(1, cypher_base)
-    node2.add_lable("person")
-    edge.add_right_node(node2)
-    chain = PatternChain(cypher_base)
-    chain.add_node(node1)
-    chain.add_edge(edge)
-    chain.add_node(node2)
-    lists = schema.get_pattern_match_list(chain.chain_list)
-    instance = schema.get_instance_of_pattern_match_list(lists)
-    print(instance)
+
+    print(schema.gen_desc())
