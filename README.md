@@ -16,7 +16,7 @@ For Linux, it is recommended to use miniconda to manage your python environment 
 ```
 conda create --name text2gql python=3.10 
 conda activate text2gql
-git clone https://github.com/TuGraph-contrib/Awesome-Text2GQL
+git clone https://github.com/TuGraph-family/Awesome-Text2GQL
 cd Awesome-Text2GQL
 mkdir output
 ```
