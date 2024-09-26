@@ -14,11 +14,11 @@ This is the repository for the text2GQL generator implementation. Awesome-Text2G
 For Linux, it is recommended to use miniconda to manage your python environment while other tools may also work.
 
 ```
+conda create --name text2gql python=3.10 
+conda activate text2gql
 git clone https://github.com/TuGraph-contrib/Awesome-Text2GQL
 cd Awesome-Text2GQL
 mkdir output
-conda create --name text2gql python=3.10 
-conda activate text2gql
 ```
 
 Install related python dependency packages
