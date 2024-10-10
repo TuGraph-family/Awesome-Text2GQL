@@ -2,7 +2,7 @@ import json
 import os
 import csv
 import random
-from base.Parse import PatternChain, EdgeInstance, Node
+from base.Parse import PatternPart, EdgeInstance, Node
 from base.CypherBase import CypherBase
 import copy
 
@@ -107,46 +107,56 @@ class Schema:
             return desc
         return ""
 
-    def get_instance_of_pattern_match_list(self, all_label_list):
+    def get_instance_of_matched_ptn_prts_label_list(self, matched_pattern_parts_label_list):
+        instance=[]
+        for part in matched_pattern_parts_label_list:
+            instance.append(self.get_instance_of_matched_label_lists(part))
+        return instance
+
+    def get_instance_of_matched_label_lists(self, all_label_list):
         instance_of_pattern_match_lists = []
         for label_list in all_label_list:
-            instance_of_pattern_match_list = []
-            if len(label_list) == 1:
-                instance_of_pattern_match_list.append(
-                    self.get_instance_by_label(label_list[0], 1)[0]
-                )
-            for i in range(1, len(label_list), 2):
-                label = label_list[i]
-                edge_instance = self.get_instance_by_label(label, 1)[0]
-                edge = self.edge_dict[label]
-                if edge.src == label_list[i - 1]:
-                    if i == 1:
-                        src_vertex_instance = self.get_vertex_by_id(
-                            label_list[i - 1], edge_instance["SRC_ID"]
-                        )
-                        instance_of_pattern_match_list.append(src_vertex_instance)
-                    dst_vertex_instance = self.get_vertex_by_id(
-                        label_list[i + 1], edge_instance["DST_ID"]
-                    )
-                    instance_of_pattern_match_list.append(edge_instance)
-                    instance_of_pattern_match_list.append(dst_vertex_instance)
-                elif edge.dst == label_list[i - 1]:
-                    if i == 1:
-                        dst_vertex_instance = self.get_vertex_by_id(
-                            label_list[i - 1], edge_instance["DST_ID"]
-                        )
-                        instance_of_pattern_match_list.append(dst_vertex_instance)
-                    src_vertex_instance = self.get_vertex_by_id(
-                        label_list[i + 1], edge_instance["SRC_ID"]
-                    )
-                    instance_of_pattern_match_list.append(edge_instance)
-                    instance_of_pattern_match_list.append(src_vertex_instance)
-                else:
-                    print(f"[ERROR] data not match")
+            # instance_of_pattern_match_list=self.get_instance_of_matched_label_list(label_list)
             instance_of_pattern_match_lists.append(
-                copy.deepcopy(instance_of_pattern_match_list)
+                copy.deepcopy(self.get_instance_of_matched_label_list(label_list))
             )
         return instance_of_pattern_match_lists
+    
+    def get_instance_of_matched_label_list(self,label_list):
+        instance_of_pattern_match_list = []
+        if len(label_list) == 1:
+            instance_of_pattern_match_list.append(
+                self.get_instance_by_label(label_list[0], 1)[0]
+            )
+        for i in range(1, len(label_list), 2):
+            label = label_list[i]
+            edge_instance = self.get_instance_by_label(label, 1)[0]
+            edge = self.edge_dict[label]
+            if edge.src == label_list[i - 1]:
+                if i == 1:
+                    src_vertex_instance = self.get_vertex_by_id(
+                        label_list[i - 1], edge_instance["SRC_ID"]
+                    )
+                    instance_of_pattern_match_list.append(src_vertex_instance)
+                dst_vertex_instance = self.get_vertex_by_id(
+                    label_list[i + 1], edge_instance["DST_ID"]
+                )
+                instance_of_pattern_match_list.append(edge_instance)
+                instance_of_pattern_match_list.append(dst_vertex_instance)
+            elif edge.dst == label_list[i - 1]:
+                if i == 1:
+                    dst_vertex_instance = self.get_vertex_by_id(
+                        label_list[i - 1], edge_instance["DST_ID"]
+                    )
+                    instance_of_pattern_match_list.append(dst_vertex_instance)
+                src_vertex_instance = self.get_vertex_by_id(
+                    label_list[i + 1], edge_instance["SRC_ID"]
+                )
+                instance_of_pattern_match_list.append(edge_instance)
+                instance_of_pattern_match_list.append(src_vertex_instance)
+            else:
+                print(f"[ERROR] no matched data")
+        return instance_of_pattern_match_list
 
     def rm_long_property_of_instance(self, node_instance):
         rm_key_list = []
@@ -223,8 +233,9 @@ class Schema:
             if key == label:
                 return list(self.edge_dict[key].property_type.keys())
 
-    def get_pattern_match_list(self, chain_list):
+    def get_matched_pattern_list(self, pattern_part:PatternPart):
         # variableList=patternChain.getChainVariableList()
+        chain_list=pattern_part.chain_list
         all_label_list = []
         # labelLsit=[]
         edge_count = int(len(chain_list) / 2)
@@ -273,7 +284,7 @@ if __name__ == "__main__":
     config = Config("config.json")
     cypher_base = CypherBase(config)
     schema = Schema(
-        "yago", "/root/work_repo/Awesome-Text2GQL/db_data/schema/yago.json"
+        "movie", "/root/work_repo/Awesome-Text2GQL/db_data/schema/movie_schema.json"
     )
 
     print(schema.gen_desc())
