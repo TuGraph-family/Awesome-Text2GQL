@@ -27,10 +27,10 @@ class Pattern:
             variable_list.append(pattern_part.get_chain_variable_list())
         return self.get_pre_matched_variable_index(variable,variable_list)
         
-    def get_matched_pattern_part_label_lists(self,pattern_part:PatternPart):
+    def __get_matched_pattern_part_label_lists(self,pattern_part:PatternPart):
         # 1. generate all matched path
         label_lists=self.schema.get_matched_pattern_list(pattern_part)
-        # 2. Remove duplicates
+        # 2. Remove duplicates，edge without properties
         if len(label_lists[0])>=3:
             omit_index_list=[]
             for idx in range(1, len(pattern_part.chain_list), 2):
@@ -67,9 +67,9 @@ class Pattern:
         # MATCH (p)-[:ACTED_IN]->(x), (p)-[:MARRIED]->(y), (p)-[:HAS_CHILD]->(z) RETURN p,x,y,z
         variable_lists=[]
         mactched_pattern_parts_label_lists=[]
-        for pattern_part_idx,pattern_part in enumerate(self.pattern_parts):
+        for pattern_part_idx, pattern_part in enumerate(self.pattern_parts):
             # 1. find all matched patterns
-            cur_pattern_part_label_lists=self.get_matched_pattern_part_label_lists(pattern_part)
+            cur_pattern_part_label_lists=self.__get_matched_pattern_part_label_lists(pattern_part)
             if len(cur_pattern_part_label_lists)==0:
                 print("[WARNING]: No matched pattern find in schema")
                 return False
@@ -96,8 +96,9 @@ class Pattern:
                         if label_list[idxs[0]]!=mactched_pattern_parts_label_list[idxs[1]][idxs[2]]:
                             check_success_flag=False
                     if check_success_flag:
-                        mactched_pattern_parts_label_list.append(label_list)
-                        latest_matched_pattern_parts.append(mactched_pattern_parts_label_list)
+                        latest_matched_pattern_parts_label_list=copy.deepcopy(mactched_pattern_parts_label_list)
+                        latest_matched_pattern_parts_label_list.append(label_list)
+                        latest_matched_pattern_parts.append(latest_matched_pattern_parts_label_list)
             mactched_pattern_parts_label_lists=latest_matched_pattern_parts
         self.matched_pattern_parts_label_lists=mactched_pattern_parts_label_lists
         return True
@@ -177,9 +178,59 @@ class ReadPattern(Pattern):
     def __init__(self,schema):
         super().__init__(schema)
     
+    def if_pattern_need_duplicates(self,pattern_part:PatternPart,compared_pattern_part:PatternPart):
+        # pattern are the same, and nodes all have no properties
+        need_flag=True
+        if len(pattern_part.chain_list)==len(compared_pattern_part.chain_list):
+            for node_idx, node in enumerate(compared_pattern_part.chain_list):
+                if node.properties!=[] or compared_pattern_part.chain_list[node_idx].properties!=[]:
+                    need_flag=False
+                    break
+                if node.type=='edge':
+                    if node.left_arrow !=compared_pattern_part.chain_list[node_idx].left_arrow or node.right_arrow !=compared_pattern_part.chain_list[node_idx].right_arrow:
+                        need_flag=False
+                        break
+        return need_flag
+    
+    def if_pattern_has_constrained_node(self,pattern_part:PatternPart,compared_pattern_part:PatternPart):
+        variable_list=pattern_part.get_chain_variable_list()
+        compared_variable_list=compared_pattern_part.get_chain_variable_list()
+        for variable in enumerate(variable_list):
+            pattern_idx,node_idx=self.get_pre_matched_variable_index(variable,[compared_variable_list])
+            if pattern_idx!=-1:
+                return True
+        return False
+
+    def get_matched_pattern_parts_label_lists(self):                        
+        if not super().get_matched_pattern_parts_label_lists():
+            return False
+        if len(self.pattern_parts)>1:
+            for part_idx,pattern_part in enumerate(self.pattern_parts):
+                for compared_part_idx in range(part_idx+1,len(self.pattern_parts)):
+                    if self.if_pattern_need_duplicates(pattern_part,self.pattern_parts[compared_part_idx]):
+                        # duplicates
+                        idxs_to_rm=[]
+                        for list_idx,list in enumerate(self.matched_pattern_parts_label_lists):
+                            if list[part_idx]==list[compared_part_idx]:
+                                idxs_to_rm.append(list_idx)
+                        idxs_to_rm.sort(reverse=True)
+                        for index in idxs_to_rm:
+                            if index < len(self.matched_pattern_parts_label_lists):
+                                self.matched_pattern_parts_label_lists.pop(index)
+        if len(self.matched_pattern_parts_label_lists)==0:
+            return False
+        return True
+
 class UpdatePattern(Pattern):
     def __init__(self,schema):
         super().__init__(schema)
+    
+    def get_matched_pattern_parts_label_lists(self):
+        if not super().get_matched_pattern_parts_label_lists():
+            return False
+        if len(self.matched_pattern_parts_label_lists)==0:
+            return False
+        return True
 
 class CurrentPattern():
 # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
