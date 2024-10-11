@@ -268,9 +268,12 @@ class CurrentPattern():
         self.__matched_pattern_parts_label_lists=[[list] for list in self.read_pattern.matched_pattern_parts_label_lists]
         return self.__matched_pattern_parts_label_lists
         
-    def get_label_by_index(self,index):
-        pass
-        
+    # def get_label_by_index(self,index):
+    #     pass
+
+    # def get_label_by_variable(self,variable):
+    #     pass
+
     # todo
     def add_with_node(self, variable,label_list):
         self.with_node_dict[variable]=label_list

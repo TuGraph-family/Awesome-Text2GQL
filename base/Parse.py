@@ -216,7 +216,7 @@ class PatternPart:
 
     def get_text(self):
         return self.text
-
+                
     def pattern_match(self):
         if len(self.chain_list) == 3:
             if (

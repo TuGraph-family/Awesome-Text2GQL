@@ -110,7 +110,23 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_UpdatingClause.
     def visitOC_UpdatingClause(self, ctx: LcypherParser.OC_UpdatingClauseContext):
+    # oC_UpdatingClause : oC_Create| oC_Merge| oC_Delete | oC_Set| oC_Remove
+        self.current_pattern.cur_parse_type=='update'
         self.visitChildren(ctx)
+        # for child in ctx.getChildren():
+        #     if isinstance(child, ParserRuleContext):
+        #         rule_index = child.getRuleIndex()
+        #         rule_name = self.cypher_base.get_rule_name(rule_index)
+                # if rule_name == "oC_Create":
+                #     self.visitOC_Create(child)
+                # if rule_name == "oC_Merge":
+                #     self.visitOC_Merge(child)
+                # if rule_name =="oC_Delete":
+                #     self.visitOC_Delete(child)
+                # if rule_name == "oC_Set":
+                #     self.visitOC_Set(child)
+                # if rule_name == "oC_Remove":
+                #     self.visitOC_Remove(child)
         return ""
 
     # Visit a parse tree produced by LcypherParser#oC_ReadingClause.
@@ -122,18 +138,6 @@ class TransVisitor(LcypherVisitor):
         match_pattern=self.current_pattern.get_read_pattern()
         if not match_pattern.get_matched_pattern_parts_label_lists():
             return
-        # if len(self.match_pattern_chain_label_list) == 0:
-        #     print("[WARNING]: No match pattern find in schema")
-        # text = ctx.getText()
-
-        # self.matched_pattern_chain_label_list=self.matched_pattern_parts_label_lists # todo, only support one patternpart
-        # self.chain_instance_list = self.schema.get_instance_of_matched_ptn_prts_label_list(
-        #     self.matched_pattern_chain_label_list
-        # )
-
-        # query_list = [
-        #     "" for i in range(len(self.matched_pattern_chain_label_list))
-        # ]
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -205,11 +209,41 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_Set.
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
-        return self.visitChildren(ctx)
+    # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
+        for child in ctx.getChildren():
+            if isinstance(child, ParserRuleContext):
+                rule_index = child.getRuleIndex()
+                rule_name = self.cypher_base.get_rule_name(rule_index)
+                if rule_name == "oC_SetItem":
+                    self.visitOC_SetItem(child)
+        return ''
 
     # Visit a parse tree produced by LcypherParser#oC_SetItem.
     def visitOC_SetItem(self, ctx: LcypherParser.OC_SetItemContext):
-        return self.visitChildren(ctx)
+    # oC_SetItem : ( oC_PropertyExpression SP? '=' SP? oC_Expression ) √
+    #            | ( oC_Variable SP? '=' SP? oC_Expression ) √ e.g.: SET r=NULL,SET n=m,SET m = {age: 33},SET m.age = id(n)
+    #            | ( oC_Variable SP? '+=' SP? oC_Expression )
+    #            | ( oC_Variable SP? oC_NodeLabels ) e.g.: SET a :MyLabel
+        for child in ctx.getChildren():
+            if isinstance(child, ParserRuleContext):
+                rule_index = child.getRuleIndex()
+                rule_name = self.cypher_base.get_rule_name(rule_index)
+                if rule_name == "oC_PropertyExpression":
+                    variable,property=self.visitOC_PropertyExpression(child)
+                    clause_idx,part_idx,node_idx=self.current_pattern.find_variable_index(variable)
+                    lable_lists=self.current_pattern.get_matched_pattern_parts_label_lists()
+                    for idx,query in enumerate(self.gen_query_list):
+                        label=lable_lists[idx][clause_idx][part_idx][node_idx]
+                        instance=self.schema.get_instance_by_label(label, 1)[0]
+                        property, property_value = random.choice(list(instance.items()))
+                        query = query + ' SET '+ str(variable) +'.'+str(property)+'='+str(property_value)
+                        self.gen_query_list[idx]=query
+                if rule_name =="oC_Variable":
+                    self.visitOC_Variable(child)
+                if rule_name =="oC_Expression":
+                    self.visitOC_Expression(child)
+                if rule_name =="oC_NodeLables":
+                    self.visitOC_NodeLabels(child)
 
     # Visit a parse tree produced by LcypherParser#oC_Delete.
     def visitOC_Delete(self, ctx: LcypherParser.OC_DeleteContext):
@@ -928,7 +962,23 @@ class TransVisitor(LcypherVisitor):
     def visitOC_PropertyExpression(
         self, ctx: LcypherParser.OC_PropertyExpressionContext
     ):
-        return self.visitChildren(ctx)
+    # oC_PropertyExpression : oC_Atom ( SP? oC_PropertyLookup )+ ;
+        tokens = []
+        for child in ctx.getChildren():
+            if isinstance(child, ParserRuleContext):
+                rule_index = child.getRuleIndex()
+                rule_name = self.cypher_base.get_rule_name(rule_index)
+                if rule_name == "oC_Atom":
+                    tokens.append(str(self.visitOC_Atom(child)))
+                if rule_name == "oC_PropertyLookup":
+                    tokens.append(str(self.visitOC_PropertyLookup(child)))
+        if len(tokens) == 1:
+            return (tokens[0], 0)
+        elif len(tokens) == 2:
+            return (tokens[0], tokens[1])
+        else:
+            print('[ERROR]: cannot parse the property expression')
+            return (0,0)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyKeyName.
     def visitOC_PropertyKeyName(self, ctx: LcypherParser.OC_PropertyKeyNameContext):
