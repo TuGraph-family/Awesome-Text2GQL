@@ -212,10 +212,7 @@ class TransVisitor(LcypherVisitor):
     # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
-                rule_index = child.getRuleIndex()
-                rule_name = self.cypher_base.get_rule_name(rule_index)
-                if rule_name == "oC_SetItem":
-                    self.visitOC_SetItem(child)
+                self.visitOC_SetItem(child)
         return ''
 
     # Visit a parse tree produced by LcypherParser#oC_SetItem.
@@ -234,10 +231,13 @@ class TransVisitor(LcypherVisitor):
                     lable_lists=self.current_pattern.get_matched_pattern_parts_label_lists()
                     for idx,query in enumerate(self.gen_query_list):
                         label=lable_lists[idx][clause_idx][part_idx][node_idx]
-                        instance=self.schema.get_instance_by_label(label, 1)[0]
-                        property, property_value = random.choice(list(instance.items()))
-                        query = query + ' SET '+ str(variable) +'.'+str(property)+'='+str(property_value)
-                        self.gen_query_list[idx]=query
+                        node_instance=self.schema.get_instance_by_label(label, 1)[0]
+                        if len(node_instance)!=0:
+                            property_key, property_value = random.choice(list(node_instance.items()))
+                            if type(property_value) == str:
+                                property_value = f'"{property_value}"'
+                            query = query + ' SET '+ str(variable) +'.'+str(property_key)+'='+str(property_value)
+                            self.gen_query_list[idx]=query
                 if rule_name =="oC_Variable":
                     self.visitOC_Variable(child)
                 if rule_name =="oC_Expression":

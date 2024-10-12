@@ -126,11 +126,11 @@ class Schema:
         instance_of_pattern_match_list = []
         if len(label_list) == 1:
             instance_of_pattern_match_list.append(
-                self.get_instance_by_label(label_list[0], 1)[0]
+                self.__get_instance_by_label(label_list[0], 1)[0]
             )
         for i in range(1, len(label_list), 2):
             label = label_list[i]
-            edge_instance = self.get_instance_by_label(label, 1)[0]
+            edge_instance = self.__get_instance_by_label(label, 1)[0]
             edge = self.edge_dict[label]
             if edge.src == label_list[i - 1]:
                 if i == 1:
@@ -191,7 +191,7 @@ class Schema:
                     else:
                         continue
 
-    def get_instance_by_label(self, vertex_or_edge_label, count):
+    def __get_instance_by_label(self, vertex_or_edge_label, count):
         type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
@@ -214,6 +214,43 @@ class Schema:
                     vertex_or_edge_instance = {}
                     for index, item in enumerate(row):
                         keyword = node.column_keyword[index]
+                        if keyword in node.property_type:
+                            keyword_type = node.property_type[keyword]
+                            if "INT" in keyword_type:
+                                vertex_or_edge_instance[keyword] = int(item)
+                            else:
+                                vertex_or_edge_instance[keyword] = str(item)
+                        else:
+                            vertex_or_edge_instance[keyword] = str(item)
+                    vertex_or_edge_instance_list.append(vertex_or_edge_instance)
+        return vertex_or_edge_instance_list
+    
+    def get_instance_by_label(self, vertex_or_edge_label, count):
+        # instance excludes 'SRC_ID' and 'DST_ID'
+        type = ""
+        if vertex_or_edge_label in self.vertex_dict:
+            node = self.vertex_dict[vertex_or_edge_label]
+            type = "vertex"
+        elif vertex_or_edge_label in self.edge_dict:
+            node = self.edge_dict[vertex_or_edge_label]
+            type = "edge"
+        else:
+            print("[ERROR]: vertex or edge is not exist")
+            return
+        file_path = node.file_path
+        if os.path.exists(file_path):
+            vertex_or_edge_instance_list = []
+            with open(file_path, newline="") as csvfile:
+                reader = list(csv.reader(csvfile))
+                data_from_third_row = reader[2:]
+                count = min(count, len(data_from_third_row))
+                random_rows = random.sample(data_from_third_row, count)
+                for row in random_rows:
+                    vertex_or_edge_instance = {}
+                    for index, item in enumerate(row):
+                        keyword = node.column_keyword[index]
+                        if keyword=='SRC_ID' or keyword=='DST_ID':
+                            continue
                         if keyword in node.property_type:
                             keyword_type = node.property_type[keyword]
                             if "INT" in keyword_type:

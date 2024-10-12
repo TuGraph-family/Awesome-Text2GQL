@@ -201,7 +201,7 @@ class ReadPattern(Pattern):
                 return True
         return False
 
-    def get_matched_pattern_parts_label_lists(self):                        
+    def get_matched_pattern_parts_label_lists(self):              
         if not super().get_matched_pattern_parts_label_lists():
             return False
         if len(self.pattern_parts)>1:
