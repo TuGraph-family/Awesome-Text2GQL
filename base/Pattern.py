@@ -63,7 +63,7 @@ class Pattern:
                         return pattern_idx,node_idx
         return -1,-1
 
-    def get_matched_pattern_parts_label_lists(self):
+    def gen_matched_pattern_parts_label_lists(self):
         # MATCH (p)-[:ACTED_IN]->(x), (p)-[:MARRIED]->(y), (p)-[:HAS_CHILD]->(z) RETURN p,x,y,z
         variable_lists=[]
         mactched_pattern_parts_label_lists=[]
@@ -201,14 +201,14 @@ class ReadPattern(Pattern):
                 return True
         return False
 
-    def get_matched_pattern_parts_label_lists(self):              
-        if not super().get_matched_pattern_parts_label_lists():
+    def gen_matched_pattern_parts_label_lists(self):              
+        if not super().gen_matched_pattern_parts_label_lists():
             return False
         if len(self.pattern_parts)>1:
             for part_idx,pattern_part in enumerate(self.pattern_parts):
                 for compared_part_idx in range(part_idx+1,len(self.pattern_parts)):
                     if self.if_pattern_need_duplicates(pattern_part,self.pattern_parts[compared_part_idx]):
-                        # duplicates
+                        # duplicates if patternparts are the same
                         idxs_to_rm=[]
                         for list_idx,list in enumerate(self.matched_pattern_parts_label_lists):
                             if list[part_idx]==list[compared_part_idx]:
@@ -225,26 +225,33 @@ class UpdatePattern(Pattern):
     def __init__(self,schema):
         super().__init__(schema)
     
-    def get_matched_pattern_parts_label_lists(self):
-        if not super().get_matched_pattern_parts_label_lists():
+    def gen_matched_pattern_parts_label_lists(self):
+        if not super().gen_matched_pattern_parts_label_lists():
             return False
-        if len(self.matched_pattern_parts_label_lists)==0:
-            return False
+        assert(len(self.matched_pattern_parts_label_lists)!=0)
         return True
+
+    def get_matched_pattern_parts_label_lists(self):
+        return self.matched_pattern_parts_label_lists
 
 class CurrentPattern():
 # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
     # MATCH (n:Person {name:'A'}),(m:Person {name:'C'}) WITH n,m MATCH (n)-[r]->(m) DELETE r
     def __init__(self,schema:Schema):
         self.read_pattern=ReadPattern(schema)
-        self.update_pattern=UpdatePattern(schema)
+        self.update_pattern=UpdatePattern(schema) # todo support multi CREATE clause
         self.with_node_dict={}
         self.cur_parse_type=''
-        self.__matched_pattern_parts_label_lists=[]
+        self.__matched_label_lists=[]
+        self.schema=schema
+        self.list_idx_to_rm=[]
 
     def get_read_pattern(self):
         return self.read_pattern
     
+    def get_update_pattern(self):
+        return self.update_pattern
+
     def add_pattern_part(self,pattern_part):
         if self.cur_parse_type=='match':
             self.read_pattern.add_pattern_part(pattern_part)
@@ -252,7 +259,7 @@ class CurrentPattern():
             self.update_pattern.add_pattern_part(pattern_part)
         else:
             print('[ERROR]: no valid cur_parse_type')
-    
+
     def find_variable_index(self,variable):
         # find corordinate of the variable
         part_idx,node_idx=self.read_pattern.find_variable_index(variable)
@@ -262,17 +269,67 @@ class CurrentPattern():
                 return -1,-1,-1
             return 1,part_idx,node_idx
         return 0,part_idx,node_idx
-    
-    def get_matched_pattern_parts_label_lists(self):
-        # todo,只考虑了match字句，没有考虑update
-        self.__matched_pattern_parts_label_lists=[[list] for list in self.read_pattern.matched_pattern_parts_label_lists]
-        return self.__matched_pattern_parts_label_lists
-        
-    # def get_label_by_index(self,index):
-    #     pass
 
-    # def get_label_by_variable(self,variable):
-    #     pass
+    def get_matched_label_lists(self,query_list=None):
+        if self.__gen_matched_pattern_parts_label_lists():
+            if self.list_idx_to_rm!=[] and query_list!=None:
+                latest_query_list=[item for index, item in enumerate(query_list) if index not in self.list_idx_to_rm]
+                latest_matched_label_lists=[item for index, item in enumerate(self.__matched_label_lists) if index not in self.list_idx_to_rm]
+                self.read_pattern.matched_pattern_parts_label_lists=[item for index, item in enumerate(self.read_pattern.matched_pattern_parts_label_lists) if index not in self.list_idx_to_rm]
+                self.update_pattern.matched_pattern_parts_label_lists=[item for index, item in enumerate(self.update_pattern.matched_pattern_parts_label_lists) if index not in self.list_idx_to_rm]
+                query_list=latest_query_list
+                self.__matched_label_lists=latest_matched_label_lists
+                self.list_idx_to_rm=[]
+                if len(query_list)==0:
+                    return [],[]
+            return self.__matched_label_lists,query_list
+        else:
+            return [],[]
+
+    def __gen_matched_pattern_parts_label_lists(self):
+        # self.__matched_label_lists=[[list] for list in self.read_pattern.matched_pattern_parts_label_lists]
+        if len(self.read_pattern.matched_pattern_parts_label_lists)==0:
+            if self.update_pattern.gen_matched_pattern_parts_label_lists(): # no match
+                self.__matched_label_lists=[[[],list] for list in self.update_pattern.matched_pattern_parts_label_lists]
+                return True
+            return False
+        else:
+            if len(self.update_pattern.pattern_parts)==0: # no create
+                self.__matched_label_lists=[[list] for list in self.read_pattern.matched_pattern_parts_label_lists]
+                return True
+            elif len(self.update_pattern.pattern_parts[0])==1: # create a vertex
+                # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
+                # todo: deal with the constraints, support the template above
+                if self.update_pattern.gen_matched_pattern_parts_label_lists():
+                    self.__matched_label_lists = [[a, b] for a, b in zip(self.read_pattern.matched_pattern_parts_label_lists,self.update_pattern.matched_pattern_parts_label_lists)]
+                    return True
+                return False
+            else: # create an edge, will not change the matched_lists size
+                update_part_matched_label_lists=[]
+                for pattern_part in self.update_pattern.pattern_parts:
+                    left_node_variable=pattern_part.chain_list[0].variable
+                    right_node_variable=pattern_part.chain_list[0].variable
+                    part_idx_of_left,node_idx_of_left=self.read_pattern.find_variable_index(left_node_variable)
+                    part_idx_of_right,node_idx_of_right=self.read_pattern.find_variable_index(right_node_variable)
+                    update_matched_label_list=[]
+                    for list_idx,read_label_list in enumerate(self.read_pattern.matched_pattern_parts_label_lists):
+                        left_label=read_label_list[part_idx_of_left][node_idx_of_left]
+                        right_label=read_label_list[part_idx_of_right][node_idx_of_right]
+                        update_matched_label_lists=self.schema.get_matched_pattern_list_create_edge(pattern_part,left_label,right_label)
+                        if len(update_matched_label_lists)==0:
+                            self.list_idx_to_rm.append(list_idx)
+                            update_matched_label_list.append([])
+                            continue
+                        update_matched_label=random.choice(update_matched_label_lists)
+                        update_matched_label_list.append(update_matched_label)
+                    update_part_matched_label_lists.append(copy.deepcopy(update_matched_label_list))
+                for list_idx,read_label_list in enumerate(self.read_pattern.matched_pattern_parts_label_lists):
+                    assert(self.update_pattern.matched_pattern_parts_label_lists==[])
+                    update_label_list=[]
+                    for update_part_label_list in update_part_matched_label_lists:
+                        update_label_list.append(copy.deepcopy(update_part_label_list))
+                    self.__matched_label_lists.append([read_label_list,update_label_list])
+        return True
 
     # todo
     def add_with_node(self, variable,label_list):

@@ -346,7 +346,6 @@ class PatternPart:
         return query_list
         # return type 2
 
-
 class ReturnBody:
     def __init__(self, cypher_base: CypherBase, config: Config):
         self.cypher_base = cypher_base

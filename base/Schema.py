@@ -192,6 +192,7 @@ class Schema:
                         continue
 
     def __get_instance_by_label(self, vertex_or_edge_label, count):
+        # instance includes 'SRC_ID' and 'DST_ID'
         type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
@@ -270,50 +271,89 @@ class Schema:
             if key == label:
                 return list(self.edge_dict[key].property_type.keys())
 
-    def get_matched_pattern_list(self, pattern_part:PatternPart):
-        # variableList=patternChain.getChainVariableList()
+    def get_matched_pattern_list(self, pattern_part:PatternPart): # three nodes
         chain_list=pattern_part.chain_list
         all_label_list = []
-        # labelLsit=[]
         edge_count = int(len(chain_list) / 2)
         if edge_count == 0:
-            for left_node_variable, left_node in self.vertex_dict.items():
-                all_label_list.append([left_node_variable])
+            for left_node_label, left_node in self.vertex_dict.items():
+                all_label_list.append([left_node_label])
         if edge_count == 1:
             for i in range(edge_count):  # todo
                 edge_index = 2 * i + 1
-                for left_node_variable, left_node in self.vertex_dict.items():
+                for left_node_label, left_node in self.vertex_dict.items():
                     if (
                         chain_list[edge_index].left_arrow == True
                         and chain_list[edge_index].right_arrow == False
                     ):
                         for edge in left_node.dst_edge:
-                            right_node_variable = self.edge_dict[edge].src
+                            right_node_label = self.edge_dict[edge].src
                             all_label_list.append(
-                                [left_node_variable, edge, right_node_variable]
+                                [left_node_label, edge, right_node_label]
                             )
                     elif (
                         chain_list[edge_index].left_arrow == False
                         and chain_list[edge_index].right_arrow == True
                     ):
-                        for edge in self.vertex_dict[left_node_variable].src_edge:
-                            right_node_variable = self.edge_dict[edge].dst
+                        for edge in self.vertex_dict[left_node_label].src_edge:
+                            right_node_label = self.edge_dict[edge].dst
                             all_label_list.append(
-                                [left_node_variable, edge, right_node_variable]
+                                [left_node_label, edge, right_node_label]
                             )
                     else:
-                        for edge in self.vertex_dict[left_node_variable].dst_edge:
-                            right_node_variable = self.edge_dict[edge].src
+                        for edge in self.vertex_dict[left_node_label].dst_edge:
+                            right_node_label = self.edge_dict[edge].src
                             all_label_list.append(
-                                [left_node_variable, edge, right_node_variable]
+                                [left_node_label, edge, right_node_label]
                             )
-                        for edge in self.vertex_dict[left_node_variable].src_edge:
-                            right_node_variable = self.edge_dict[edge].dst
+                        for edge in self.vertex_dict[left_node_label].src_edge:
+                            right_node_label = self.edge_dict[edge].dst
                             all_label_list.append(
-                                [left_node_variable, edge, right_node_variable]
+                                [left_node_label, edge, right_node_label]
                             )
         return all_label_list
 
+    def get_matched_pattern_list_create_edge(self, pattern_part:PatternPart,left_label,right_label):
+        # ()-[]->()，given the vertex's label, find all the matched edge
+        chain_list=pattern_part.chain_list
+        all_label_list = []
+        edge_index = 1
+        for left_node_label, left_node in self.vertex_dict.items():
+            if left_node_label==left_label:
+                if (
+                    chain_list[edge_index].left_arrow == True
+                    and chain_list[edge_index].right_arrow == False
+                ):
+                    for edge in left_node.dst_edge:
+                        right_node_label = self.edge_dict[edge].src
+                        if right_node_label==right_label:
+                            all_label_list.append(
+                                [left_node_label, edge, right_node_label]
+                            )
+                elif (
+                    chain_list[edge_index].left_arrow == False
+                    and chain_list[edge_index].right_arrow == True
+                ):
+                    for edge in self.vertex_dict[left_node_label].src_edge:
+                        right_node_label = self.edge_dict[edge].dst
+                        if right_node_label==right_label:
+                            all_label_list.append(
+                                [left_node_label, edge, right_node_label]
+                            )
+                else:
+                    for edge in self.vertex_dict[left_node_label].dst_edge:
+                        right_node_label = self.edge_dict[edge].src
+                        if right_node_label==right_label:
+                            all_label_list.append(
+                                [left_node_label, edge, right_node_label]
+                            )
+                    for edge in self.vertex_dict[left_node_label].src_edge:
+                        right_node_label = self.edge_dict[edge].dst
+                        if right_node_label==right_label:
+                            all_label_list.append(
+                                [left_node_label, edge, right_node_label]
+                            )
+        return all_label_list
 
 if __name__ == "__main__":
     from base.Config import Config
