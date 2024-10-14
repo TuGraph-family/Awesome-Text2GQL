@@ -273,11 +273,11 @@ class CurrentPattern():
     def get_matched_label_lists(self,query_list=None):
         if self.__gen_matched_pattern_parts_label_lists():
             if self.list_idx_to_rm!=[] and query_list!=None:
-                latest_query_list=[item for index, item in enumerate(query_list) if index not in self.list_idx_to_rm]
+                latest_query_lists=[item for index, item in enumerate(query_list) if index not in self.list_idx_to_rm]
                 latest_matched_label_lists=[item for index, item in enumerate(self.__matched_label_lists) if index not in self.list_idx_to_rm]
                 self.read_pattern.matched_pattern_parts_label_lists=[item for index, item in enumerate(self.read_pattern.matched_pattern_parts_label_lists) if index not in self.list_idx_to_rm]
                 self.update_pattern.matched_pattern_parts_label_lists=[item for index, item in enumerate(self.update_pattern.matched_pattern_parts_label_lists) if index not in self.list_idx_to_rm]
-                query_list=latest_query_list
+                query_list=latest_query_lists
                 self.__matched_label_lists=latest_matched_label_lists
                 self.list_idx_to_rm=[]
                 if len(query_list)==0:
@@ -297,7 +297,7 @@ class CurrentPattern():
             if len(self.update_pattern.pattern_parts)==0: # no create
                 self.__matched_label_lists=[[list] for list in self.read_pattern.matched_pattern_parts_label_lists]
                 return True
-            elif len(self.update_pattern.pattern_parts[0])==1: # create a vertex
+            elif len(self.update_pattern.pattern_parts[0].chain_list)==1: # create a vertex
                 # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
                 # todo: deal with the constraints, support the template above
                 if self.update_pattern.gen_matched_pattern_parts_label_lists():
@@ -305,10 +305,11 @@ class CurrentPattern():
                     return True
                 return False
             else: # create an edge, will not change the matched_lists size
+                # 1. find label_list
                 update_part_matched_label_lists=[]
                 for pattern_part in self.update_pattern.pattern_parts:
                     left_node_variable=pattern_part.chain_list[0].variable
-                    right_node_variable=pattern_part.chain_list[0].variable
+                    right_node_variable=pattern_part.chain_list[2].variable
                     part_idx_of_left,node_idx_of_left=self.read_pattern.find_variable_index(left_node_variable)
                     part_idx_of_right,node_idx_of_right=self.read_pattern.find_variable_index(right_node_variable)
                     update_matched_label_list=[]
@@ -323,12 +324,14 @@ class CurrentPattern():
                         update_matched_label=random.choice(update_matched_label_lists)
                         update_matched_label_list.append(update_matched_label)
                     update_part_matched_label_lists.append(copy.deepcopy(update_matched_label_list))
+                # 2. update label_list
+                assert(self.update_pattern.matched_pattern_parts_label_lists==[])
                 for list_idx,read_label_list in enumerate(self.read_pattern.matched_pattern_parts_label_lists):
-                    assert(self.update_pattern.matched_pattern_parts_label_lists==[])
                     update_label_list=[]
-                    for update_part_label_list in update_part_matched_label_lists:
-                        update_label_list.append(copy.deepcopy(update_part_label_list))
+                    for update_part_label_list in update_part_matched_label_lists: # pattern_part
+                        update_label_list.append(copy.deepcopy(update_part_label_list[list_idx]))
                     self.__matched_label_lists.append([read_label_list,update_label_list])
+                    self.update_pattern.matched_pattern_parts_label_lists.append(update_label_list)
         return True
 
     # todo
