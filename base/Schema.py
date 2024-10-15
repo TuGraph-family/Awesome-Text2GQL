@@ -319,12 +319,12 @@ class Schema:
         return all_label_list
 
     def get_matched_pattern_list_create_edge(self, pattern_part:PatternPart,left_label,right_label):
-        # ()-[]->()，given the vertex's label, find all the matched edge
+        # ()-[]->()，given one or two node's label, find all the matched edge
         chain_list=pattern_part.chain_list
         all_label_list = []
         edge_index = 1
         for left_node_label, left_node in self.vertex_dict.items():
-            if left_node_label==left_label:
+            if left_node_label==left_label or left_label=='':
                 if (
                     chain_list[edge_index].left_arrow == True
                     and chain_list[edge_index].right_arrow == False
@@ -341,20 +341,20 @@ class Schema:
                 ):
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
-                        if right_node_label==right_label:
+                        if right_node_label==right_label or right_label=='':
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
                 else:
                     for edge in self.vertex_dict[left_node_label].dst_edge:
                         right_node_label = self.edge_dict[edge].src
-                        if right_node_label==right_label:
+                        if right_node_label==right_label or right_label=='':
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
-                        if right_node_label==right_label:
+                        if right_node_label==right_label or right_label=='':
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )

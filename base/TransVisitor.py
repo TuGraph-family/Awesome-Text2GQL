@@ -111,7 +111,6 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_UpdatingClause.
     def visitOC_UpdatingClause(self, ctx: LcypherParser.OC_UpdatingClauseContext):
     # oC_UpdatingClause : oC_Create| oC_Merge| oC_Delete | oC_Set| oC_Remove
-        self.current_pattern.cur_parse_type='update'
         self.visitChildren(ctx)
         return ""
 
@@ -122,7 +121,7 @@ class TransVisitor(LcypherVisitor):
 
     def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext):
         match_pattern=self.current_pattern.get_read_pattern()
-        if not match_pattern.gen_matched_pattern_parts_label_lists():
+        if self.current_pattern.get_matched_label_lists() == ([],[]):
             return
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -166,7 +165,7 @@ class TransVisitor(LcypherVisitor):
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
-                if rule_name == "oC_Pattern":  # todo
+                if rule_name == "oC_Pattern":
                     pattern_desc = self.visitOC_Pattern(child)
                     desc += pattern_desc
                 if rule_name == "oC_Hint":
@@ -175,6 +174,7 @@ class TransVisitor(LcypherVisitor):
                     self.visitOC_Where(child)
         if self.if_gen_query:
             self.visitGenOC_Match(ctx)
+        self.current_pattern.cur_parse_type=''
         return desc
 
     # Visit a parse tree produced by LcypherParser#oC_Unwind.
@@ -184,6 +184,7 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_Merge.
     def visitOC_Merge(self, ctx: LcypherParser.OC_MergeContext):
     # oC_Merge : MERGE SP? oC_PatternPart ( SP oC_MergeAction )* ;
+        self.current_pattern.cur_parse_type='update'
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -198,6 +199,8 @@ class TransVisitor(LcypherVisitor):
                         self.visitGenOC_Create_and_Merge(ctx,type='MERGE')
                 if rule_name == "oC_MergeAction":
                     self.visitOC_MergeAction(child)
+        self.current_pattern.add_update_pattern()
+        self.current_pattern.cur_parse_type=''
 
     # Visit a parse tree produced by LcypherParser#oC_MergeAction.
     def visitOC_MergeAction(self, ctx: LcypherParser.OC_MergeActionContext):
@@ -215,7 +218,7 @@ class TransVisitor(LcypherVisitor):
 
     def visitGenOC_Create_and_Merge(self, ctx,type='CREATE'):
         matched_label_lists,self.gen_query_list=self.current_pattern.get_matched_label_lists(self.gen_query_list)
-        update_pattern=self.current_pattern.get_update_pattern()
+        update_pattern=self.current_pattern.get_cur_update_pattern()
         if matched_label_lists==[]:
             return
         for list_idx, matched_pattern_parts_label_list in enumerate(
@@ -241,10 +244,13 @@ class TransVisitor(LcypherVisitor):
                     self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " MERGE " + query
 
     def visitOC_Create(self, ctx: LcypherParser.OC_CreateContext):
+        self.current_pattern.cur_parse_type='update'
         # oC_Create : CREATE SP? oC_Pattern ;
         self.visitChildren(ctx)
         if self.if_gen_query:
             self.visitGenOC_Create_and_Merge(ctx,type='CREATE')
+        self.current_pattern.add_update_pattern()
+        self.current_pattern.cur_parse_type=''
 
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
     # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
