@@ -273,6 +273,11 @@ class Schema:
 
     def get_matched_pattern_list(self, pattern_part:PatternPart): # three nodes
         chain_list=pattern_part.chain_list
+        if len(chain_list)<=3:
+            self.get_matched_pattern_list_three_nodes(pattern_part)
+
+    def get_matched_pattern_list_three_nodes(self, pattern_part:PatternPart): # three nodes
+        chain_list=pattern_part.chain_list
         all_label_list = []
         edge_count = int(len(chain_list) / 2)
         if edge_count == 0:

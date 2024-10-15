@@ -29,7 +29,7 @@ class Pattern:
         
     def __get_matched_pattern_part_label_lists(self,pattern_part:PatternPart):
         # 1. generate all matched path
-        label_lists=self.schema.get_matched_pattern_list(pattern_part)
+        label_lists=self.schema.get_matched_pattern_list_three_nodes(pattern_part)
         # 2. Remove duplicates，edge without properties
         if len(label_lists[0])>=3:
             omit_index_list=[]
@@ -201,7 +201,7 @@ class ReadPattern(Pattern):
                 return True
         return False
 
-    def gen_matched_pattern_parts_label_lists(self):              
+    def gen_matched_pattern_parts_label_lists(self):
         if not super().gen_matched_pattern_parts_label_lists():
             return False
         if len(self.pattern_parts)>1:
@@ -233,6 +233,80 @@ class UpdatePattern(Pattern):
 
     def get_matched_pattern_parts_label_lists(self):
         return self.matched_pattern_parts_label_lists
+
+    def gen_pattern_part(self,parsed_pattern_part,matched_label_list,pattern_part_instance):
+        query=''
+        if parsed_pattern_part.variable != "":
+            query = query + parsed_pattern_part.variable + "="
+        for i in range(len(parsed_pattern_part.chain_list)):
+            label = matched_label_list[i]
+            chain_node = parsed_pattern_part.chain_list[i]
+            node_instance = pattern_part_instance[i]
+            if chain_node.type == "node":
+                query = query + "("
+                if chain_node.variable != "":
+                    query = query + chain_node.variable 
+                if chain_node.labels != []:
+                    query = query + ":" + label
+                if len(chain_node.properties) != 0:
+                    node_instance = (
+                        self.schema.rm_long_property_of_instance(
+                            node_instance
+                        )
+                    )
+                    size = max(0, min(2, len(node_instance) - 1))
+                    rand = random.randint(0, size)
+                    property_keys = random.sample(list(node_instance.keys()),rand+1)
+                    if len(property_keys)>0:
+                        query = query + "{"
+                        for property_key in property_keys:
+                            property_text = node_instance[property_key]
+                            if type(property_text) == str:
+                                property_text = f'"{property_text}"'
+                            query = (
+                                query
+                                + property_key
+                                + ": "
+                                + str(property_text)
+                                + ", "
+                            )
+                        query=query[:-2]+"}"
+                query = query + ")"
+            if chain_node.type == "edge":
+                if chain_node.left_arrow == True:
+                    query += "<-["
+                else:
+                    query += "-["
+                if chain_node.variable != "":
+                    query = query + chain_node.variable
+                if chain_node.labels != []:
+                    query = query + ":" + label
+                if len(chain_node.properties) != 0:
+                    node_instance = (
+                        self.schema.rm_long_property_of_instance(
+                            node_instance
+                        )
+                    )
+                    query = query + "{"
+                    size = min(3, len(node_instance))
+                    assert size >= 0
+                    rand = random.randint(0, size)
+                    property_key = list(node_instance.keys())[rand]
+                    property_text = node_instance[property_key]
+                    if type(property_text) == str:
+                        property_text = f'"{property_text}"'
+                    query = (
+                        query
+                        + property_key
+                        + ":"
+                        + str(property_text)
+                        + "}"
+                    )
+                if chain_node.right_arrow == True:
+                    query += "]->"
+                else:
+                    query += "]-"
+        return query
 
 class CurrentPattern():
 # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
@@ -272,7 +346,7 @@ class CurrentPattern():
 
     def get_matched_label_lists(self,query_list=None):
         if self.__gen_matched_pattern_parts_label_lists():
-            if self.list_idx_to_rm!=[] and query_list!=None:
+            if self.list_idx_to_rm!=[] and query_list!=None and query_list!=[]:
                 latest_query_lists=[item for index, item in enumerate(query_list) if index not in self.list_idx_to_rm]
                 latest_matched_label_lists=[item for index, item in enumerate(self.__matched_label_lists) if index not in self.list_idx_to_rm]
                 self.read_pattern.matched_pattern_parts_label_lists=[item for index, item in enumerate(self.read_pattern.matched_pattern_parts_label_lists) if index not in self.list_idx_to_rm]
