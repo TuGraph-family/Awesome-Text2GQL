@@ -184,7 +184,7 @@ class TransVisitor(LcypherVisitor):
     # Visit a parse tree produced by LcypherParser#oC_Merge.
     def visitOC_Merge(self, ctx: LcypherParser.OC_MergeContext):
     # oC_Merge : MERGE SP? oC_PatternPart ( SP oC_MergeAction )* ;
-        self.current_pattern.cur_parse_type='update'
+        self.current_pattern.cur_parse_type='merge'
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -244,7 +244,7 @@ class TransVisitor(LcypherVisitor):
                     self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " MERGE " + query
 
     def visitOC_Create(self, ctx: LcypherParser.OC_CreateContext):
-        self.current_pattern.cur_parse_type='update'
+        self.current_pattern.cur_parse_type='create'
         # oC_Create : CREATE SP? oC_Pattern ;
         self.visitChildren(ctx)
         if self.if_gen_query:

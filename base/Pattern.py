@@ -179,7 +179,7 @@ class ReadPattern(Pattern):
         super().__init__(schema)
     
     def if_pattern_need_duplicates(self,pattern_part:PatternPart,compared_pattern_part:PatternPart):
-        # pattern are the same, and nodes all have no properties
+        # pattern_part are the same, and nodes all have no properties
         need_flag=True
         if len(pattern_part.chain_list)==len(compared_pattern_part.chain_list):
             for node_idx, node in enumerate(compared_pattern_part.chain_list):
@@ -191,7 +191,7 @@ class ReadPattern(Pattern):
                         need_flag=False
                         break
         return need_flag
-    
+
     def if_pattern_has_constrained_node(self,pattern_part:PatternPart,compared_pattern_part:PatternPart):
         variable_list=pattern_part.get_chain_variable_list()
         compared_variable_list=compared_pattern_part.get_chain_variable_list()
@@ -320,6 +320,7 @@ class CurrentPattern():
         self.__matched_label_lists=[]
         self.schema=schema
         self.list_idx_to_rm=[]
+        self.if_extend_list=False
 
     def get_read_pattern(self):
         return self.read_pattern
@@ -340,7 +341,7 @@ class CurrentPattern():
     def add_pattern_part(self,pattern_part):
         if self.cur_parse_type=='match':
             self.read_pattern.add_pattern_part(pattern_part)
-        elif self.cur_parse_type=='update':
+        elif self.cur_parse_type=='create' or  self.cur_parse_type=='merge':
             self.cur_update_pattern.add_pattern_part(pattern_part)
         else:
             print('[ERROR]: no valid cur_parse_type')
@@ -379,7 +380,16 @@ class CurrentPattern():
                 self.list_idx_to_rm=[]
                 if len(query_list)==0:
                     return [],[]
+            if self.if_extend_list and query_list!=None:
+                multiplier=len(self.__matched_label_lists)/len(query_list)
+                query_list = [element for _ in range(int(multiplier)) for element in query_list]
+                self.read_pattern.matched_pattern_parts_label_lists=[element for _ in range(int(multiplier)) for element in self.read_pattern.matched_pattern_parts_label_lists]
+                for update_pattern in self.update_patterns:
+                    update_pattern.matched_pattern_parts_label_lists=[element for _ in range(int(multiplier)) for element in update_pattern.matched_pattern_parts_label_lists]
+                self.cur_update_pattern.matched_pattern_parts_label_lists=[element for _ in range(int(multiplier)) for element in self.cur_update_pattern.matched_pattern_parts_label_lists]
+                self.if_extend_list=False
             return self.__matched_label_lists,query_list
+            # todo control the max size
         else:
             return [],[]
 
@@ -398,11 +408,24 @@ class CurrentPattern():
             elif len(self.cur_update_pattern.pattern_parts[0].chain_list)==1: # create a vertex
                 # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
                 # todo: deal with the constraints, support the template above
-                if self.cur_update_pattern.gen_matched_pattern_parts_label_lists():
-                    for list_idx, pre_label_list in enumerate(self.__matched_label_lists):
-                        pre_label_list.append(self.cur_update_pattern.matched_pattern_parts_label_lists[list_idx])
-                        self.__matched_label_lists[list_idx]=copy.deepcopy(pre_label_list)
-                    return True
+                if len(self.__matched_label_lists)<10:
+                    self.if_extend_list = True
+                if self.if_extend_list:
+                    if self.cur_update_pattern.gen_matched_pattern_parts_label_lists():
+                        latest_matched_label_lists=[]
+                        for update_label_list in self.cur_update_pattern.matched_pattern_parts_label_lists:
+                            for pre_label_list in self.__matched_label_lists:
+                                temp_label_list=copy.deepcopy(pre_label_list)
+                                temp_label_list.append(update_label_list)
+                                latest_matched_label_lists.append(copy.deepcopy(temp_label_list))
+                        self.__matched_label_lists=latest_matched_label_lists
+                        return True
+                else:
+                    if self.cur_update_pattern.gen_matched_pattern_parts_label_lists():
+                        for list_idx, pre_label_list in enumerate(self.__matched_label_lists):
+                            pre_label_list.append(random.choice(self.cur_update_pattern.matched_pattern_parts_label_lists))
+                            self.__matched_label_lists[list_idx]=copy.deepcopy(pre_label_list)
+                        return True
                 return False
             else: # create an edge, will not change the matched_lists size
                 # 1. find label_list
