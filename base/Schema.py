@@ -90,7 +90,7 @@ class Schema:
             desc = desc[:-1]
             desc += "。"
             for vertex in self.vertex_dict:
-                if len(self.edge_dict[edge].property_type)>0:
+                if len(self.edge_dict[edge].property_type) > 0:
                     desc = desc + "节点" + vertex + "有属性"
                     for property in self.vertex_dict[vertex].property_type.keys():
                         desc = desc + property + "、"
@@ -98,7 +98,7 @@ class Schema:
                     desc += "。"
             for edge in self.edge_dict:
                 if self.edge_dict[edge].property_type.keys() != []:
-                    if len(self.edge_dict[edge].property_type)>0:
+                    if len(self.edge_dict[edge].property_type) > 0:
                         desc = desc + "边" + edge + "有属性"
                         for property in self.edge_dict[edge].property_type.keys():
                             desc = desc + property + "、"
@@ -107,8 +107,10 @@ class Schema:
             return desc
         return ""
 
-    def get_instance_of_matched_ptn_prts_label_list(self, matched_pattern_parts_label_list):
-        instance=[]
+    def get_instance_of_matched_ptn_prts_label_list(
+        self, matched_pattern_parts_label_list
+    ):
+        instance = []
         for part in matched_pattern_parts_label_list:
             instance.append(self.get_instance_of_matched_label_lists(part))
         return instance
@@ -121,8 +123,8 @@ class Schema:
                 copy.deepcopy(self.get_instance_of_matched_label_list(label_list))
             )
         return instance_of_pattern_match_lists
-    
-    def get_instance_of_matched_label_list(self,label_list):
+
+    def get_instance_of_matched_label_list(self, label_list):
         instance_of_pattern_match_list = []
         if len(label_list) == 1:
             instance_of_pattern_match_list.append(
@@ -225,7 +227,7 @@ class Schema:
                             vertex_or_edge_instance[keyword] = str(item)
                     vertex_or_edge_instance_list.append(vertex_or_edge_instance)
         return vertex_or_edge_instance_list
-    
+
     def get_instance_by_label(self, vertex_or_edge_label, count):
         # instance excludes 'SRC_ID' and 'DST_ID'
         type = ""
@@ -250,7 +252,7 @@ class Schema:
                     vertex_or_edge_instance = {}
                     for index, item in enumerate(row):
                         keyword = node.column_keyword[index]
-                        if keyword=='SRC_ID' or keyword=='DST_ID':
+                        if keyword == "SRC_ID" or keyword == "DST_ID":
                             continue
                         if keyword in node.property_type:
                             keyword_type = node.property_type[keyword]
@@ -271,13 +273,15 @@ class Schema:
             if key == label:
                 return list(self.edge_dict[key].property_type.keys())
 
-    def get_matched_pattern_list(self, pattern_part:PatternPart): # three nodes
-        chain_list=pattern_part.chain_list
-        if len(chain_list)<=3:
+    def get_matched_pattern_list(self, pattern_part: PatternPart):  # three nodes
+        chain_list = pattern_part.chain_list
+        if len(chain_list) <= 3:
             self.get_matched_pattern_list_three_nodes(pattern_part)
 
-    def get_matched_pattern_list_three_nodes(self, pattern_part:PatternPart): # three nodes
-        chain_list=pattern_part.chain_list
+    def get_matched_pattern_list_three_nodes(
+        self, pattern_part: PatternPart
+    ):  # three nodes
+        chain_list = pattern_part.chain_list
         all_label_list = []
         edge_count = int(len(chain_list) / 2)
         if edge_count == 0:
@@ -318,20 +322,22 @@ class Schema:
                             )
         return all_label_list
 
-    def get_matched_pattern_list_create_edge(self, pattern_part:PatternPart,left_label,right_label):
+    def get_matched_pattern_list_create_edge(
+        self, pattern_part: PatternPart, left_label, right_label
+    ):
         # ()-[]->()，given one or two node's label, find all the matched edge
-        chain_list=pattern_part.chain_list
+        chain_list = pattern_part.chain_list
         all_label_list = []
         edge_index = 1
         for left_node_label, left_node in self.vertex_dict.items():
-            if left_node_label==left_label or left_label=='':
+            if left_node_label == left_label or left_label == "":
                 if (
                     chain_list[edge_index].left_arrow == True
                     and chain_list[edge_index].right_arrow == False
                 ):
                     for edge in left_node.dst_edge:
                         right_node_label = self.edge_dict[edge].src
-                        if right_node_label==right_label:
+                        if right_node_label == right_label:
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
@@ -341,24 +347,25 @@ class Schema:
                 ):
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
-                        if right_node_label==right_label or right_label=='':
+                        if right_node_label == right_label or right_label == "":
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
                 else:
                     for edge in self.vertex_dict[left_node_label].dst_edge:
                         right_node_label = self.edge_dict[edge].src
-                        if right_node_label==right_label or right_label=='':
+                        if right_node_label == right_label or right_label == "":
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
-                        if right_node_label==right_label or right_label=='':
+                        if right_node_label == right_label or right_label == "":
                             all_label_list.append(
                                 [left_node_label, edge, right_node_label]
                             )
         return all_label_list
+
 
 if __name__ == "__main__":
     from base.Config import Config

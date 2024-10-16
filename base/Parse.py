@@ -216,7 +216,7 @@ class PatternPart:
 
     def get_text(self):
         return self.text
-                
+
     def pattern_match(self):
         if len(self.chain_list) == 3:
             if (
@@ -345,6 +345,7 @@ class PatternPart:
                 query = query + " " + return_query
         return query_list
         # return type 2
+
 
 class ReturnBody:
     def __init__(self, cypher_base: CypherBase, config: Config):
