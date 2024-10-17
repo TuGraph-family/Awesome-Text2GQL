@@ -30,7 +30,7 @@ class Pattern:
 
     def __get_matched_pattern_part_label_lists(self, pattern_part: PatternPart):
         # 1. generate all matched path
-        label_lists = self.schema.get_matched_pattern_list_three_nodes(pattern_part)
+        label_lists = self.schema.get_matched_pattern_list(pattern_part)
         # 2. Remove duplicates，edge without properties
         if len(label_lists[0]) >= 3:
             omit_index_list = []
@@ -39,16 +39,18 @@ class Pattern:
                 if edge.labels == [] and edge.properties == []:
                     omit_index_list.append(idx)
             if len(omit_index_list) > 0:
-                label_list_flag = label_lists[0]
-                idx = 1
-                while idx < len(label_lists):
-                    if not self.if_label_list_same(
-                        label_list_flag, label_lists[idx], omit_index_list
-                    ):
-                        label_lists.pop(idx)
-                    else:
-                        label_list_flag = label_lists[idx]
-                        idx += 1
+                no_duplicates = [label_lists[0]]
+                for label_list in label_lists[1:]:
+                    same_flag = False
+                    for compared_label_list in no_duplicates:
+                        same_flag = self.if_label_list_same(
+                            compared_label_list, label_list, omit_index_list
+                        )
+                        if same_flag:
+                            break
+                    if not same_flag:
+                        no_duplicates.append(label_list)
+                label_lists = no_duplicates
         return label_lists
 
     def if_label_list_same(self, label_list_flag, label_list, omit_index_list):

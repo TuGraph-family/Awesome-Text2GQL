@@ -133,8 +133,8 @@ class TransVisitor(LcypherVisitor):
                         match_pattern.matched_pattern_parts_label_lists
                     ):
                         query = ""
-                        for idx, part in enumerate(match_pattern.pattern_parts):
-                            label_list = matched_pattern_parts_label_list[idx]
+                        for part_idx, part in enumerate(match_pattern.pattern_parts):
+                            label_list = matched_pattern_parts_label_list[part_idx]
                             # get_instance(label_list)
                             pattern_part_instance = (
                                 self.schema.get_instance_of_matched_label_list(
