@@ -5,8 +5,7 @@ from base.Config import Config
 
 class Node:
     # Vertex Instance
-    def __init__(self, node_id, cypher_base: CypherBase):
-        self.node_id = node_id
+    def __init__(self, cypher_base: CypherBase):
         self.variable = ""
         self.properties = []  # keynames
         self.text_properties = {}  # dict:keyname,property
@@ -142,7 +141,7 @@ class EdgeInstance:
         self.right_node = right
 
 
-class PatternChain:
+class PatternPart:
     def __init__(self, cypher_base: CypherBase):
         # self.chainDict={}
         self.variable = ""
@@ -365,11 +364,11 @@ class ReturnBody:
         self.random_numbers = [random.randint(0, 9) for _ in range(30)]
         self.match_type = 0
 
-    def pattern_match(self, pattern_chain_list):
+    def pattern_match(self, pattern_parts):
         match_success = True
-        if len(pattern_chain_list) == 1:
+        if len(pattern_parts) == 1:
             # type 1
-            pattern_chain = pattern_chain_list[0]
+            pattern_chain = pattern_parts[0]
             if len(pattern_chain.chain_list) == len(self.return_items):
                 for index, item in enumerate(self.return_items):
                     if (
@@ -395,7 +394,7 @@ class ReturnBody:
                     for item in self.return_items:
                         variable = item[0]
                         label = ""
-                        for patternc_chain in pattern_chain_list:
+                        for patternc_chain in pattern_parts:
                             label = patternc_chain.get_variable_label(variable)
                             if label != "":
                                 break
@@ -408,22 +407,23 @@ class ReturnBody:
 
             # type 2 todo
             # RETURN n.name, n.age, n.belt ORDER BY n.name
-        elif len(pattern_chain_list) == 2:
+        elif len(pattern_parts) == 2:
             # todo :MATCH (n:person), (m:movie)
             match_success = False
         else:
             match_success = False
         return match_success
 
-    def get_desc(self, pattern_chain_list):
+    def get_desc(self, pattern_parts):
+        # pattern_parts=pattern_parts[0].chain_list # support only one pattern_part
         merge_list = []
         assert len(self.return_items) != 0
         # self.returnDesc=self.patternMatch(matchPattern)
-        if self.pattern_match(pattern_chain_list) == False:
+        if self.pattern_match(pattern_parts) == False:
             return_desc_list = []
             self.return_desc = "返回"
             for item in self.return_items:
-                type_desc = pattern_chain_list[0].get_variable_type_desc(
+                type_desc = pattern_parts[0].get_variable_type_desc(
                     item[0]
                 )  # todo ，only support one patternchain
                 if len(item) == 3 and item[1] != 0:
