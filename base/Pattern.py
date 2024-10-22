@@ -281,12 +281,10 @@ class UpdatePattern(Pattern):
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.rm_long_property_of_instance(
-                        node_instance
+                    node_instance = self.schema.get_create_instance(
+                        label,node_instance
                     )
-                    size = max(0, min(2, len(node_instance) - 1))
-                    rand = random.randint(0, size)
-                    property_keys = random.sample(list(node_instance.keys()), rand + 1)
+                    property_keys = list(node_instance.keys())
                     if len(property_keys) > 0:
                         query = query + "{"
                         for property_key in property_keys:
@@ -308,18 +306,20 @@ class UpdatePattern(Pattern):
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.rm_long_property_of_instance(
-                        node_instance
+                    node_instance = self.schema.get_create_instance(
+                        label,node_instance
                     )
-                    query = query + "{"
-                    size = min(3, len(node_instance))
-                    assert size >= 0
-                    rand = random.randint(0, size)
-                    property_key = list(node_instance.keys())[rand]
-                    property_text = node_instance[property_key]
-                    if type(property_text) == str:
-                        property_text = f'"{property_text}"'
-                    query = query + property_key + ":" + str(property_text) + "}"
+                    property_keys = list(node_instance.keys())
+                    if len(property_keys) > 0:
+                        query = query + "{"
+                        for property_key in property_keys:
+                            property_text = node_instance[property_key]
+                            if type(property_text) == str:
+                                property_text = f'"{property_text}"'
+                            query = (
+                                query + property_key + ": " + str(property_text) + ", "
+                            )
+                        query = query[:-2] + "}"
                 if chain_node.right_arrow == True:
                     query += "]->"
                 else:
@@ -340,6 +340,9 @@ class CurrentPattern:
         self.schema = schema
         self.list_idx_to_rm = []
         self.if_extend_list = False
+    
+    def set_cur_parse_type(self,type):
+        self.cur_parse_type=type
 
     def get_read_pattern(self):
         return self.read_pattern

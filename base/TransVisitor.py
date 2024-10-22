@@ -5,6 +5,7 @@ from base.Parse import Node, ReturnBody, PatternPart, EdgeInstance
 from base.CypherBase import CypherBase
 from base.Schema import Schema
 from base.Pattern import ReadPattern, UpdatePattern, CurrentPattern
+from base.Expr import Expr,ExprLeaf
 from base import Config
 import copy
 import random
@@ -24,9 +25,9 @@ class TransVisitor(LcypherVisitor):
         self.schema = Schema(self.db_id, schema_path)
         # queryGen
         self.current_pattern = CurrentPattern(self.schema)
-        # self.matched_pattern_chain_label_list =[] # todo support multi matchpattern, save label list
-        # self.matched_pattern_parts_label_lists=[]
         self.gen_query_list = []
+        self.gen_optional=True
+        self.optional_probability=0.1
 
     def save2file(self):
         if self.if_gen_query:
@@ -42,38 +43,31 @@ class TransVisitor(LcypherVisitor):
                 file.write(self.prompt + "\n")
             # print("questions have been written into the file:", self.config.get_output_path())
 
-    # Visit a parse tree produced by LcypherParser#oC_Cypher.
     def visitOC_Cypher(self, ctx: LcypherParser.OC_CypherContext):
         # oC_Cypher : SP? oC_Statement ( SP? ';' )? SP? EOF ;
         self.visitChildren(ctx)
 
-    # Visit a parse tree produced by LcypherParser#oC_Statement.
     def visitOC_Statement(self, ctx: LcypherParser.OC_StatementContext):
         self.prompt = str(self.visitChildren(ctx))
         self.query = ctx.getText()
         self.save2file()
 
-    # Visit a parse tree produced by LcypherParser#oC_Query.
     def visitOC_Query(self, ctx: LcypherParser.OC_QueryContext):
         desc = self.visitChildren(ctx)
         return desc
 
-    # Visit a parse tree produced by LcypherParser#oC_RegularQuery.
     def visitOC_RegularQuery(self, ctx: LcypherParser.OC_RegularQueryContext):
         desc = self.visitChildren(ctx)
         return desc
 
-    # Visit a parse tree produced by LcypherParser#oC_Union.
     def visitOC_Union(self, ctx: LcypherParser.OC_UnionContext):
         desc = self.visitChildren(ctx)
         return desc
 
-    # Visit a parse tree produced by LcypherParser#oC_SingleQuery.
     def visitOC_SingleQuery(self, ctx: LcypherParser.OC_SingleQueryContext):
         desc = self.visitChildren(ctx)
         return desc
 
-    # Visit a parse tree produced by LcypherParser#oC_SinglePartQuery.
     def visitOC_SinglePartQuery(self, ctx: LcypherParser.OC_SinglePartQueryContext):
         # oC_SinglePartQuery : ( ( oC_ReadingClause SP? )* oC_Return )
         #            | ( ( oC_ReadingClause SP? )* oC_UpdatingClause ( SP? oC_UpdatingClause )* ( SP? oC_Return )? )
@@ -91,11 +85,14 @@ class TransVisitor(LcypherVisitor):
                     # readingDesc+=self.visit(ctx.oC_ReadingClause())
                     reading_desc += self.visitOC_ReadingClause(child)
                 if rule_name == "oC_UpdatingClause":
+                    self.gen_optional=False
                     update_desc += self.visitOC_UpdatingClause(child)
                 if rule_name == "oC_Return":
                     return_desc += self.visitOC_Return(child)
-        if self.if_gen_query:
-            pass
+        if self.if_gen_query and self.gen_optional:
+            for query in self.gen_query_list:
+                if random.random() < self.optional_probability:
+                    query='OPTIONAL '+query
         desc_list.append(reading_desc)
         desc_list.append(update_desc)
         desc_list.append(return_desc)
@@ -149,10 +146,7 @@ class TransVisitor(LcypherVisitor):
                                 )
                                 + ","
                             )
-                        if random.random() < 0.1:
-                            query = "OPTIONAL MATCH " + query
-                        else:
-                            query = "MATCH " + query
+                        query = "MATCH " + query
                         query = query[:-1]
                         query_list.append(query)
                 if rule_name == "oC_Hint":
@@ -167,6 +161,7 @@ class TransVisitor(LcypherVisitor):
         self.current_pattern.cur_parse_type = "match"
         desc = ""
         if ctx.OPTIONAL_():
+            self.optional_probability = 1
             desc = self.cypher_base.get_token_desc("OPTIONAL")
         match_desc = self.cypher_base.get_token_desc("MATCH")
         # todo support OC_Hint、OC_WHERE
@@ -177,13 +172,14 @@ class TransVisitor(LcypherVisitor):
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Pattern":
                     pattern_desc = self.visitOC_Pattern(child)
-                    desc += pattern_desc
+                    if self.if_gen_query:
+                        self.visitGenOC_Match(ctx)
+                    else:
+                        desc += pattern_desc
                 if rule_name == "oC_Hint":
                     self.visitOC_Hint(child)
                 if rule_name == "oC_Where":
                     self.visitOC_Where(child)
-        if self.if_gen_query:
-            self.visitGenOC_Match(ctx)
         self.current_pattern.cur_parse_type = ""
         return desc
 
@@ -283,6 +279,7 @@ class TransVisitor(LcypherVisitor):
 
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
         # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
+        self.current_pattern.cur_parse_type='set'
         for list_idx in range(len(self.gen_query_list)):
             self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " SET"
         for child in ctx.getChildren():
@@ -290,12 +287,13 @@ class TransVisitor(LcypherVisitor):
                 self.visitOC_SetItem(child)
         for list_idx in range(len(self.gen_query_list)):
             self.gen_query_list[list_idx] = self.gen_query_list[list_idx][:-2]
+        self.current_pattern.cur_parse_type=''
         return ""
 
     def visitOC_SetItem(self, ctx: LcypherParser.OC_SetItemContext):
         # oC_SetItem : ( oC_PropertyExpression SP? '=' SP? oC_Expression ) √
         #            | ( oC_Variable SP? '=' SP? oC_Expression ) √ e.g.: SET r=NULL,SET n=m,SET m = {age: 33},SET m.age = id(n)
-        #            | ( oC_Variable SP? '+=' SP? oC_Expression )
+        #            | ( oC_Variable SP? '+=' SP? oC_Expression ) e.g:  expression: n.tile
         #            | ( oC_Variable SP? oC_NodeLabels ) e.g.: SET a :MyLabel
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -540,7 +538,6 @@ class TransVisitor(LcypherVisitor):
     def visitOC_ReturnItem(self, ctx: LcypherParser.OC_ReturnItemContext):
         # oC_ReturnItem : ( oC_Expression SP AS SP oC_Variable )
         #               | oC_Expression
-        #               ;
         return_item = ()
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -867,6 +864,7 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_NotExpression.
     def visitOC_NotExpression(self, ctx: LcypherParser.OC_NotExpressionContext):
+        # oC_NotExpression : ( NOT SP? )* oC_ComparisonExpression ;
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
@@ -883,9 +881,10 @@ class TransVisitor(LcypherVisitor):
                     left_expr = self.visitOC_AddOrSubtractExpression(child)
                 if rule_name == "oC_PartialComparisonExpression":
                     symbol, right_expr = self.visitOC_PartialComparisonExpression(child)
-                    # todo ，support multi oC_PartialComparisonExpression
+                    # todo ，support multi oC_PartialComparisonExpression ?
         if symbol != "":
-            return [left_expr, symbol, right_expr]
+            leaf=ExprLeaf(left_expr, symbol, right_expr)
+            return leaf
         return left_expr
 
     # Visit a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
@@ -939,21 +938,21 @@ class TransVisitor(LcypherVisitor):
         self, ctx: LcypherParser.OC_PropertyOrLabelsExpressionContext
     ):
         # oC_PropertyOrLabelsExpression : oC_Atom ( SP? oC_PropertyLookup )* ( SP? oC_NodeLabels )? ;
-        tokens = []
+        property=''
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Atom":
-                    tokens.append(str(self.visitOC_Atom(child)))
+                    variable=str(self.visitOC_Atom(child))
                 if rule_name == "oC_PropertyLookup":
-                    tokens.append(str(self.visitOC_PropertyLookup(child)))
+                    property=str(self.visitOC_PropertyLookup(child))
                 if rule_name == "oC_NodeLabels":
                     self.visitOC_NodeLabels(child)
-        if len(tokens) == 1:
-            return (tokens[0], 0)
-        elif len(tokens) == 2:
-            return (tokens[0], tokens[1])
+        if property == '':
+            return (variable, 0)
+        else:
+            return (variable, property)
 
     # Visit a parse tree produced by LcypherParser#oC_Atom.
     def visitOC_Atom(self, ctx: LcypherParser.OC_AtomContext):
@@ -1027,6 +1026,7 @@ class TransVisitor(LcypherVisitor):
     def visitOC_FunctionInvocation(
         self, ctx: LcypherParser.OC_FunctionInvocationContext
     ):
+# oC_FunctionInvocation : oC_FunctionName SP? '(' SP? ( DISTINCT SP? )? ( oC_Expression SP? ( ',' SP? oC_Expression SP? )* )? ')' ;
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionName.
@@ -1103,8 +1103,9 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_PropertyKeyName":
                     properties.append(str(self.visitOC_PropertyKeyName(c)))
                 if rule_name == "oC_Expression":
-                    expression = self.visitOC_Expression(c)
-                    text_properties[properties[-1]] = str(expression[0])
+                    if not self.if_gen_query:
+                        expression = self.visitOC_Expression(c)
+                        text_properties[properties[-1]] = str(expression[0])
         return properties, text_properties
 
     # Visit a parse tree produced by LcypherParser#oC_Parameter.
