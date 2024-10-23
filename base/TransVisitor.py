@@ -5,7 +5,7 @@ from base.Parse import Node, ReturnBody, PatternPart, EdgeInstance
 from base.CypherBase import CypherBase
 from base.Schema import Schema
 from base.Pattern import ReadPattern, UpdatePattern, CurrentPattern
-from base.Expr import Expr,ExprLeaf
+from base.Expr import ExprTree,ExprLeaf
 from base import Config
 import copy
 import random
@@ -116,10 +116,23 @@ class TransVisitor(LcypherVisitor):
         # oC_ReadingClause : oC_Match | oC_Unwind | oC_InQueryCall
         return self.visitChildren(ctx)
 
-    def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext):
+    def visit_GenOC_Where(where_tree):
+        if where_tree != None:
+            pass
+        # 生成where语句，深度优先遍历
+
+    def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext,where_tree:ExprTree):
         match_pattern = self.current_pattern.get_read_pattern()
         if self.current_pattern.get_matched_label_lists() == ([], []):
             return
+        
+        # 1. delete those not match
+        query2rm_list=where_tree.pre_gen_where(match_pattern.matched_pattern_parts_label_lists)
+        self.current_pattern.cur_parse_type == "where"
+        self.current_pattern.rm_query_by_index(query2rm_list)
+        self.current_pattern.cur_parse_type == "match"
+        
+        # 2. generate match clause
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -132,7 +145,6 @@ class TransVisitor(LcypherVisitor):
                         query = ""
                         for part_idx, part in enumerate(match_pattern.pattern_parts):
                             label_list = matched_pattern_parts_label_list[part_idx]
-                            # get_instance(label_list)
                             pattern_part_instance = (
                                 self.schema.get_instance_of_matched_label_list(
                                     label_list
@@ -152,7 +164,8 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_Hint":
                     pass
                 if rule_name == "oC_Where":
-                    pass  # todo
+                    # 3. generate where clause
+                    self.visit_GenOC_Where(where_tree)
         self.gen_query_list = query_list
 
     # Visit a parse tree produced by LcypherParser#oC_Match.
@@ -166,20 +179,20 @@ class TransVisitor(LcypherVisitor):
         match_desc = self.cypher_base.get_token_desc("MATCH")
         # todo support OC_Hint、OC_WHERE
         desc = desc + match_desc
+        where_tree=None
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Pattern":
                     pattern_desc = self.visitOC_Pattern(child)
-                    if self.if_gen_query:
-                        self.visitGenOC_Match(ctx)
-                    else:
-                        desc += pattern_desc
+                    desc += pattern_desc
                 if rule_name == "oC_Hint":
                     self.visitOC_Hint(child)
                 if rule_name == "oC_Where":
-                    self.visitOC_Where(child)
+                    where_tree=self.visitOC_Where(child)
+        if self.if_gen_query:
+            self.visitGenOC_Match(ctx,where_tree)
         self.current_pattern.cur_parse_type = ""
         return desc
 
@@ -596,19 +609,15 @@ class TransVisitor(LcypherVisitor):
 
     def visitOC_Where(self, ctx: LcypherParser.OC_WhereContext):
         # oC_Where : WHERE SP oC_Expression ;
+        self.current_pattern.cur_parse_type='where'
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Expression":
-                    exprs = self.visitOC_Expression(child)
-        for expr in exprs:
-            if len(expr) == 3 and expr[1] == "=":  # leftExpr,symbol,rightExpr
-                item = [expr[0][0], expr[0][1], expr[2][0]]
-                for pattern_chain in self.current_pattern.read_pattern.pattern_parts:
-                    pattern_chain.add_item(item)
-                # todo only support AND now
-        # return self.visitChildren(ctx)
+                    root = self.visitOC_Expression(child)
+        self.current_pattern.cur_parse_type='match'
+        return root
 
     def visitOC_Pattern(self, ctx: LcypherParser.OC_PatternContext):
         # oC_Pattern : oC_PatternPart ( SP? ',' SP? oC_PatternPart )* ;
@@ -834,38 +843,73 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_Expression.
     def visitOC_Expression(self, ctx: LcypherParser.OC_ExpressionContext):
+        # oC_Expression : oC_OrExpression ;
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_OrExpression.
     def visitOC_OrExpression(self, ctx: LcypherParser.OC_OrExpressionContext):
-        return self.visitChildren(ctx)
+    # oC_OrExpression : oC_XorExpression ( SP OR SP oC_XorExpression )* ;
+        if self.current_pattern.cur_parse_type=='where':
+            text='OR'
+            for child in ctx.getChildren():
+                if isinstance(child, ParserRuleContext):
+                    if text in ctx.OR():
+                        root=ExprTree('OR')
+                        root.add_leaf(self.visitOC_OrExpression(child))
+                        return root
+                    else:
+                        return self.visitOC_OrExpression(child)
+        else:
+            return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_XorExpression.
     def visitOC_XorExpression(self, ctx: LcypherParser.OC_XorExpressionContext):
-        return self.visitChildren(ctx)
+    # oC_XorExpression : oC_AndExpression ( SP XOR SP oC_AndExpression )* ;
+        if self.current_pattern.cur_parse_type=='where':
+            text='XOR'
+            for child in ctx.getChildren():
+                if isinstance(child, ParserRuleContext):
+                    if text in ctx.XOR():
+                        root=ExprTree('XOR')
+                        root.add_leaf(self.visitOC_AndExpression(child))
+                        return root
+                    else:
+                        return self.visitOC_AndExpression(child)
+        else:
+            return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_AndExpression.
     def visitOC_AndExpression(self, ctx: LcypherParser.OC_AndExpressionContext):
         # oC_AndExpression : oC_NotExpression ( SP AND SP oC_NotExpression )* ;
         # And > Xor > Or
-        text = ctx.getText()
-        expr_list = []
-        if "AND" in text:
+        if self.current_pattern.cur_parse_type=='where':
+            text='AND'
             for child in ctx.getChildren():
                 if isinstance(child, ParserRuleContext):
-                    rule_index = child.getRuleIndex()
-                    rule_name = self.cypher_base.get_rule_name(rule_index)
-                    if rule_name == "oC_NotExpression":
-                        expr_list.append(self.visitOC_NotExpression(child))
-                        expr_list.append("AND")
-            expr_list.pop()
-            return expr_list
-        return self.visitChildren(ctx)
+                    if text in ctx.AND():
+                        root=ExprTree('AND')
+                        root.add_leaf(self.visitOC_NotExpression(child))
+                        return root
+                    else:
+                        return self.visitOC_NotExpression(child)
+        else:
+            return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_NotExpression.
     def visitOC_NotExpression(self, ctx: LcypherParser.OC_NotExpressionContext):
         # oC_NotExpression : ( NOT SP? )* oC_ComparisonExpression ;
-        return self.visitChildren(ctx)
+        if self.current_pattern.cur_parse_type=='where':
+            text='NOT'
+            for child in ctx.getChildren():
+                if isinstance(child, ParserRuleContext):
+                    if text in ctx.NOT():
+                        root=ExprTree('NOT')
+                        root.add_leaf(self.visitOC_ComparisonExpression(child))
+                        return root
+                    else:
+                        return self.visitOC_ComparisonExpression(child)
+        else:
+            return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
     def visitOC_ComparisonExpression(
@@ -883,7 +927,7 @@ class TransVisitor(LcypherVisitor):
                     symbol, right_expr = self.visitOC_PartialComparisonExpression(child)
                     # todo ，support multi oC_PartialComparisonExpression ?
         if symbol != "":
-            leaf=ExprLeaf(left_expr, symbol, right_expr)
+            leaf = ExprLeaf(left_expr, symbol, right_expr)
             return leaf
         return left_expr
 
@@ -1103,9 +1147,8 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_PropertyKeyName":
                     properties.append(str(self.visitOC_PropertyKeyName(c)))
                 if rule_name == "oC_Expression":
-                    if not self.if_gen_query:
-                        expression = self.visitOC_Expression(c)
-                        text_properties[properties[-1]] = str(expression[0])
+                    expression = self.visitOC_Expression(c)
+                    text_properties[properties[-1]] = str(expression[0])
         return properties, text_properties
 
     # Visit a parse tree produced by LcypherParser#oC_Parameter.

@@ -391,50 +391,53 @@ class CurrentPattern:
         if pattern_idx != -1 and part_idx != -1 and node_idx != -1:
             return self.__matched_label_lists[list_idx][pattern_idx][part_idx][node_idx]
         return ""
+    
+    def rm_query_by_index(self,list_idx_to_rm,query_list):
+        latest_query_lists = [
+            item
+            for index, item in enumerate(query_list)
+            if index not in list_idx_to_rm
+        ]
+        latest_matched_label_lists = [
+            item
+            for index, item in enumerate(self.__matched_label_lists)
+            if index not in list_idx_to_rm
+        ]
+        self.read_pattern.matched_pattern_parts_label_lists = [
+            item
+            for index, item in enumerate(
+                self.read_pattern.matched_pattern_parts_label_lists
+            )
+            if index not in list_idx_to_rm
+        ]
+        for update_pattern in self.update_patterns:
+            update_pattern.matched_pattern_parts_label_lists = [
+                item
+            for index, item in enumerate(
+                update_pattern.matched_pattern_parts_label_lists
+            )
+            if index not in list_idx_to_rm
+        ]
+        self.cur_update_pattern.matched_pattern_parts_label_lists = [
+            item
+            for index, item in enumerate(
+                self.cur_update_pattern.matched_pattern_parts_label_lists
+            )
+            if index not in list_idx_to_rm
+        ]
+        query_list = latest_query_lists
+        self.__matched_label_lists = latest_matched_label_lists
+        self.list_idx_to_rm = []
+        if len(query_list) == 0:
+            return [], []
 
     def get_matched_label_lists(self, query_list=None):
-        if self.cur_parse_type == "":
+        if self.cur_parse_type == "" or self.cur_parse_type == "where":
             return self.__matched_label_lists, query_list
-        if self.__gen_matched_pattern_parts_label_lists():
-            if self.list_idx_to_rm != [] and query_list != None and query_list != []:
-                latest_query_lists = [
-                    item
-                    for index, item in enumerate(query_list)
-                    if index not in self.list_idx_to_rm
-                ]
-                latest_matched_label_lists = [
-                    item
-                    for index, item in enumerate(self.__matched_label_lists)
-                    if index not in self.list_idx_to_rm
-                ]
-                self.read_pattern.matched_pattern_parts_label_lists = [
-                    item
-                    for index, item in enumerate(
-                        self.read_pattern.matched_pattern_parts_label_lists
-                    )
-                    if index not in self.list_idx_to_rm
-                ]
-                for update_pattern in self.update_patterns:
-                    update_pattern.matched_pattern_parts_label_lists = [
-                        item
-                        for index, item in enumerate(
-                            update_pattern.matched_pattern_parts_label_lists
-                        )
-                        if index not in self.list_idx_to_rm
-                    ]
-                self.cur_update_pattern.matched_pattern_parts_label_lists = [
-                    item
-                    for index, item in enumerate(
-                        self.cur_update_pattern.matched_pattern_parts_label_lists
-                    )
-                    if index not in self.list_idx_to_rm
-                ]
-                query_list = latest_query_lists
-                self.__matched_label_lists = latest_matched_label_lists
-                self.list_idx_to_rm = []
-                if len(query_list) == 0:
-                    return [], []
-            if self.if_extend_list and query_list != None:
+        if self.__gen_matched_pattern_parts_label_lists(): # find if the matched_label_lists need to been changed
+            if self.list_idx_to_rm != [] and query_list != None and query_list != []: # delete not match
+                self.rm_query_by_index(self.list_idx_to_rm,query_list)
+            if self.if_extend_list and query_list != None:  # extend, if no match pattern or other situations
                 multiplier = len(self.__matched_label_lists) / len(query_list)
                 query_list = [
                     element for _ in range(int(multiplier)) for element in query_list
