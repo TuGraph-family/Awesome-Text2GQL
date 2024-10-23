@@ -11,6 +11,7 @@ class Vertex:
     def __init__(self) -> None:
         self.label = ""
         self.property_type = {}
+        self.required=[]
         self.src_edge = []
         self.dst_edge = []
         self.file_path = ""
@@ -21,6 +22,7 @@ class Edge:
     def __init__(self) -> None:
         self.label = ""
         self.property_type = {}
+        self.required=[]
         self.src = ""
         self.dst = ""
         self.file_path = ""
@@ -53,6 +55,11 @@ class Schema:
                 vertex.label = item["label"]
                 for property in item["properties"]:
                     vertex.property_type[property["name"]] = str(property["type"])
+                    if 'optional' in property:
+                        if bool(property['optional'])==False:
+                            vertex.required.append(property["name"])
+                    else:
+                        vertex.required.append(property["name"])
                 self.vertex_dict[vertex.label] = vertex
             elif item["type"] == "EDGE":
                 edge = Edge()
@@ -60,6 +67,11 @@ class Schema:
                 if "properties" in item:
                     for property in item["properties"]:
                         edge.property_type[property["name"]] = str(property["type"])
+                    if 'optional' in property:
+                        if bool(property['optional'])==False:
+                            edge.required.append(property["name"])
+                    else:
+                        edge.required.append(property["name"])
                 self.edge_dict[edge.label] = edge
         file_path = json["files"]
         for item in file_path:
@@ -246,6 +258,23 @@ class Schema:
         for key in rm_key_list:
             node_instance.pop(key)
         return node_instance
+
+    def get_create_instance(self,node_label,node_instance):
+        ret_node_instance={}
+        if node_label in self.vertex_dict:
+            node = self.vertex_dict[node_label]
+        if node_label in self.edge_dict:
+            node = self.edge_dict[node_label]
+        for key, value in node_instance.items():
+            if key in node.required:
+                ret_node_instance[key]=value
+        if len(ret_node_instance)==0:
+            node_instance = self.rm_long_property_of_instance(node_instance)
+            size = min(3, len(node_instance))
+            assert size >= 0
+            n = random.randint(0, size)
+            ret_node_instance=dict(random.sample(node_instance.items(), n))
+        return ret_node_instance
 
     def get_vertex_instance_by_id(self, label, id):
         if label in self.vertex_dict:
