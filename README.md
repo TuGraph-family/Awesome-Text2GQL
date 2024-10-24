@@ -42,6 +42,7 @@ We build the corpus generalization module based on the Qwen Inference Service se
 echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
 source ~/.bashrc
 echo $DASHSCOPE_API_KEY
+conda activate text2gql
 ```
 
 ### Run

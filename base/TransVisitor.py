@@ -5,10 +5,7 @@ from base.Parse import Node, ReturnBody, PatternPart, EdgeInstance
 from base.CypherBase import CypherBase
 from base.Schema import Schema
 from base.Pattern import ReadPattern, UpdatePattern, CurrentPattern
-<<<<<<< HEAD
 from base.Expr import ExprTree,ExprLeaf
-=======
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
 from base import Config
 import copy
 import random
@@ -28,11 +25,6 @@ class TransVisitor(LcypherVisitor):
         self.schema = Schema(self.db_id, schema_path)
         # queryGen
         self.current_pattern = CurrentPattern(self.schema)
-<<<<<<< HEAD
-=======
-        # self.matched_pattern_chain_label_list =[] # todo support multi matchpattern, save label list
-        # self.matched_pattern_parts_label_lists=[]
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         self.gen_query_list = []
         self.gen_optional=True
         self.optional_probability=0.1
@@ -51,10 +43,6 @@ class TransVisitor(LcypherVisitor):
                 file.write(self.prompt + "\n")
             # print("questions have been written into the file:", self.config.get_output_path())
 
-<<<<<<< HEAD
-=======
-    # Visit a parse tree produced by LcypherParser#oC_Cypher.
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
     def visitOC_Cypher(self, ctx: LcypherParser.OC_CypherContext):
         # oC_Cypher : SP? oC_Statement ( SP? ';' )? SP? EOF ;
         self.visitChildren(ctx)
@@ -101,15 +89,10 @@ class TransVisitor(LcypherVisitor):
                     update_desc += self.visitOC_UpdatingClause(child)
                 if rule_name == "oC_Return":
                     return_desc += self.visitOC_Return(child)
-<<<<<<< HEAD
         if self.if_gen_query and self.gen_optional:
             for query in self.gen_query_list:
                 if random.random() < self.optional_probability:
                     query='OPTIONAL '+query
-=======
-        if self.if_gen_query:
-            pass
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         desc_list.append(reading_desc)
         desc_list.append(update_desc)
         desc_list.append(return_desc)
@@ -133,7 +116,6 @@ class TransVisitor(LcypherVisitor):
         # oC_ReadingClause : oC_Match | oC_Unwind | oC_InQueryCall
         return self.visitChildren(ctx)
 
-<<<<<<< HEAD
     def visit_GenOC_Where(where_tree):
         if where_tree != None:
             pass
@@ -145,67 +127,58 @@ class TransVisitor(LcypherVisitor):
             return
         
         # 1. delete those not match
-        query2rm_list=where_tree.pre_gen_where(match_pattern.matched_pattern_parts_label_lists)
-        self.current_pattern.cur_parse_type == "where"
-        self.current_pattern.rm_query_by_index(query2rm_list)
-        self.current_pattern.cur_parse_type == "match"
+        # query2rm_list=where_tree.pre_gen_where(match_pattern.matched_pattern_parts_label_lists)
+        # self.current_pattern.cur_parse_type == "where"
+        # self.current_pattern.rm_query_by_index(query2rm_list)
+        # self.current_pattern.cur_parse_type == "match"
         
         # 2. generate match clause
-=======
-    def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext):
-        match_pattern = self.current_pattern.get_read_pattern()
-        if self.current_pattern.get_matched_label_lists() == ([], []):
-            return
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Pattern":
                     query_list = []
+                    list_idx_to_rm=[]
+                    self.gen_query_list=[[] for i in match_pattern.matched_pattern_parts_label_lists]
                     for index, matched_pattern_parts_label_list in enumerate(
                         match_pattern.matched_pattern_parts_label_lists
                     ):
                         query = ""
                         for part_idx, part in enumerate(match_pattern.pattern_parts):
                             label_list = matched_pattern_parts_label_list[part_idx]
-<<<<<<< HEAD
-=======
-                            # get_instance(label_list)
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
                             pattern_part_instance = (
                                 self.schema.get_instance_of_matched_label_list(
                                     label_list
                                 )
                             )
+                            if pattern_part_instance==[]:
+                                list_idx_to_rm.append(index)
+                                continue
                             # instantiate & combine
-                            query = (
-                                query
-                                + match_pattern.gen_pattern_part(
+                            match_query=match_pattern.gen_pattern_part(
                                     part, label_list, pattern_part_instance
                                 )
+                            if match_query=="":
+                                list_idx_to_rm.append(index)
+                                continue
+                            query = (
+                                query
+                                + match_query
                                 + ","
                             )
-<<<<<<< HEAD
+                        if query=="":
+                            continue
                         query = "MATCH " + query
-=======
-                        if random.random() < 0.1:
-                            query = "OPTIONAL MATCH " + query
-                        else:
-                            query = "MATCH " + query
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
                         query = query[:-1]
-                        query_list.append(query)
+                        self.gen_query_list[index]=query
+                    if len(list_idx_to_rm)!=0:
+                        label_list,self.gen_query_list=self.current_pattern.rm_query_by_index(list_idx_to_rm,self.gen_query_list)
                 if rule_name == "oC_Hint":
                     pass
                 if rule_name == "oC_Where":
-<<<<<<< HEAD
                     # 3. generate where clause
                     self.visit_GenOC_Where(where_tree)
-=======
-                    pass  # todo
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
-        self.gen_query_list = query_list
 
     # Visit a parse tree produced by LcypherParser#oC_Match.
     def visitOC_Match(self, ctx: LcypherParser.OC_MatchContext):
@@ -229,15 +202,9 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_Hint":
                     self.visitOC_Hint(child)
                 if rule_name == "oC_Where":
-<<<<<<< HEAD
                     where_tree=self.visitOC_Where(child)
         if self.if_gen_query:
             self.visitGenOC_Match(ctx,where_tree)
-=======
-                    self.visitOC_Where(child)
-        if self.if_gen_query:
-            self.visitGenOC_Match(ctx)
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         self.current_pattern.cur_parse_type = ""
         return desc
 
@@ -292,6 +259,7 @@ class TransVisitor(LcypherVisitor):
         update_pattern = self.current_pattern.get_cur_update_pattern()
         if matched_label_lists == []:
             return
+        list_idx_to_rm=[]
         for list_idx, matched_pattern_parts_label_list in enumerate(
             update_pattern.matched_pattern_parts_label_lists
         ):
@@ -302,14 +270,22 @@ class TransVisitor(LcypherVisitor):
                 pattern_part_instance = self.schema.get_instance_of_matched_label_list(
                     label_list
                 )
-                # instantiate & combine
-                query = (
-                    query
-                    + update_pattern.gen_pattern_part(
+                if pattern_part_instance==[]:
+                    list_idx_to_rm.append(list_idx)
+                    continue
+                update_query=update_pattern.gen_pattern_part(
                         part, label_list, pattern_part_instance
                     )
-                    + ", "
-                )
+                if update_query!='':
+                    # instantiate & combine
+                    query = (
+                        query
+                        + update_query
+                        + ", "
+                    )
+                else:
+                    list_idx_to_rm.append(list_idx)
+                    continue
             query = query[:-2]
             if type == "CREATE":
                 if list_idx > len(self.gen_query_list) - 1:  # only create without match
@@ -325,6 +301,8 @@ class TransVisitor(LcypherVisitor):
                     self.gen_query_list[list_idx] = (
                         self.gen_query_list[list_idx] + " MERGE " + query
                     )
+        if len(list_idx_to_rm)!=0:
+            labels,self.gen_query_list = self.current_pattern.rm_query_by_index(list_idx_to_rm,self.gen_query_list)
 
     def visitOC_Create(self, ctx: LcypherParser.OC_CreateContext):
         self.current_pattern.cur_parse_type = "create"
@@ -337,31 +315,21 @@ class TransVisitor(LcypherVisitor):
 
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
         # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
-<<<<<<< HEAD
         self.current_pattern.cur_parse_type='set'
-=======
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
-        for list_idx in range(len(self.gen_query_list)):
-            self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " SET"
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
+                for list_idx in range(len(self.gen_query_list)):
+                    self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " SET"
                 self.visitOC_SetItem(child)
         for list_idx in range(len(self.gen_query_list)):
             self.gen_query_list[list_idx] = self.gen_query_list[list_idx][:-2]
-<<<<<<< HEAD
         self.current_pattern.cur_parse_type=''
-=======
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         return ""
 
     def visitOC_SetItem(self, ctx: LcypherParser.OC_SetItemContext):
         # oC_SetItem : ( oC_PropertyExpression SP? '=' SP? oC_Expression ) √
         #            | ( oC_Variable SP? '=' SP? oC_Expression ) √ e.g.: SET r=NULL,SET n=m,SET m = {age: 33},SET m.age = id(n)
-<<<<<<< HEAD
         #            | ( oC_Variable SP? '+=' SP? oC_Expression ) e.g:  expression: n.tile
-=======
-        #            | ( oC_Variable SP? '+=' SP? oC_Expression )
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
         #            | ( oC_Variable SP? oC_NodeLabels ) e.g.: SET a :MyLabel
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -501,6 +469,17 @@ class TransVisitor(LcypherVisitor):
                         label = matched_pattern_parts_label_lists[query_index][
                             type_idx
                         ][part_idx][node_idx]
+                        if len(self.return_body.return_items)==2 and self.return_body.return_items[0][1]!=0 and self.return_body.return_items[1][1]!=0 and self.return_body.return_items[0][0] == self.return_body.return_items[1][0]:
+                            properties = self.schema.get_properties_by_lable(label)
+                            if len(properties)>=2:
+                                properties = random.sample(properties, 2)
+                                property_list.append((label, properties[0]))
+                                property_list.append((label, properties[1]))
+                                query=query+self.return_body.return_items[0][0]+'.'+properties[0]+","+self.return_body.return_items[1][0]+'.'+properties[1]+','
+                            else:
+                                property_list.append((label, properties[0]))
+                                query=query+self.return_body.return_items[0][0]+'.'+properties[0]+","
+                            break
                         if len(item) == 2 and tmp_property == 0:
                             query = query + tmp_variable + ","
                         elif len(item) == 2 and tmp_property != 0:
@@ -512,9 +491,7 @@ class TransVisitor(LcypherVisitor):
                                 rand = random.randint(0, size)
                                 property = properties[rand]
                                 query = query + tmp_variable + "." + property + ","
-                            property_list.append((label, property))
-                        # elif(len(item)==3 and item[1]==0):
-                        #     query=query+variable+"AS"+variable+","
+                                property_list.append((label, property))
                         elif len(item) == 3 and tmp_property != 0:
                             properties = self.schema.get_properties_by_lable(label)
                             size = min(3, len(properties)) - 1
@@ -539,10 +516,11 @@ class TransVisitor(LcypherVisitor):
                 # orderby
                 if self.return_body.order_by != []:
                     query = query + " ORDER BY "
+                    order_by_len=min(len(property_list),len(self.return_body.order_by))
                     rand_nums = random.sample(
-                        range(0, len(property_list)), len(self.return_body.order_by)
+                        range(0, len(property_list)), order_by_len
                     )
-                    for i in range(len(self.return_body.order_by)):
+                    for i in range(order_by_len):
                         tmp_variable = self.return_body.order_by[i][0]
                         property = property_list[rand_nums[i]]  # (label,property)
                         query = query + tmp_variable + "." + property[1]
@@ -670,20 +648,9 @@ class TransVisitor(LcypherVisitor):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Expression":
-<<<<<<< HEAD
                     root = self.visitOC_Expression(child)
         self.current_pattern.cur_parse_type='match'
         return root
-=======
-                    exprs = self.visitOC_Expression(child)
-        for expr in exprs:
-            if len(expr) == 3 and expr[1] == "=":  # leftExpr,symbol,rightExpr
-                item = [expr[0][0], expr[0][1], expr[2][0]]
-                for pattern_chain in self.current_pattern.read_pattern.pattern_parts:
-                    pattern_chain.add_item(item)
-                # todo only support AND now
-        # return self.visitChildren(ctx)
->>>>>>> 2bd18d7f5c94ef9c6d5fa32cc199a73ed2214f3c
 
     def visitOC_Pattern(self, ctx: LcypherParser.OC_PatternContext):
         # oC_Pattern : oC_PatternPart ( SP? ',' SP? oC_PatternPart )* ;
@@ -756,7 +723,10 @@ class TransVisitor(LcypherVisitor):
                     return self.visitOC_PatternElement(c)
         if is_only_one_node:
             return desc
-        return self.cur_pattern_part.get_desc()
+        if self.if_gen_query==False:
+            return self.cur_pattern_part.get_desc()
+        else:
+            return ''
 
     # Visit a parse tree produced by LcypherParser#oC_NodePattern.
     def visitOC_NodePattern(self, ctx: LcypherParser.OC_NodePatternContext):
@@ -916,10 +886,9 @@ class TransVisitor(LcypherVisitor):
     def visitOC_OrExpression(self, ctx: LcypherParser.OC_OrExpressionContext):
     # oC_OrExpression : oC_XorExpression ( SP OR SP oC_XorExpression )* ;
         if self.current_pattern.cur_parse_type=='where':
-            text='OR'
             for child in ctx.getChildren():
                 if isinstance(child, ParserRuleContext):
-                    if text in ctx.OR():
+                    if ctx.OR():
                         root=ExprTree('OR')
                         root.add_leaf(self.visitOC_OrExpression(child))
                         return root
@@ -932,10 +901,9 @@ class TransVisitor(LcypherVisitor):
     def visitOC_XorExpression(self, ctx: LcypherParser.OC_XorExpressionContext):
     # oC_XorExpression : oC_AndExpression ( SP XOR SP oC_AndExpression )* ;
         if self.current_pattern.cur_parse_type=='where':
-            text='XOR'
             for child in ctx.getChildren():
                 if isinstance(child, ParserRuleContext):
-                    if text in ctx.XOR():
+                    if ctx.XOR():
                         root=ExprTree('XOR')
                         root.add_leaf(self.visitOC_AndExpression(child))
                         return root
@@ -949,10 +917,9 @@ class TransVisitor(LcypherVisitor):
         # oC_AndExpression : oC_NotExpression ( SP AND SP oC_NotExpression )* ;
         # And > Xor > Or
         if self.current_pattern.cur_parse_type=='where':
-            text='AND'
             for child in ctx.getChildren():
                 if isinstance(child, ParserRuleContext):
-                    if text in ctx.AND():
+                    if ctx.AND():
                         root=ExprTree('AND')
                         root.add_leaf(self.visitOC_NotExpression(child))
                         return root
@@ -965,10 +932,9 @@ class TransVisitor(LcypherVisitor):
     def visitOC_NotExpression(self, ctx: LcypherParser.OC_NotExpressionContext):
         # oC_NotExpression : ( NOT SP? )* oC_ComparisonExpression ;
         if self.current_pattern.cur_parse_type=='where':
-            text='NOT'
             for child in ctx.getChildren():
                 if isinstance(child, ParserRuleContext):
-                    if text in ctx.NOT():
+                    if ctx.NOT():
                         root=ExprTree('NOT')
                         root.add_leaf(self.visitOC_ComparisonExpression(child))
                         return root

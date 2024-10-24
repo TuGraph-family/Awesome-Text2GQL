@@ -3,6 +3,7 @@ from base.Schema import Schema
 from base.Config import Config
 import sys
 import os
+from utils.GrammarCheck import grammar_check
 
 
 def generate(config, input_path, output_path):
@@ -67,6 +68,22 @@ def generate_trainset(config_path, input_dir_or_file=""):
     output_path = configs["output_corpus_path"]
     if input_dir_or_file == "":
         input_dir_or_file = configs["input_corpus_dir_or_file"]
+    # grammar check
+    if os.path.isdir(input_dir_or_file):
+        for root, dirs, file_names in os.walk(input_dir_or_file):
+            for file_name in file_names:
+                input_path = os.path.join(root, file_name)
+                file_base, file_extension = os.path.splitext(input_path)
+                if file_extension != ".txt":
+                    break
+                if not grammar_check(input_path):
+                    sys.exit()
+    elif os.path.isfile(input_dir_or_file):
+        if not grammar_check(input_path):
+            sys.exit()
+    else:
+        print("[ERROR]: input file is not exsit", input_dir_or_file)
+    # generate dataset
     if os.path.isdir(input_dir_or_file):
         for root, dirs, file_names in os.walk(input_dir_or_file):
             for file_name in file_names:
@@ -77,8 +94,6 @@ def generate_trainset(config_path, input_dir_or_file=""):
                 generate(config, input_path, output_path)
     elif os.path.isfile(input_dir_or_file):
         generate(config, input_dir_or_file, output_path)
-    else:
-        print("[ERROR]: input file is not exsit", input_dir_or_file)
 
 
 if __name__ == "__main__":

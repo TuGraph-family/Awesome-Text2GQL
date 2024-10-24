@@ -11,9 +11,9 @@ import copy
 import sys
 
 
-def gen_prompt_directly(
+def gen_question_directly(
     input_path, output_path
-):  # generate multi prompts according to input cypher
+):  # generate multi questions according to input cypher
     # 1. readt files
     with open(input_path, "r") as file:
         lines = file.readlines()
@@ -32,57 +32,57 @@ def gen_prompt_directly(
         # 3. get response
         responses = call_with_messages(massages)
         if responses != "":
-            prompts = process_handler.process(responses)
+            questions = process_handler.process(responses)
             # 4. save to file
-        save2file(db_id, cypher, prompts, output_path)
+        save2file(db_id, cypher, questions, output_path)
     print("corpus output file:", output_path)
 
 
 # deprecated
-def general_prompt_directly(
+def general_question_directly(
     input_path, output_path
-):  # generate multi prompts according to input prompt
+):  # generate multi questions according to input question
     # 1. read file
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
     for i in tqdm(range(1, len(lines), 2)):
         cypher = lines[i].strip()
-        prompt = lines[i + 1].strip()
+        question = lines[i + 1].strip()
         # 2. gen massages
         massages = [
             {
                 "role": "system",
                 "content": "我希望你模仿一个图数据库使用者的口吻，将我给你的语句进一步泛化，不改变表达的含义，可以修改为问句或者陈述句，这是一个例子：Roy Redgrave的第二代及其所有后代有哪些？可以泛化为：怎么查询Roy Redgrave的所有后代？\n查询Roy Redgrave的所有后代。\n输出Roy Redgrave的所有后代。\nRoy Redgrave的所有后代有哪些？\n查找数据库中名叫Roy Redgrave的人的所有后代。Roy Redgrave有哪些后代？下面我将给你一些句子，请你按顺序为每条语句输出10条泛化的结果，不需要注明是对那条语句进行的泛化，结果直接按照换行符隔开，不要有空格",
             },
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": question},
         ]
         # 3. get response
         responses = call_with_messages(massages)
         # 4. postprocess and save
         if responses != "":
-            prompts = process_handler.process(responses)
-            save2file(db_id, cypher, prompts, output_path)
+            questions = process_handler.process(responses)
+            save2file(db_id, cypher, questions, output_path)
     print("corpus output file:", output_path)
 
 
 # recommended
 def generalization(
     input_path, output_path
-):  # generate multi prompts according to input cypher and prompt
+):  # generate multi questions according to input cypher and question
     # 1. read file
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
     for i in tqdm(range(1, len(lines), 2)):
         cypher = lines[i].strip()
-        prompt = lines[i + 1].strip()
-        content = "cypher:" + cypher + ",prompt" + prompt
+        question = lines[i + 1].strip()
+        content = "cypher:" + cypher + ",question" + question
         # 2. gen massages
         massages = [
             {
                 "role": "system",
-                "content": "我希望你模仿一个图数据库使用者的口吻，将我给你的prompt语句进一步泛化，不改变prompt表达的含义，并且泛化后的表达要符合我给你的cypher的含义，可以修改为问句或者陈述句，必须是中文，这是一个例子：cypher:MATCH (van:Person {name:'Vanessa Redgrave'})-[:HAS_CHILD*2..]-(n) RETURN n,prompt:Roy Redgrave的第二代及其所有后代有哪些？你应该给我：怎么查询Roy Redgrave的所有后代？\n查询Roy Redgrave的所有后代。\n输出Roy Redgrave的所有后代。\nRoy Redgrave的所有后代有哪些？\n查找数据库中名叫Roy Redgrave的人的所有后代。Roy Redgrave有哪些后代？下面我将给你一些句子，请你按顺序为每条语句输出10条泛化的结果，不需要注明是对那条语句进行的泛化，结果直接按照换行符隔开，不要有空格，使用中文",
+                "content": "我希望你模仿一个图数据库使用者的口吻，将我给你的question语句进一步泛化，不改变question表达的含义，并且泛化后的表达要符合我给你的cypher的含义，可以修改为问句或者陈述句，必须是中文，这是一个例子：cypher:MATCH (van:Person {name:'Vanessa Redgrave'})-[:HAS_CHILD*2..]-(n) RETURN n,question:Roy Redgrave的第二代及其所有后代有哪些？你应该给我：怎么查询Roy Redgrave的所有后代？\n查询Roy Redgrave的所有后代。\n输出Roy Redgrave的所有后代。\nRoy Redgrave的所有后代有哪些？\n查找数据库中名叫Roy Redgrave的人的所有后代。Roy Redgrave有哪些后代？下面我将给你一些句子，请你按顺序为每条语句输出10条泛化的结果，不需要注明是对那条语句进行的泛化，结果直接按照换行符隔开，不要有空格，使用中文",
             },
             {"role": "user", "content": content},
         ]
@@ -90,21 +90,21 @@ def generalization(
         responses = call_with_messages(massages)
         # 4. postprocess and save
         if responses != "":
-            prompts = process_handler.process(responses)
-            save2file(db_id, cypher, prompts, output_path)
+            questions = process_handler.process(responses)
+            save2file(db_id, cypher, questions, output_path)
     print("corpus output file:", output_path)
 
 
-def gen_prompt_with_template(input_path, output_path):
+def gen_question_with_template(input_path, output_path):
     (
         db_id,
         tmplt_cypher_list,
-        tmplt_prompt_list,
+        tmplt_question_list,
         cyphers_list,
-    ) = load_file_gen_prompt_with_template(input_path)
+    ) = load_file_gen_question_with_template(input_path)
     for index in tqdm(range(len(tmplt_cypher_list))):
         tmplt_cypher = tmplt_cypher_list[index]
-        tmplt_prompt = tmplt_prompt_list[index]
+        tmplt_question = tmplt_question_list[index]
         cyphers = cyphers_list[index]
         for cypher_trunk in chunk_list(cyphers):
             cypher_content = ""
@@ -114,7 +114,7 @@ def gen_prompt_with_template(input_path, output_path):
                 "template:\n"
                 + tmplt_cypher
                 + ","
-                + tmplt_prompt
+                + tmplt_question
                 + "cyphers:\n"
                 + cypher_content
             )
@@ -129,8 +129,8 @@ def gen_prompt_with_template(input_path, output_path):
             responses = call_with_messages(massages)
             # 4. postprocess and save
             if responses != "":
-                prompts = process_handler.process(responses)
-                save2file_t(db_id, cypher_trunk, prompts, output_path)
+                questions = process_handler.process(responses)
+                save2file_t(db_id, cypher_trunk, questions, output_path)
     print("output file:", output_path)
 
 
@@ -165,7 +165,7 @@ def call_with_messages(messages):
             return ""
 
 
-def load_file_gen_prompt_with_template(input_path):
+def load_file_gen_question_with_template(input_path):
     with open(input_path, "r") as file:
         lines = file.readlines()
     db_id = lines[0].strip()
@@ -173,14 +173,14 @@ def load_file_gen_prompt_with_template(input_path):
         print("[ERROR]: the input file format is not right, pls give schema name!")
     index = 1
     tmplt_cypher_list = []
-    tmplt_prompt_list = []
+    tmplt_question_list = []
     cyphers_list = []
     while len(lines[index:]) > 3 and lines[index].strip() == "template":
         tmplt_cypher_list.append(lines[index + 1].strip())
-        tmplt_prompt_list.append(lines[index + 2].strip())
+        tmplt_question_list.append(lines[index + 2].strip())
         if lines[index + 3].strip() != "cyphers":
             print(
-                "[ERROR]: the input file format is not right as the input of GEN_PROMPT_WITH_TEMPLATE"
+                "[ERROR]: the input file format is not right as the input of GEN_QUESTION_WITH_TEMPLATE"
             )
         cyphers = []
         index = index + 4
@@ -191,32 +191,32 @@ def load_file_gen_prompt_with_template(input_path):
                 break
             index = index + 1
             cyphers.append(line.strip())
-    return db_id, tmplt_cypher_list, tmplt_prompt_list, cyphers_list
+    return db_id, tmplt_cypher_list, tmplt_question_list, cyphers_list
 
 
-def save2file(db_id, cypher, prompts, output_path):
+def save2file(db_id, cypher, questions, output_path):
     if not os.path.isfile(output_path):
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(db_id + "\n")
     with open(output_path, "a+", encoding="utf-8") as file:
         if os.path.getsize(output_path) == 0:
             file.write(db_id + "\n")
-        for prompt in prompts:
+        for question in questions:
             file.write(cypher + "\n")
-            file.write(prompt + "\n")
+            file.write(question + "\n")
     # print("corpus have been written into the file:", output_path)
 
 
-def save2file_t(db_id, cyphers, prompts, output_path):
+def save2file_t(db_id, cyphers, questions, output_path):
     if not os.path.isfile(output_path):
         with open(output_path, "w", encoding="utf-8") as file:
             file.write(db_id + "\n")
     with open(output_path, "a+", encoding="utf-8") as file:
         if os.path.getsize(output_path) == 0:
             file.write(db_id + "\n")
-        for index, prompt in enumerate(prompts):
+        for index, question in enumerate(questions):
             file.write(cyphers[index] + "\n")
-            file.write(prompt + "\n")
+            file.write(question + "\n")
 
 
 def chunk_list(lst, chunk_size=5):
@@ -225,14 +225,14 @@ def chunk_list(lst, chunk_size=5):
 
 
 def state_machine(input_path, output_path):
-    if mode == Status.GEN_PROMPT_DIRECTLY.value[0]:  # 100
-        gen_prompt_directly(input_path, output_path)
-    elif mode == Status.GENERAL_PROMPT_DIRECTLY.value[0]:  # 200
-        general_prompt_directly(input_path, output_path)  # deprecated # 300
+    if mode == Status.GEN_QUESTION_DIRECTLY.value[0]:  # 100
+        gen_question_directly(input_path, output_path)
+    elif mode == Status.GENERAL_QUESTION_DIRECTLY.value[0]:  # 200
+        general_question_directly(input_path, output_path)  # deprecated # 300
     elif mode == Status.GENERALIZATION.value[0]:
         generalization(input_path, output_path)  # recommended # 400
-    elif mode == Status.GEN_PROMPT_WITH_TEMPLATE.value[0]:
-        gen_prompt_with_template(input_path, output_path)
+    elif mode == Status.GEN_QUESTION_WITH_TEMPLATE.value[0]:
+        gen_question_with_template(input_path, output_path)
     else:
         print("[ERROR]: work_mode is not proper, current work_mode is:", mode)
 
@@ -271,7 +271,9 @@ if __name__ == "__main__":
         input_dir_or_file = sys.argv[2]
         output_dir = sys.argv[3]
         suffix = sys.argv[4]
-        assert os.path.isdir(output_dir)
+        if not os.path.isdir(output_dir):
+            print('[ERROR]: output_dir do not exsit!')
+            sys.exit()
     else:
         config_path = "config.json"
         config = Config(config_path)
@@ -280,6 +282,8 @@ if __name__ == "__main__":
         input_dir_or_file = configs["input_dir_or_file"]
         output_dir = configs["output_dir"]
         suffix = configs["suffix"]
-        assert os.path.isdir(output_dir)
+        if not os.path.isdir(output_dir):
+            print('[ERROR]: output_dir do not exsit!')
+            sys.exit()
     process_handler = CorpusPostProcess()
     main()

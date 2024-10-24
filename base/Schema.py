@@ -15,6 +15,7 @@ class Vertex:
         self.src_edge = []
         self.dst_edge = []
         self.file_path = ""
+        self.header=0
         self.column_keyword = []
 
 
@@ -26,6 +27,7 @@ class Edge:
         self.src = ""
         self.dst = ""
         self.file_path = ""
+        self.header=0
         self.column_keyword = []
 
 
@@ -84,10 +86,14 @@ class Schema:
                 self.vertex_dict[edge.src].src_edge.append(edge_name)
                 self.vertex_dict[edge.dst].dst_edge.append(edge_name)
                 edge.file_path = os.path.join(self.dir_path, item["path"])
+                if "header" in item:
+                    edge.header=int(item["header"])
             if item["label"] in self.vertex_dict:
                 node = self.vertex_dict[item["label"]]
                 node.column_keyword = item["columns"]
                 node.file_path = os.path.join(self.dir_path, item["path"])
+                if "header" in item:
+                    node.header=int(item["header"])
         self.is_parse_finished = True
 
     def gen_desc(self):
@@ -177,7 +183,7 @@ class Schema:
                 left_vertex_instance = instance[-1]
                 if edge.src == label_list[edge_index - 1]:
                     edge_instance = self.get_edge_instance_by_src_id(
-                        edge_label, left_vertex_instance["id"]
+                        edge_label, list(left_vertex_instance.values())[0]
                     )
                     if edge_instance == None:
                         continue
@@ -192,7 +198,7 @@ class Schema:
                             break
                 elif edge.dst == label_list[edge_index - 1]:
                     edge_instance = self.get_edge_instance_by_dst_id(
-                        edge_label, left_vertex_instance["id"]
+                        edge_label, list(left_vertex_instance.values())[0]
                     )
                     if edge_instance == None:
                         continue
@@ -210,6 +216,8 @@ class Schema:
             if temp_instances == []:
                 print(f"[ERROR] no matched data")
             instance_of_pattern_match_lists = temp_instances
+        if len(instance_of_pattern_match_lists)==0:
+            return []
         assert len(instance_of_pattern_match_lists[0]) == len(label_list)
         return random.choice(instance_of_pattern_match_lists)
 
@@ -217,9 +225,11 @@ class Schema:
         # only support three nodes
         instance_of_pattern_match_list = []
         if len(label_list) == 1:
-            instance_of_pattern_match_list.append(
-                self.__get_instance_by_label(label_list[0], 1)[0]
-            )
+            instance=self.__get_instance_by_label(label_list[0], 1)[0]
+            if instance!=None:
+                instance_of_pattern_match_list.append(
+                    instance
+                )
         for i in range(1, len(label_list), 2):
             label = label_list[i]
             edge_instance = self.__get_instance_by_label(label, 1)[0]
@@ -282,10 +292,11 @@ class Schema:
         else:
             print(f"[ERROR] vertex not found, vertex_label:{label}, id:{id}")
         file_path = vertex.file_path
+        header=vertex.header
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[2:]
+                data_from_third_row = reader[header:]
                 for row in data_from_third_row:
                     instance = {}
                     if row[0] == str(id):
@@ -307,11 +318,12 @@ class Schema:
         else:
             print(f"[ERROR] edge not found, edge_label:{edge_label}")
         file_path = edge.file_path
+        header=edge.header
         src_idx = edge.column_keyword.index("SRC_ID")
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[2:]
+                data_from_third_row = reader[header:]
                 for row in data_from_third_row:
                     instance = {}
                     if row[src_idx] == str(src_id):
@@ -335,11 +347,12 @@ class Schema:
         else:
             print(f"[ERROR] edge not found, edge_label:{edge_label}")
         file_path = edge.file_path
+        header=edge.header
         dst_idx = edge.column_keyword.index("DST_ID")
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[2:]
+                data_from_third_row = reader[header:]
                 for row in data_from_third_row:
                     instance = {}
                     if row[dst_idx] == str(dst_id):
@@ -369,11 +382,12 @@ class Schema:
             print("[ERROR]: vertex or edge is not exist")
             return
         file_path = node.file_path
+        header=node.header
         if os.path.exists(file_path):
             vertex_or_edge_instance_list = []
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[2:]
+                data_from_third_row = reader[header:]
                 count = min(count, len(data_from_third_row))
                 if count == 1:
                     random_rows = random.sample(data_from_third_row, count)
@@ -393,7 +407,7 @@ class Schema:
                         else:
                             vertex_or_edge_instance[keyword] = str(item)
                     vertex_or_edge_instance_list.append(vertex_or_edge_instance)
-        return vertex_or_edge_instance_list
+            return vertex_or_edge_instance_list
 
     def get_instance_by_label(self, vertex_or_edge_label, count):
         # instance excludes 'SRC_ID' and 'DST_ID'
@@ -408,11 +422,12 @@ class Schema:
             print("[ERROR]: vertex or edge is not exist")
             return
         file_path = node.file_path
+        header=node.header
         if os.path.exists(file_path):
             vertex_or_edge_instance_list = []
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[2:]
+                data_from_third_row = reader[header:]
                 count = min(count, len(data_from_third_row))
                 random_rows = random.sample(data_from_third_row, count)
                 for row in random_rows:
@@ -443,7 +458,7 @@ class Schema:
     def get_matched_pattern_list(self, pattern_part: PatternPart):
         chain_list = pattern_part.chain_list
         if len(chain_list) <= 3:
-            self.get_matched_pattern_list_three_nodes(pattern_part)  # three nodes
+            return self.get_matched_pattern_list_three_nodes(pattern_part)  # three nodes
         all_label_lists = []
         edge_count = int(len(chain_list) / 2)
         for first_node_label, first_node in self.vertex_dict.items():
