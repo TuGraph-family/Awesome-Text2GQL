@@ -103,7 +103,21 @@ class TransVisitor(LcypherVisitor):
     def visitOC_MultiPartQuery(self, ctx: LcypherParser.OC_MultiPartQueryContext):
         # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
         # MATCH (n:Person {name:'A'}),(m:Person {name:'C'}) WITH n,m MATCH (n)-[r]->(m) DELETE r
-        return self.visitChildren(ctx)
+        with_query=""
+        for child in ctx.getChildren():
+            if isinstance(child, ParserRuleContext):
+                rule_index = child.getRuleIndex()
+                rule_name = self.cypher_base.get_rule_name(rule_index)
+                if rule_name == "oC_With":
+                    with_query = " "+child.getText()+" "
+                if rule_name == "oC_SinglePartQuery":
+                    with_query = with_query + child.getText()
+                if rule_name == "oC_UpdatingClause":
+                    self.visitOC_UpdatingClause(child)
+                if rule_name == "oC_ReadingClause":
+                    self.visitOC_ReadingClause(child)
+        for idx in range(len(self.gen_query_list)):
+            self.gen_query_list[idx] = self.gen_query_list[idx] + with_query
 
     # Visit a parse tree produced by LcypherParser#oC_UpdatingClause.
     def visitOC_UpdatingClause(self, ctx: LcypherParser.OC_UpdatingClauseContext):
@@ -119,7 +133,6 @@ class TransVisitor(LcypherVisitor):
     def visit_GenOC_Where(where_tree):
         if where_tree != None:
             pass
-        # 生成where语句，深度优先遍历
 
     def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext,where_tree:ExprTree):
         match_pattern = self.current_pattern.get_read_pattern()
@@ -264,8 +277,8 @@ class TransVisitor(LcypherVisitor):
             update_pattern.matched_pattern_parts_label_lists
         ):
             query = ""
-            for idx, part in enumerate(update_pattern.pattern_parts):
-                label_list = matched_pattern_parts_label_list[idx]
+            for part_idx, part in enumerate(update_pattern.pattern_parts):
+                label_list = matched_pattern_parts_label_list[part_idx]
                 # get_instance(label_list)
                 pattern_part_instance = self.schema.get_instance_of_matched_label_list(
                     label_list
@@ -316,13 +329,16 @@ class TransVisitor(LcypherVisitor):
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
         # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
         self.current_pattern.cur_parse_type='set'
+        for idx, query in enumerate(self.gen_query_list):
+            self.gen_query_list[idx]=self.gen_query_list[idx]+' SET'
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
-                for list_idx in range(len(self.gen_query_list)):
-                    self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " SET"
                 self.visitOC_SetItem(child)
-        for list_idx in range(len(self.gen_query_list)):
-            self.gen_query_list[list_idx] = self.gen_query_list[list_idx][:-2]
+        for idx, query in enumerate(self.gen_query_list):
+            if self.gen_query_list[idx][-2:]==', ':
+                self.gen_query_list[idx]=self.gen_query_list[idx][:-2]
+            if self.gen_query_list[idx][-4:]==' SET':
+                self.gen_query_list[idx]=self.gen_query_list[idx][:-4]
         self.current_pattern.cur_parse_type=''
         return ""
 
@@ -348,6 +364,7 @@ class TransVisitor(LcypherVisitor):
                         query_lists,
                     ) = self.current_pattern.get_matched_label_lists()
                     for idx, query in enumerate(self.gen_query_list):
+                        if_success=False
                         label = lable_lists[idx][clause_idx][part_idx][node_idx]
                         node_instance = self.schema.get_instance_by_label(label, 1)[0]
                         if len(node_instance) != 0:
@@ -357,8 +374,8 @@ class TransVisitor(LcypherVisitor):
                             if type(property_value) == str:
                                 property_value = f'"{property_value}"'
                             query = (
-                                query
-                                + " "
+                                query+
+                                " "
                                 + str(variable)
                                 + "."
                                 + str(property_key)

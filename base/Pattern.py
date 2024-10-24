@@ -461,8 +461,8 @@ class CurrentPattern:
                     ]
                 self.cur_update_pattern.matched_pattern_parts_label_lists = [
                     element
-                    for _ in range(int(multiplier))
                     for element in self.cur_update_pattern.matched_pattern_parts_label_lists
+                    for _ in range(int(multiplier))
                 ]
                 self.if_extend_list = False
             return self.__matched_label_lists, query_list
@@ -495,7 +495,7 @@ class CurrentPattern:
             ):  # create a vertex
                 # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
                 # todo: deal with the constraints, support the template above
-                if len(self.__matched_label_lists) < 5:
+                if len(self.__matched_label_lists) < 10:
                     self.if_extend_list = True
                 if self.if_extend_list:
                     if self.cur_update_pattern.gen_matched_pattern_parts_label_lists():

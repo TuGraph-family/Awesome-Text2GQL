@@ -143,7 +143,7 @@ class Schema:
         return instance_of_pattern_match_lists
 
     def get_instance_of_matched_label_list(self, label_list):
-        if len(label_list) <= 3:
+        if len(label_list) == 1:
             return self.get_instance_of_matched_label_list_three_nodes(label_list)
         instance_of_pattern_match_lists = []
         edge_count = int(len(label_list) / 2)
@@ -305,8 +305,10 @@ class Schema:
                             keyword_type = vertex.property_type[keyword]
                             if "INT" in keyword_type:
                                 instance[keyword] = int(item)
-                            else:
+                            elif keyword_type=="STRING":
                                 instance[keyword] = str(item)
+                            else:
+                                instance[keyword] = float(item)
                         return instance
                     else:
                         continue
@@ -333,8 +335,10 @@ class Schema:
                                 keyword_type = edge.property_type[keyword]
                                 if "INT" in keyword_type:
                                     instance[keyword] = int(item)
-                                else:
+                                elif keyword_type=="STRING":
                                     instance[keyword] = str(item)
+                                else:
+                                    instance[keyword] = float(item)
                             else:
                                 instance[keyword] = str(item)
                         return instance
@@ -362,8 +366,10 @@ class Schema:
                                 keyword_type = edge.property_type[keyword]
                                 if "INT" in keyword_type:
                                     instance[keyword] = int(item)
-                                else:
+                                elif keyword_type=="STRING":
                                     instance[keyword] = str(item)
+                                else:
+                                    instance[keyword] = float(item)
                             else:
                                 instance[keyword] = str(item)
                         return instance
@@ -402,8 +408,10 @@ class Schema:
                             keyword_type = node.property_type[keyword]
                             if "INT" in keyword_type:
                                 vertex_or_edge_instance[keyword] = int(item)
-                            else:
+                            elif keyword_type=="STRING":
                                 vertex_or_edge_instance[keyword] = str(item)
+                            else:
+                                vertex_or_edge_instance[keyword] = float(item)
                         else:
                             vertex_or_edge_instance[keyword] = str(item)
                     vertex_or_edge_instance_list.append(vertex_or_edge_instance)
@@ -440,8 +448,10 @@ class Schema:
                             keyword_type = node.property_type[keyword]
                             if "INT" in keyword_type:
                                 vertex_or_edge_instance[keyword] = int(item)
-                            else:
+                            elif keyword_type=="STRING":
                                 vertex_or_edge_instance[keyword] = str(item)
+                            else:
+                                vertex_or_edge_instance[keyword] = float(item)
                         else:
                             vertex_or_edge_instance[keyword] = str(item)
                     vertex_or_edge_instance_list.append(vertex_or_edge_instance)
