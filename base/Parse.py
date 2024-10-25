@@ -265,7 +265,9 @@ class PatternPart:
             if gen_return:
                 if self.random_numbers.pop() < 5:
                     self.desc = (
-                        "返回图中所有通过" + self.chain_list[1].labels[0] + "关系相连的节点和关系。"
+                        "返回图中所有通过"
+                        + self.chain_list[1].labels[0]
+                        + "关系相连的节点和关系。"
                     )
                 else:
                     self.desc = (
@@ -450,7 +452,9 @@ class ReturnBody:
                 elif len(item) == 2 and item[1] == 0:
                     return_desc_list.append(type_desc + item[0])
                 else:
-                    return_desc_list.append(item[0] + type_desc + "的" + item[1] + "属性值")
+                    return_desc_list.append(
+                        item[0] + type_desc + "的" + item[1] + "属性值"
+                    )
             self.return_desc += self.cypher_base.merge_desc(return_desc_list)
         merge_list.append(self.return_desc)
 
@@ -503,7 +507,13 @@ class ReturnBody:
         merge_list.append(self.order_desc)
 
         if self.skip != 0 and self.limit != 0:
-            desc = "保留去除前" + str(self.skip) + "条数据后的" + str(self.limit) + "条数据"
+            desc = (
+                "保留去除前"
+                + str(self.skip)
+                + "条数据后的"
+                + str(self.limit)
+                + "条数据"
+            )
             merge_list.append(desc)
         else:
             if self.skip != 0:

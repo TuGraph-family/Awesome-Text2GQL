@@ -15,7 +15,7 @@ python3 generator.py "$CONFIG_PATH" "$GEN_QUERY" "$DB_ID"
 MODE=400
 INPUT_DIR_OR_FILE="./output/output_query.txt"
 SUFFIX='_t'
-echo "----------------Running generalize_llm.py to GEN_PROMPT_WITH_TEMPLATE----------------"
+echo "----------------Running generalize_llm.py to GEN_QUESTION_WITH_TEMPLATE----------------"
 python3 generalize_llm.py "$MODE" "$INPUT_DIR_OR_FILE" "$OUTPUT_DIR" "$SUFFIX"
 
 MODE=300

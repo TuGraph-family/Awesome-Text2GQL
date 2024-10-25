@@ -11,7 +11,7 @@ import os
 import copy
 
 
-def generate(config):
+def generate(config: Config):
     input_path = ""
     if config.gen_query == False:
         input_path = config.get_input_query_path()  # translate
