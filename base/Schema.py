@@ -605,7 +605,7 @@ if __name__ == "__main__":
     config = Config("config.json")
     cypher_base = CypherBase(config)
     schema = Schema(
-        "movie", "/root/work_repo/Awesome-Text2GQL/db_data/schema/movie_schema.json"
+        "yago", "/root/work_repo/Awesome-Text2GQL/db_data/schema/yago.json"
     )
 
     print(schema.gen_desc())
