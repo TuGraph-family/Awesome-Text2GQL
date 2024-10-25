@@ -1,4 +1,6 @@
 import json
+import os
+import sys
 
 
 class Config:
@@ -28,7 +30,12 @@ class Config:
 
     def get_output_path(self):
         if self.gen_query:
-            return self.config_data.get("output_query_path")
+            dir_or_file = self.config_data.get("output_query_dir_or_file")
+            if os.path.isdir(dir_or_file):
+                output_path = os.path.join(dir_or_file, self.db_id + ".txt")
+                return output_path
+            else:
+                return dir_or_file
         else:
             return self.config_data.get("output_prompt_path")
 

@@ -19,7 +19,6 @@ conda activate text2gql
 git clone https://github.com/TuGraph-family/Awesome-Text2GQL
 cd Awesome-Text2GQL
 mkdir output
-```
 
 Install related python dependency packages
 
@@ -42,29 +41,7 @@ We build the corpus generalization module based on the Qwen Inference Service se
 echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
 source ~/.bashrc
 echo $DASHSCOPE_API_KEY
-```
-
-Install related python dependency packages
-
-```
-pip install .
-```
-
-#### Setup for LLMs
-
-To run generating qusetions and generalization functions based on LLMs，apply API-KEY before you run the whole flow.
-
-1. Apply API-KEY
-
-We build the corpus generalization module based on the Qwen Inference Service served by Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/developer-reference/acquisition-and-configuration-of-api-key?spm=a2c4g.11186623.0.0.4e202a9dXlz5vH#1e6311202fthe) to apply the API-KEY.
-
-2. Set API-KEY via environment variables (recommended)
-
-```
-# replace YOUR_DASHSCOPE_API_KEY with your API-KEY
-echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
-source ~/.bashrc
-echo $DASHSCOPE_API_KEY
+conda activate text2gql
 ```
 
 ### Run

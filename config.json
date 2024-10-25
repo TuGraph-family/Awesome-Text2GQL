@@ -11,8 +11,8 @@
         "three_kingdoms": "./db_data/schema/three_kingdoms.json",
         "wandering_earth": "/root/work_repo/db_data/schema/wandering_earth.json"
     },
-    "input_query_template_path": "./input_examples/query_template.txt",
-    "output_query_path": "./output/output_query.txt",
+    "input_query_template_path": "./input_examples/corpus_template.txt",
+    "output_query_dir_or_file": "./output/output_query.txt",
     "input_query_path": "./output/output_query.txt",
     "output_prompt_path": "./output/output_prompt.txt",
     "schema_dict_path": [
