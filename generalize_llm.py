@@ -272,7 +272,7 @@ if __name__ == "__main__":
         output_dir = sys.argv[3]
         suffix = sys.argv[4]
         if not os.path.isdir(output_dir):
-            print('[ERROR]: output_dir do not exsit!')
+            print("[ERROR]: output_dir do not exsit!")
             sys.exit()
     else:
         config_path = "config.json"
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         output_dir = configs["output_dir"]
         suffix = configs["suffix"]
         if not os.path.isdir(output_dir):
-            print('[ERROR]: output_dir do not exsit!')
+            print("[ERROR]: output_dir do not exsit!")
             sys.exit()
     process_handler = CorpusPostProcess()
     main()

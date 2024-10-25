@@ -79,7 +79,7 @@ def generate_trainset(config_path, input_dir_or_file=""):
                 if not grammar_check(input_path):
                     sys.exit()
     elif os.path.isfile(input_dir_or_file):
-        if not grammar_check(input_path):
+        if not grammar_check(input_dir_or_file):
             sys.exit()
     else:
         print("[ERROR]: input file is not exsit", input_dir_or_file)
