@@ -11,11 +11,11 @@ class Vertex:
     def __init__(self) -> None:
         self.label = ""
         self.property_type = {}
-        self.required=[]
+        self.required = []
         self.src_edge = []
         self.dst_edge = []
         self.file_path = ""
-        self.header=0
+        self.header = 0
         self.column_keyword = []
 
 
@@ -23,11 +23,11 @@ class Edge:
     def __init__(self) -> None:
         self.label = ""
         self.property_type = {}
-        self.required=[]
+        self.required = []
         self.src = ""
         self.dst = ""
         self.file_path = ""
-        self.header=0
+        self.header = 0
         self.column_keyword = []
 
 
@@ -57,8 +57,8 @@ class Schema:
                 vertex.label = item["label"]
                 for property in item["properties"]:
                     vertex.property_type[property["name"]] = str(property["type"])
-                    if 'optional' in property:
-                        if bool(property['optional'])==False:
+                    if "optional" in property:
+                        if bool(property["optional"]) == False:
                             vertex.required.append(property["name"])
                     else:
                         vertex.required.append(property["name"])
@@ -69,8 +69,8 @@ class Schema:
                 if "properties" in item:
                     for property in item["properties"]:
                         edge.property_type[property["name"]] = str(property["type"])
-                    if 'optional' in property:
-                        if bool(property['optional'])==False:
+                    if "optional" in property:
+                        if bool(property["optional"]) == False:
                             edge.required.append(property["name"])
                     else:
                         edge.required.append(property["name"])
@@ -87,13 +87,13 @@ class Schema:
                 self.vertex_dict[edge.dst].dst_edge.append(edge_name)
                 edge.file_path = os.path.join(self.dir_path, item["path"])
                 if "header" in item:
-                    edge.header=int(item["header"])
+                    edge.header = int(item["header"])
             if item["label"] in self.vertex_dict:
                 node = self.vertex_dict[item["label"]]
                 node.column_keyword = item["columns"]
                 node.file_path = os.path.join(self.dir_path, item["path"])
                 if "header" in item:
-                    node.header=int(item["header"])
+                    node.header = int(item["header"])
         self.is_parse_finished = True
 
     def gen_desc(self):
@@ -216,7 +216,7 @@ class Schema:
             if temp_instances == []:
                 print(f"[ERROR] no matched data")
             instance_of_pattern_match_lists = temp_instances
-        if len(instance_of_pattern_match_lists)==0:
+        if len(instance_of_pattern_match_lists) == 0:
             return []
         assert len(instance_of_pattern_match_lists[0]) == len(label_list)
         return random.choice(instance_of_pattern_match_lists)
@@ -225,11 +225,9 @@ class Schema:
         # only support three nodes
         instance_of_pattern_match_list = []
         if len(label_list) == 1:
-            instance=self.__get_instance_by_label(label_list[0], 1)[0]
-            if instance!=None:
-                instance_of_pattern_match_list.append(
-                    instance
-                )
+            instance = self.__get_instance_by_label(label_list[0], 1)[0]
+            if instance != None:
+                instance_of_pattern_match_list.append(instance)
         for i in range(1, len(label_list), 2):
             label = label_list[i]
             edge_instance = self.__get_instance_by_label(label, 1)[0]
@@ -269,21 +267,21 @@ class Schema:
             node_instance.pop(key)
         return node_instance
 
-    def get_create_instance(self,node_label,node_instance):
-        ret_node_instance={}
+    def get_create_instance(self, node_label, node_instance):
+        ret_node_instance = {}
         if node_label in self.vertex_dict:
             node = self.vertex_dict[node_label]
         if node_label in self.edge_dict:
             node = self.edge_dict[node_label]
         for key, value in node_instance.items():
             if key in node.required:
-                ret_node_instance[key]=value
-        if len(ret_node_instance)==0:
+                ret_node_instance[key] = value
+        if len(ret_node_instance) == 0:
             node_instance = self.rm_long_property_of_instance(node_instance)
             size = min(3, len(node_instance))
             assert size >= 0
             n = random.randint(0, size)
-            ret_node_instance=dict(random.sample(node_instance.items(), n))
+            ret_node_instance = dict(random.sample(node_instance.items(), n))
         return ret_node_instance
 
     def get_vertex_instance_by_id(self, label, id):
@@ -292,7 +290,7 @@ class Schema:
         else:
             print(f"[ERROR] vertex not found, vertex_label:{label}, id:{id}")
         file_path = vertex.file_path
-        header=vertex.header
+        header = vertex.header
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
@@ -305,7 +303,7 @@ class Schema:
                             keyword_type = vertex.property_type[keyword]
                             if "INT" in keyword_type:
                                 instance[keyword] = int(item)
-                            elif keyword_type=="STRING":
+                            elif keyword_type == "STRING":
                                 instance[keyword] = str(item)
                             else:
                                 instance[keyword] = float(item)
@@ -320,7 +318,7 @@ class Schema:
         else:
             print(f"[ERROR] edge not found, edge_label:{edge_label}")
         file_path = edge.file_path
-        header=edge.header
+        header = edge.header
         src_idx = edge.column_keyword.index("SRC_ID")
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
@@ -335,7 +333,7 @@ class Schema:
                                 keyword_type = edge.property_type[keyword]
                                 if "INT" in keyword_type:
                                     instance[keyword] = int(item)
-                                elif keyword_type=="STRING":
+                                elif keyword_type == "STRING":
                                     instance[keyword] = str(item)
                                 else:
                                     instance[keyword] = float(item)
@@ -351,7 +349,7 @@ class Schema:
         else:
             print(f"[ERROR] edge not found, edge_label:{edge_label}")
         file_path = edge.file_path
-        header=edge.header
+        header = edge.header
         dst_idx = edge.column_keyword.index("DST_ID")
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
@@ -366,7 +364,7 @@ class Schema:
                                 keyword_type = edge.property_type[keyword]
                                 if "INT" in keyword_type:
                                     instance[keyword] = int(item)
-                                elif keyword_type=="STRING":
+                                elif keyword_type == "STRING":
                                     instance[keyword] = str(item)
                                 else:
                                     instance[keyword] = float(item)
@@ -388,7 +386,7 @@ class Schema:
             print("[ERROR]: vertex or edge is not exist")
             return
         file_path = node.file_path
-        header=node.header
+        header = node.header
         if os.path.exists(file_path):
             vertex_or_edge_instance_list = []
             with open(file_path, newline="") as csvfile:
@@ -408,7 +406,7 @@ class Schema:
                             keyword_type = node.property_type[keyword]
                             if "INT" in keyword_type:
                                 vertex_or_edge_instance[keyword] = int(item)
-                            elif keyword_type=="STRING":
+                            elif keyword_type == "STRING":
                                 vertex_or_edge_instance[keyword] = str(item)
                             else:
                                 vertex_or_edge_instance[keyword] = float(item)
@@ -430,7 +428,7 @@ class Schema:
             print("[ERROR]: vertex or edge is not exist")
             return
         file_path = node.file_path
-        header=node.header
+        header = node.header
         if os.path.exists(file_path):
             vertex_or_edge_instance_list = []
             with open(file_path, newline="") as csvfile:
@@ -448,7 +446,7 @@ class Schema:
                             keyword_type = node.property_type[keyword]
                             if "INT" in keyword_type:
                                 vertex_or_edge_instance[keyword] = int(item)
-                            elif keyword_type=="STRING":
+                            elif keyword_type == "STRING":
                                 vertex_or_edge_instance[keyword] = str(item)
                             else:
                                 vertex_or_edge_instance[keyword] = float(item)
@@ -468,7 +466,9 @@ class Schema:
     def get_matched_pattern_list(self, pattern_part: PatternPart):
         chain_list = pattern_part.chain_list
         if len(chain_list) <= 3:
-            return self.get_matched_pattern_list_three_nodes(pattern_part)  # three nodes
+            return self.get_matched_pattern_list_three_nodes(
+                pattern_part
+            )  # three nodes
         all_label_lists = []
         edge_count = int(len(chain_list) / 2)
         for first_node_label, first_node in self.vertex_dict.items():

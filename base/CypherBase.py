@@ -116,13 +116,25 @@ class CypherBase:
 
         self.template = [[] for _ in range(len(self.token_dict))]
         self.template[self.token_dict["MATCH"]].extend(
-            ["找到", "获得", "查询", "查找图数据库中", "查找数据库中", "从数据库中查找", "在图中查找"]
+            [
+                "找到",
+                "获得",
+                "查询",
+                "查找图数据库中",
+                "查找数据库中",
+                "从数据库中查找",
+                "在图中查找",
+            ]
         )
         self.template[self.token_dict["OPTIONAL"]].extend(["以可选的方式", "尝试"])
-        self.template[self.token_dict["DISTINCT"]].extend(["将查询结果去重", "最后将结果去重"])
+        self.template[self.token_dict["DISTINCT"]].extend(
+            ["将查询结果去重", "最后将结果去重"]
+        )
         self.template[self.token_dict["DESC"]].extend(["降序"])
         self.template[self.token_dict["ASC"]].extend(["升序", ""])
-        self.template[self.token_dict["RETURN"]].extend(["返回子图", "返回相关的节点和关系", ""])
+        self.template[self.token_dict["RETURN"]].extend(
+            ["返回子图", "返回相关的节点和关系", ""]
+        )
         # schema
         self.schema_dict = {}
         self.load_dict_from_file(config.get_schema_dict_path())

@@ -31,7 +31,7 @@ class Pattern:
     def __get_matched_pattern_part_label_lists(self, pattern_part: PatternPart):
         # 1. generate all matched path
         label_lists = self.schema.get_matched_pattern_list(pattern_part)
-        if label_lists==[]:
+        if label_lists == []:
             return []
         # 2. Remove duplicates，edge without properties
         if len(label_lists[0]) >= 3:
@@ -149,7 +149,7 @@ class Pattern:
                     node_instance = self.schema.rm_long_property_of_instance(
                         node_instance
                     )
-                    if(len(node_instance)!=0):
+                    if len(node_instance) != 0:
                         query = query + "{"
                         size = max(0, min(2, len(node_instance) - 1))
                         rand = random.randint(0, size)
@@ -271,8 +271,8 @@ class UpdatePattern(Pattern):
         self, parsed_pattern_part, matched_label_list, pattern_part_instance
     ):
         query = ""
-        if matched_label_list==[]:
-            return ''
+        if matched_label_list == []:
+            return ""
         if parsed_pattern_part.variable != "":
             query = query + parsed_pattern_part.variable + "="
         for i in range(len(parsed_pattern_part.chain_list)):
@@ -287,7 +287,7 @@ class UpdatePattern(Pattern):
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
                     node_instance = self.schema.get_create_instance(
-                        label,node_instance
+                        label, node_instance
                     )
                     property_keys = list(node_instance.keys())
                     if len(property_keys) > 0:
@@ -312,7 +312,7 @@ class UpdatePattern(Pattern):
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
                     node_instance = self.schema.get_create_instance(
-                        label,node_instance
+                        label, node_instance
                     )
                     property_keys = list(node_instance.keys())
                     if len(property_keys) > 0:
@@ -345,9 +345,9 @@ class CurrentPattern:
         self.schema = schema
         self.list_idx_to_rm = []
         self.if_extend_list = False
-    
-    def set_cur_parse_type(self,type):
-        self.cur_parse_type=type
+
+    def set_cur_parse_type(self, type):
+        self.cur_parse_type = type
 
     def get_read_pattern(self):
         return self.read_pattern
@@ -396,12 +396,10 @@ class CurrentPattern:
         if pattern_idx != -1 and part_idx != -1 and node_idx != -1:
             return self.__matched_label_lists[list_idx][pattern_idx][part_idx][node_idx]
         return ""
-    
-    def rm_query_by_index(self,list_idx_to_rm,query_list):
+
+    def rm_query_by_index(self, list_idx_to_rm, query_list):
         latest_query_lists = [
-            item
-            for index, item in enumerate(query_list)
-            if index not in list_idx_to_rm
+            item for index, item in enumerate(query_list) if index not in list_idx_to_rm
         ]
         latest_matched_label_lists = [
             item
@@ -418,11 +416,11 @@ class CurrentPattern:
         for update_pattern in self.update_patterns:
             update_pattern.matched_pattern_parts_label_lists = [
                 item
-            for index, item in enumerate(
-                update_pattern.matched_pattern_parts_label_lists
-            )
-            if index not in list_idx_to_rm
-        ]
+                for index, item in enumerate(
+                    update_pattern.matched_pattern_parts_label_lists
+                )
+                if index not in list_idx_to_rm
+            ]
         self.cur_update_pattern.matched_pattern_parts_label_lists = [
             item
             for index, item in enumerate(
@@ -435,15 +433,25 @@ class CurrentPattern:
         self.list_idx_to_rm = []
         if len(query_list) == 0:
             return [], []
-        return self.__matched_label_lists,query_list
+        return self.__matched_label_lists, query_list
 
     def get_matched_label_lists(self, query_list=None):
-        if self.cur_parse_type == "" or self.cur_parse_type == "where" or self.cur_parse_type=="set":
+        if (
+            self.cur_parse_type == ""
+            or self.cur_parse_type == "where"
+            or self.cur_parse_type == "set"
+        ):
             return self.__matched_label_lists, query_list
-        if self.__gen_matched_pattern_parts_label_lists(): # find if the matched_label_lists need to been changed
-            if self.list_idx_to_rm != [] and query_list != None and query_list != []: # delete not match
-                return self.rm_query_by_index(self.list_idx_to_rm,query_list)
-            if self.if_extend_list and query_list != None:  # extend, if no match pattern or other situations
+        if (
+            self.__gen_matched_pattern_parts_label_lists()
+        ):  # find if the matched_label_lists need to been changed
+            if (
+                self.list_idx_to_rm != [] and query_list != None and query_list != []
+            ):  # delete not match
+                return self.rm_query_by_index(self.list_idx_to_rm, query_list)
+            if (
+                self.if_extend_list and query_list != None
+            ):  # extend, if no match pattern or other situations
                 multiplier = len(self.__matched_label_lists) / len(query_list)
                 query_list = [
                     element for _ in range(int(multiplier)) for element in query_list
@@ -565,7 +573,9 @@ class CurrentPattern:
                             self.list_idx_to_rm.append(list_idx)
                             update_matched_label_list.append([])
                             continue
-                        update_matched_label = random.choice(update_matched_label_lists) # no extend
+                        update_matched_label = random.choice(
+                            update_matched_label_lists
+                        )  # no extend
                         update_matched_label_list.append(update_matched_label)
                     cur_update_parts_matched_label_lists.append(
                         copy.deepcopy(update_matched_label_list)
