@@ -154,6 +154,7 @@ class Schema:
             if i == 0:  # the first edge
                 edge_instances = self.__get_instance_by_label(edge_label, 100)
                 for edge_instance in edge_instances:
+                    # Bug 与箭头方向有关
                     src_vertex_instance = self.get_vertex_instance_by_id(
                         label_list[edge_index - 1], edge_instance["SRC_ID"]
                     )
@@ -161,7 +162,7 @@ class Schema:
                         label_list[edge_index + 1], edge_instance["DST_ID"]
                     )
                     instance = []
-                    if src_vertex_instance != None and dst_vertex_instance != None:
+                    if src_vertex_instance != {} and dst_vertex_instance != {}:
                         if edge.src == label_list[edge_index - 1]:
                             instance.append(src_vertex_instance)
                             instance.append(copy.deepcopy(edge_instance))
@@ -296,8 +297,8 @@ class Schema:
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[header:]
-                for row in data_from_third_row:
+                data = reader[header:]
+                for row in data:
                     instance = {}
                     if row[0] == str(id):
                         for index, item in enumerate(row):
@@ -310,8 +311,8 @@ class Schema:
                             else:
                                 instance[keyword] = float(item)
                         return instance
-                    else:
-                        continue
+        print(f"[WARNING] vertex_instance not found, vertex_label:{label}, vertex_id:{id}")
+        return {}
 
     def get_edge_instance_by_src_id(self, edge_label, src_id):
         # instance includes 'SRC_ID' and 'DST_ID'
