@@ -2,23 +2,23 @@ from enum import Enum
 
 
 class Status(Enum):
-    GEN_PROMPT_DIRECTLY = (
+    GEN_QUESTION_DIRECTLY = (
         100,
-        "gen_prompt_directly",
-        "generate multi prompts according to input cypher",
+        "gen_question_directly",
+        "generate multi questions according to input cypher",
     )
-    GENERAL_PROMPT_DIRECTLY = (
+    GENERAL_QUESTION_DIRECTLY = (
         200,
-        "geneal_prompt_directly",
-        "generate multi prompts according to input prompt",
+        "geneal_question_directly",
+        "generate multi questions according to input question",
     )
     GENERALIZATION = (
         300,
         "generalization",
-        "generate multi prompts according to input cypher and prompt",
+        "generate multi questions according to input cypher and question",
     )
-    GEN_PROMPT_WITH_TEMPLATE = (
+    GEN_QUESTION_WITH_TEMPLATE = (
         400,
-        "gen_prompt_with_template",
-        "generate multi prompts according to input cypher, tempelate cypher and template prompt",
+        "gen_question_with_template",
+        "generate multi questions according to input cypher, tempelate cypher and template question",
     )
