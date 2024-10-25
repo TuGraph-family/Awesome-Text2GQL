@@ -1,3 +1,4 @@
+# this file is reserved for parsing and generate the expr in where clause
 class ExprLeaf:
     def __init__(self, left_expr, symbol, right_expr):
         self.symbol = symbol
@@ -8,12 +9,7 @@ class ExprLeaf:
         if self.left_expr[1] == 0:
             return True
         else:
-            # symbol  ( '=' SP? oC_AddOrSubtractExpression )
-            #                            | ( '<>' SP? oC_AddOrSubtractExpression )
-            #                            | ( '<' SP? oC_AddOrSubtractExpression )
-            #                            | ( '>' SP? oC_AddOrSubtractExpression )
-            #                            | ( '<=' SP? oC_AddOrSubtractExpression )
-            #                            | ( '>=' SP? oC_AddOrSubtractExpression )
+            # '=' ,'<>', '<','>' ,'<=','>=', find constraints
             if self.left_expr[1] == self.right_expr[1] and self.left_expr[1] != 0:
                 # n.title == m.tile
                 return False  # require changing the size of query_lists
@@ -37,7 +33,7 @@ class ExprTree:
             self.right_expr = expr
 
     def pre_gen_where(self, matched_label_lists):
-        pass  # 深度优先遍历，调用叶子节点的检查语句
+        pass  # dfs,ExprLeaf.pre_gen_where
 
     def depth_first_search(self, node):
         if node is None:
@@ -46,7 +42,7 @@ class ExprTree:
         self.depth_first_search(node.left)
         self.depth_first_search(node.right)
 
-    def gen_tree():  # 深度优先中序遍历
+    def gen_tree():
         pass
 
 
