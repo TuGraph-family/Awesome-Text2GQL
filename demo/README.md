@@ -5,3 +5,5 @@ This is the repository for the text2GQL generator implementation. Awesome-Text2G
 <a href="https://github.com/Panghy1106/Awesome-Text2GQL/tree/dev_demo/images/demo.mp4">
   <img src="https://github.com/Panghy1106/Awesome-Text2GQL/tree/dev_demo/images/demo.png" alt="视频缩略图" width="300">
 </a>
+
+[![Video Thumbnail](https://github.com/Panghy1106/Awesome-Text2GQL/tree/dev_demo/images/demo.png)](https://github.com/Panghy1106/Awesome-Text2GQL/tree/dev_demo/images/demo.mp4)
