@@ -2,7 +2,8 @@
 
 TuGraph-DB ChatBot is a demo which can intercract with the TuGraph-DB.You can input what you want to operate the db,such as querying or creating data. And The ChatBot will also help you to excute the cypher too. Let's trying it now!
 
-[!demo](../images/demo.gif)
+![demo](https://github.com/Panghy1106/Awesome-Text2GQL/blob/dev_demo/images/demo.gif)
+
 ## Requirements
 
 GPU V100 16G
