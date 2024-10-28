@@ -19,10 +19,7 @@ conda activate text2gql
 git clone https://github.com/TuGraph-family/Awesome-Text2GQL
 cd Awesome-Text2GQL
 mkdir output
-<<<<<<< HEAD
 ```
-=======
->>>>>>> aa3376ca81956c9b8eec36d87b5a9599c69c0373
 
 Install related python dependency packages
 
