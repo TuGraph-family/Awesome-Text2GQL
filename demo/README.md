@@ -4,6 +4,12 @@ TuGraph-DB ChatBot is a demo which can intercract with the TuGraph-DB.You can in
 
 ![demo](../images/demo.gif)
 
+- **Awesome-Text2GQL**: helps to generate dataset for fine-tuning LLMs. [Awesome-Text2GQL](https://github.com/TuGraph-family/Awesome-Text2GQL.git)
+
+- **TuGraph-DB**: we'll chat with. [TuGraph-DB](https://github.com/TuGraph-family/tugraph-db)
+
+- **DB-GPT-GQL**: helps to fine-tune LLMs. [DB-GPT-GQL](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/README.zh.md) 
+
 ## Requirements
 
 The README.md has been tested in: 
@@ -14,20 +20,14 @@ The README.md has been tested in:
 
 - **Disk**:  System Disk 100G (minimum requirements: System Disk 30G，Data Disk 60G. )
 
-- **Awesome-Text2GQL**: helps to generate dataset for fine-tuning LLMs.
-
-- **TuGraph-DB**: [TuGraph-DB](https://github.com/TuGraph-family/tugraph-db)
-
-- **DB-GPT-GQL**: [DB-GPT-GQL](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/README.zh.md) 
-
 ## Quick Start
 
-### Preparation
+### 1. Preparation
 
-#### 1. Install Nvidia Docker
+#### 1.1 Install Nvidia Docker
 
 `Nvidia Docker` allows you to use NVIDIA GPU in docker.
-Here is the installation method to install Nvidia Docker in CentOS7.You can install Nvidia Docker in ubuntu system as well,you need to find the installation method by yourself.Make sure you have installed Nvidia Docker before you start the container of tugraph-db-runtime image in the following step.
+Here is the installation method to install Nvidia Docker in CentOS7.You can install Nvidia Docker in ubuntu system as well, you need to find the installation method by yourself. Make sure you have installed Nvidia Docker before you start the container of tugraph-db-runtime image in the following steps.
 
 ```
 distribution=$(. /etc/os-release;echo$ID$VERSION_ID)
@@ -43,13 +43,9 @@ restart docker
 sudo systemctl restart docker
 ```
 
-#### 2. compile-docker
+#### 1.2 Start Docker and Build Dependencies
 
-[TuGraph-DB](https://github.com/TuGraph-family/tugraph-db)
-
-
-
-##### pull docker image
+Pull tugraph-db docker image and build it from source.
 
 ```
 docker pull tugraph/tugraph-compile-centos7
@@ -80,9 +76,9 @@ you will see the information of gpu after you input the instruction bellow. If y
 nvidia-smi
 ```
 
-##### change the defalut python3.6 into python3.10
+##### Change the defalut python3.6 into python3.10
 
-python3.10 is required for
+Python3.10 is required for the demo.
 
 ```
 # install dependency package
@@ -125,7 +121,7 @@ cd cython-3.0.11
 python3 setup.py install
 ```
 
-##### Build TuGraph-DB From Source
+#### 1.3 Build TuGraph-DB From Source
 
 ```
 mkdir work_repo && cd work_repo
@@ -138,7 +134,7 @@ make
 make package
 ```
 
-#### 3. Generate Dataset
+#### 1.4 Generate Dataset
 
 ##### Install MiniConda
 
@@ -158,44 +154,43 @@ restart your shell or terminal to make your settings take effect.
 conda activate demo
 ```
 
-##### Awesome-Text2GQL to generate dataset
-
-Following to build your first dataset.
+##### Generate Dataset with Awesome-Text2GQL
 
 ```
 cd /path/to/work_repo/Awesome-Text2GQL
 mkdir tugraph-db
 ```
+Add templates in ./input_examples/corpus_template.txt, and run the whole flow to get datasets generated after setting up the environments.Please check [README.md]((https://github.com/TuGraph-family/Awesome-Text2GQL.git) for more details.
 
+Finally, split the datasets into train and dev part. The datasets should be organized as bellow.
 ```
 tugraph-db/
-|-train.json
-|-dev.json
-|-gold_dev.txt
+|-train.json # for training
+|-dev.json # for evaluation
+|-gold_dev.txt # for evaluation
 ```
 
-#### 4. DB-GPT-GQL
+#### 1.5 Fine-tune with DB_GPT_GQL
 
-[DB-GPT-GQL](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/)
-Attention:
 Before you excute training、inference or evaluation, mkdir for outputs:
-
 ```
 cd ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql
 mkdir -p ./output/logs ./output/adapter ./output/pred
 ```
 
-### Fine-tuning
+Following the [README.md](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/) in DB-GPT-GQL to fine-tune LLMs. Replace the virtual env `dbgpt_hub_gql` with `demo` while installing dependencies.
+The model CodeLlama-7B-Instruct and the corresponding LoRA method are tested. 
+
+### 2. Fine-tune
 
 ```
 cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt-hub-gql
-cp path/to/tugraph-db/ ./data  # path to your tugraph-db dataset you built above.
+cp -r path/to/datasets/generated/ ./data  # path to your tugraph-db dataset built above.
 ```
 
-### Run Demo
+### 3. Run Demo
 
-cp dynamic link library of python client compiled in ./tugraph-db before into the demo directory in  
-
+cp necesarry dependencies into the demo directory.
 ```
 cd path/to/work_repo/
 mkdir -p ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
@@ -212,7 +207,7 @@ cp -r ./tugraph-db/demo/movie ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo
 ```
 
-import data
+import data of tugraph-db
 
 ```
 mkdir -p /var/lib/lgraph/
@@ -239,14 +234,3 @@ stop server
 ```
 path/to/work_repo/tugraph-db/build/output/lgraph_server -c ./lgraph.json -d stop
 ```
-
-## Q&A
-
-### 1. 30G系统盘和60G数据盘 solution
-
-### 2. 版本匹配 tugraph-db-example
-
-transformers 4.44.2, 版本不能太高。
-transformers 4.44.2,
-
-3. If you can't build TuGraph-DB from Source, please refer to the [Dockerfile](https://github.com/TuGraph-family/tugraph-db/blob/master/ci/images/tugraph-compile-ubuntu18.04-Dockerfile) of tugraph-complie-ubuntu18.04 image.
