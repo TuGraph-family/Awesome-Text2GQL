@@ -67,7 +67,7 @@ def main():
         logger.info("[y/n] :")
         user_input = input()
         if user_input.lower() == 'y':
-            ret, res = client.callCypher(cypher, 'MovieDemo1')
+            ret, res = client.callCypher(cypher, 'default')
             print_res(res)
         elif user_input.lower() == 'exit':
             sys.exit()
@@ -75,7 +75,7 @@ def main():
             continue
 
 if __name__ == "__main__":
-    client = liblgraph_client_python.client("127.0.0.1:9090", "admin", "phy1020")
+    client = liblgraph_client_python.client("127.0.0.1:9090", "admin", "73@TuGraph")
     logger=logger()
     model = ChatModel()
     main()
