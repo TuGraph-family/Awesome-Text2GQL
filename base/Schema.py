@@ -189,7 +189,8 @@ class Schema:
                         print(f"[ERROR] Labellist is not right!")
                 continue
             if instance_of_pattern_match_lists==[]:
-                print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
+                # print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
+                pass
             # other edges
             temp_instances = []
             for instance in instance_of_pattern_match_lists:
@@ -227,7 +228,8 @@ class Schema:
                 else:
                     print(f"[ERROR] Labellist is not right!")
             if temp_instances == []:
-                print(f"[WARNING] no matched data when finding the instance of {label_list}")
+                # print(f"[WARNING] no matched data when finding the instance of {label_list}")
+                pass
             instance_of_pattern_match_lists = temp_instances
         if len(instance_of_pattern_match_lists) == 0:
             return []
@@ -384,7 +386,7 @@ class Schema:
                             else:
                                 instance[keyword] = str(item)
                         return instance
-        print("[WARNING]: the edge instance cannot been found, dst_id is {dst_id}")
+        # print("[WARNING]: the edge instance cannot been found, dst_id is {dst_id}")
         return {}
 
     def __get_instance_by_label(self, vertex_or_edge_label, count):
