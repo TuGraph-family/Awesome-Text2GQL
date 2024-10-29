@@ -40,11 +40,11 @@ docker pull tugraph/tugraph-runtime-ubuntu18.04
 set environment variables
 ```
 export VERSION=latest
-export REPOSITORY=docker.io/tugraph/tugraph-runtime-ubuntu18.84 # path to your docker image
+export REPOSITORY=docker.io/tugraph/tugraph-runtime-ubuntu18.04 # path to your docker image
 ```
 Start Docker
 ```
-docker run -dt --gpus -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/data  -v /root/tugraph/log:/var/log/lgraph_log \
+docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/data  -v /root/tugraph/log:/var/log/lgraph_log \
  --name demo ${REPOSITORY}:${VERSION} /bin/bash
 
 docker exec -it demo bash
@@ -147,8 +147,8 @@ import data
 heihei
 ```
 
-### Q&A
-#### 1. 30G系统盘和60G数据盘 solution
-#### 2. 版本匹配 tugraph-db-example
+## Q&A
+### 1. 30G系统盘和60G数据盘 solution
+### 2. 版本匹配 tugraph-db-example
 transformers 4.44.2, 版本不能太高。
 transformers 4.44.2,
