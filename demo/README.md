@@ -90,7 +90,7 @@ yum install openssl-devel bzip2-devel libffi-devel
 wget https://www.python.org/ftp/python/3.10.15/Python-3.10.15.tgz
 tar xzf Python-3.10.15.tgz
 cd Python-3.10.15
-./configure --enable-optimizations
+./configure --enable-optimizations --with-openssl=/usr/include/openssl
 make altinstall
 
 # verify
@@ -113,9 +113,13 @@ Verify python version
 python3 --version
 ```
 
-install cython
+Install cython
 
 ```
+python3 -m pip install -i https://mirrors.aliyun.com/pypi/simple/ Cython
+
+# or build from source (deprecated)
+
 wget https://github.com/cython/cython/archive/refs/tags/3.0.11.tar.gz
 tar xzf 3.0.11.tar.gz
 cd cython-3.0.11
@@ -202,6 +206,7 @@ cp * path/to/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 cd path/to/work_repo/
 cp ./tugraph-db/build/output/liblgraph_client_cpp_rpc.so  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 cp ./tugraph-db/build/output/liblgraph_client_python.so  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
+cp ./tugraph-db/build/output/liblgraph.so ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 cp ./tugraph-db/build/output/lgraph_import  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 cp -r ./tugraph-db/demo/movie ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
