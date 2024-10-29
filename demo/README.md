@@ -2,17 +2,23 @@
 
 TuGraph-DB ChatBot is a demo which can intercract with the TuGraph-DB.You can input how you want to operate the db in Chinese, such as querying or creating data. And The ChatBot will also help you to excute the cypher too. Let's try it now!
 
-![demo](https://github.com/Panghy1106/Awesome-Text2GQL/tree/master/images/demo.gif)
+![demo](../images/demo.gif)
 
 ## Requirements
 
 The README.md has been tested in: 
 
-**GPU**:  V100 16G-RAM
+- **GPU**:  V100 16G-RAM
 
-**OS**: CentOS7
+- **OS**: CentOS7
 
-**Disk**:  System Disk 100G (minimum requirements: System Disk 30G，Data Disk 60G. )
+- **Disk**:  System Disk 100G (minimum requirements: System Disk 30G，Data Disk 60G. )
+
+- **Awesome-Text2GQL**: helps to generate dataset for fine-tuning LLMs.
+
+- **TuGraph-DB**: [TuGraph-DB](https://github.com/TuGraph-family/tugraph-db)
+
+- **DB-GPT-GQL**: [DB-GPT-GQL](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/README.zh.md) 
 
 ## Quick Start
 
@@ -20,7 +26,7 @@ The README.md has been tested in:
 
 #### 1. Install Nvidia Docker
 
-Nvidia Docker allows you to use NVIDIA GPU in docker.
+`Nvidia Docker` allows you to use NVIDIA GPU in docker.
 Here is the installation method to install Nvidia Docker in CentOS7.You can install Nvidia Docker in ubuntu system as well,you need to find the installation method by yourself.Make sure you have installed Nvidia Docker before you start the container of tugraph-db-runtime image in the following step.
 
 ```
