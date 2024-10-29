@@ -2,7 +2,7 @@
 
 TuGraph-DB ChatBot is a demo which can intercract with the TuGraph-DB.You can input how you want to operate the db in Chinese, such as querying or creating data. And The ChatBot will also help you to excute the cypher too. Let's try it now!
 
-![demo](https://github.com/Panghy1106/Awesome-Text2GQL/images/demo.gif)
+![demo](https://github.com/Panghy1106/Awesome-Text2GQL/tree/master/images/demo.gif)
 
 ## Requirements
 
