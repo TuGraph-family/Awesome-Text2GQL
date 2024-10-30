@@ -256,13 +256,13 @@ cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo
 
 Import data of TuGraph-DB
 ```
-lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./import.json --continue_on_error 1 --overwrite 1 --online false
+lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./movie/import.json --continue_on_error 1 --overwrite 1 --online false
 rm -rf import_tmp
 ```
 
 Start TuGraph-DB
 ```
-lgraph_server -c /usr/local/etc/lgraph.json -d run --log_dir ""
+lgraph_server -c ./lgraph.json -d run --log_dir ""
 ```
 
 Run demo
