@@ -63,8 +63,6 @@ Start Container
 
 ```
 docker run -dt --name demo_comp ${REPOSITORY}:${VERSION} /bin/bash
-
-docker exec -it demo_comp bash
 ```
 
 ##### Change the defalut python3.6 into python3.10
