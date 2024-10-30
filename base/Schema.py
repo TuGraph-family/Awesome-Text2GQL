@@ -154,29 +154,43 @@ class Schema:
             if i == 0:  # the first edge
                 edge_instances = self.__get_instance_by_label(edge_label, 100)
                 for edge_instance in edge_instances:
-                    src_vertex_instance = self.get_vertex_instance_by_id(
-                        label_list[edge_index - 1], edge_instance["SRC_ID"]
-                    )
-                    dst_vertex_instance = self.get_vertex_instance_by_id(
-                        label_list[edge_index + 1], edge_instance["DST_ID"]
-                    )
                     instance = []
-                    if src_vertex_instance != None and dst_vertex_instance != None:
-                        if edge.src == label_list[edge_index - 1]:
+                    if edge.src == label_list[edge_index - 1]:
+                        src_vertex_instance = self.get_vertex_instance_by_id(
+                            label_list[edge_index - 1], edge_instance["SRC_ID"]
+                        )
+                        dst_vertex_instance = self.get_vertex_instance_by_id(
+                            label_list[edge_index + 1], edge_instance["DST_ID"]
+                        )
+                        if src_vertex_instance != {} and dst_vertex_instance != {}:
                             instance.append(src_vertex_instance)
                             instance.append(copy.deepcopy(edge_instance))
                             instance.append(dst_vertex_instance)
                             instance_of_pattern_match_lists.append(
                                 copy.deepcopy(instance)
                             )
-                        elif edge.dst == label_list[edge_index - 1]:
+                    elif edge.dst == label_list[edge_index - 1]: # ()<-[]-()
+                        src_vertex_instance = self.get_vertex_instance_by_id(
+                            label_list[edge_index + 1], edge_instance["SRC_ID"]
+                        )
+                        if src_vertex_instance == {}:
+                            continue
+                        dst_vertex_instance = self.get_vertex_instance_by_id(
+                            label_list[edge_index - 1], edge_instance["DST_ID"]
+                        )
+                        if dst_vertex_instance != {}:
                             instance.append(dst_vertex_instance)
                             instance.append(copy.deepcopy(edge_instance))
                             instance.append(src_vertex_instance)
                             instance_of_pattern_match_lists.append(
                                 copy.deepcopy(instance)
                             )
+                    else:
+                        print(f"[ERROR] Labellist is not right!")
                 continue
+            if instance_of_pattern_match_lists==[]:
+                # print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
+                pass
             # other edges
             temp_instances = []
             for instance in instance_of_pattern_match_lists:
@@ -185,12 +199,12 @@ class Schema:
                     edge_instance = self.get_edge_instance_by_src_id(
                         edge_label, list(left_vertex_instance.values())[0]
                     )
-                    if edge_instance == None:
+                    if edge_instance == {}:
                         continue
                     dst_vertex_instance = self.get_vertex_instance_by_id(
                         label_list[edge_index + 1], edge_instance["DST_ID"]
                     )
-                    if dst_vertex_instance != None:
+                    if dst_vertex_instance != {}:
                         instance.append(edge_instance)
                         instance.append(dst_vertex_instance)
                         temp_instances.append(copy.deepcopy(instance))
@@ -200,21 +214,22 @@ class Schema:
                     edge_instance = self.get_edge_instance_by_dst_id(
                         edge_label, list(left_vertex_instance.values())[0]
                     )
-                    if edge_instance == None:
+                    if edge_instance == {}:
                         continue
                     src_vertex_instance = self.get_vertex_instance_by_id(
                         label_list[edge_index + 1], edge_instance["SRC_ID"]
                     )
-                    if src_vertex_instance != None:
+                    if src_vertex_instance != {}:
                         instance.append(edge_instance)
                         instance.append(src_vertex_instance)
                         temp_instances.append(copy.deepcopy(instance))
                         if i == edge_count - 1:
                             break
                 else:
-                    print(f"[ERROR] no matched data")
+                    print(f"[ERROR] Labellist is not right!")
             if temp_instances == []:
-                print(f"[ERROR] no matched data")
+                # print(f"[WARNING] no matched data when finding the instance of {label_list}")
+                pass
             instance_of_pattern_match_lists = temp_instances
         if len(instance_of_pattern_match_lists) == 0:
             return []
@@ -294,8 +309,8 @@ class Schema:
         if os.path.exists(file_path):
             with open(file_path, newline="") as csvfile:
                 reader = list(csv.reader(csvfile))
-                data_from_third_row = reader[header:]
-                for row in data_from_third_row:
+                data = reader[header:]
+                for row in data:
                     instance = {}
                     if row[0] == str(id):
                         for index, item in enumerate(row):
@@ -308,8 +323,8 @@ class Schema:
                             else:
                                 instance[keyword] = float(item)
                         return instance
-                    else:
-                        continue
+        # print(f"[WARNING] vertex_instance not found, vertex_label:{label}, vertex_id:{id}")
+        return {}
 
     def get_edge_instance_by_src_id(self, edge_label, src_id):
         # instance includes 'SRC_ID' and 'DST_ID'
@@ -340,7 +355,7 @@ class Schema:
                             else:
                                 instance[keyword] = str(item)
                         return instance
-        return None
+        return {}
 
     def get_edge_instance_by_dst_id(self, edge_label, dst_id):
         # instance includes 'SRC_ID' and 'DST_ID'
@@ -371,7 +386,8 @@ class Schema:
                             else:
                                 instance[keyword] = str(item)
                         return instance
-        return None
+        # print("[WARNING]: the edge instance cannot been found, dst_id is {dst_id}")
+        return {}
 
     def __get_instance_by_label(self, vertex_or_edge_label, count):
         # instance includes 'SRC_ID' and 'DST_ID'
