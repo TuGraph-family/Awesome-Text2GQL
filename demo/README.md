@@ -140,6 +140,7 @@ cd .
 mkdir demo
 docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  ./demo/
 docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  ./demo/
+docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph.so  ./demo/
 ```
 
 #### 1.3 Prepare Runtime Container
@@ -184,6 +185,7 @@ nvidia-smi
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 
 bash Miniconda3-latest-Linux-x86_64.sh
+
 # verify
 conda --version
 
