@@ -55,7 +55,7 @@ docker pull tugraph/tugraph-compile-centos7
 Set environment variables
 
 ```
-export VERSION=latest                                       # complile image latest
+export VERSION=latest                                       # the version of compile image is latest
 export REPOSITORY=docker.io/tugraph/tugraph-compile-centos7 # path to your docker image
 ```
 
