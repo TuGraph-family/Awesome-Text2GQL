@@ -1,18 +1,11 @@
 import json
-from base.Schema import Schema
 from base.Config import Config
 import sys
 import os
 from utils.GrammarCheck import grammar_check
+from base.Schema import Schema
 
-
-def generate(config, input_path, output_path):
-    with open(input_path, "rb") as file:
-        for line in file:
-            db_id = line.decode("utf-8")
-            db_id = db_id.strip()
-            break
-    schema_path = config.get_schema_path(db_id)
+def gen_instruction(db_id,schema_path):
     if db_id == "common":
         schema_desc = ""
     else:
@@ -21,6 +14,15 @@ def generate(config, input_path, output_path):
     instruction_beginning = '我希望你像一个Tugraph数据库前端一样工作，你只需要返回给我cypher语句。下面是一条描述任务的指令，写一条正确的response来完成这个请求.\n"\n##Instruction:\n'
     instruction_end = "\n\n"
     instruction = instruction_beginning + schema_desc + instruction_end
+
+def generate(config, input_path, output_path):
+    with open(input_path, "rb") as file:
+        for line in file:
+            db_id = line.decode("utf-8")
+            db_id = db_id.strip()
+            break
+    schema_path = config.get_schema_path(db_id)
+    instruction=gen_instruction(db_id,schema_path)
     data_size = 0
     with open(input_path, "r") as file:
         data_size = sum(1 for line in file) / 2
