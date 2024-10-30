@@ -138,9 +138,10 @@ exit
 
 Copy dydamic link library to a certain path.
 ```
-mkdir -p /root/tugraph/demo/
-docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  /root/tugraph/demo/
-docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  /root/tugraph/demo/
+cd .
+mkdir demo
+docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  ./demo/
+docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  ./demo/
 ```
 
 #### 1.3 Prepare Runtime Container
@@ -162,7 +163,7 @@ Start Container
 
 ```
 docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/movie_db  -v /root/tugraph/log:/var/log/lgraph_log \
--v /root/tugraph/demo:/root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo \
+-v $HOME/demo:/root/work_repo/demo \
  --name demo ${REPOSITORY}:${VERSION} /bin/bash
 
 docker exec -it demo bash
@@ -200,10 +201,12 @@ conda activate demo
 ##### Generate Dataset with Awesome-Text2GQL
 
 ```
+cd
 mkdir -p /root/work_repo/
-cd /work_repo
+cd work_repo
 git clone https://github.com/TuGraph-family/Awesome-Text2GQL.git
 git clone https://github.com/eosphoros-ai/DB-GPT-Hub.git
+git clone https://github.com/TuGraph-family/tugraph-db.git
 cd /root/work_repo/Awesome-Text2GQL
 mkdir tugraph-db
 ```
@@ -241,7 +244,10 @@ Copy necesarry dependencies into the demo directory.
 cd /root/work_repo/
 mkdir -p ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
-cd ./Awesome-Text2GQL/demo
+cd /root/work_repo/demo
+cp * /root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
+
+cd /root/work_repo/Awesome-Text2GQL/demo
 cp * /root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
 cd /root/work_repo/
@@ -252,7 +258,7 @@ cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo
 
 Import data of TuGraph-DB
 ```
-lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./movie/import.json --continue_on_error 1 --overwrite 1 --online false
+lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./import.json --continue_on_error 1 --overwrite 1 --online false
 rm -rf import_tmp
 ```
 
