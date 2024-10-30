@@ -55,7 +55,7 @@ docker pull tugraph/tugraph-compile-centos7
 Set environment variables
 
 ```
-export VERSION=latest
+export VERSION=latest                                       # complile image latest
 export REPOSITORY=docker.io/tugraph/tugraph-compile-centos7 # path to your docker image
 ```
 
@@ -165,7 +165,7 @@ conda activate demo
 cd /path/to/work_repo/Awesome-Text2GQL
 mkdir tugraph-db
 ```
-Add templates in ./input_examples/corpus_template.txt, and run the whole flow to get datasets generated after setting up the environments.Please check [README.md]((https://github.com/TuGraph-family/Awesome-Text2GQL.git) for more details.
+Add templates in ./input_examples/corpus_template.txt, and run the whole flow to get datasets generated after setting up the environments.Please check [README.md](https://github.com/TuGraph-family/Awesome-Text2GQL.git) for more details.
 
 Finally, split the datasets into train and dev part. The datasets should be organized as bellow.
 ```
