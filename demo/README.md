@@ -59,10 +59,10 @@ export VERSION=latest
 export REPOSITORY=docker.io/tugraph/tugraph-compile-centos7 # path to your docker image
 ```
 
-Start runtime Docker
+Start Container
 
 ```
-docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/data  -v /root/tugraph/log:/var/log/lgraph_log \
+docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/movie_db  -v /root/tugraph/log:/var/log/lgraph_log \
  --name demo ${REPOSITORY}:${VERSION} /bin/bash
 
 docker exec -it demo bash
