@@ -44,7 +44,7 @@ Restart docker
 sudo systemctl restart docker
 ```
 
-#### 1.2 Start Docker and Build Dependencies
+#### 1.2 Build Dependencies in Compile Container
 
 Pull tugraph-db docker image and build it from source.
 
@@ -62,19 +62,9 @@ export REPOSITORY=docker.io/tugraph/tugraph-compile-centos7 # path to your docke
 Start Container
 
 ```
-docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/movie_db  -v /root/tugraph/log:/var/log/lgraph_log \
- --name demo ${REPOSITORY}:${VERSION} /bin/bash
+docker run -dt --name demo_comp ${REPOSITORY}:${VERSION} /bin/bash
 
-docker exec -it demo bash
-
-#--gpus means enabling gpus in the docker container
-```
-
-Verify you can use gpu in the docker container.
-You will see the information of gpu after input the instruction bellow. If you can't see the gpu information, back to the the steps before to make sure you have installed Nvidia-Docker successfully and started docker with `--gpus`.
-
-```
-nvidia-smi
+docker exec -it demo_comp bash
 ```
 
 ##### Change the defalut python3.6 into python3.10
@@ -126,7 +116,7 @@ cd cython-3.0.11
 python3 setup.py install
 ```
 
-#### 1.3 Build TuGraph-DB From Source
+##### Build TuGraph-DB From Source
 
 ```
 mkdir work_repo && cd work_repo
@@ -139,7 +129,55 @@ make
 make package
 ```
 
-#### 1.4 Generate Dataset
+##### Copy Dependencies
+
+Exit comple container.
+```
+exit
+```
+
+Copy dydamic link library to a certain path.
+```
+mkdir -p /root/tugraph/demo/
+docker cp /root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  /root/tugraph/demo/
+docker cp /root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  /root/tugraph/demo/
+```
+
+#### 1.3 Prepare Runtime Container
+
+Pull tugraph-db docker image and build it from source.
+
+```
+docker pull tugraph/tugraph-runtime-centos7
+```
+
+Set environment variables
+
+```
+export VERSION=latest                                       # the version of compile image is latest
+export REPOSITORY=docker.io/tugraph/tugraph-runtime-centos7 # path to your docker image
+```
+
+Start Container
+
+```
+docker run -dt --gpus all -p 7070:7070  -p 7687:7687 -p 9090:9090 -v /root/tugraph/data:/var/lib/lgraph/movie_db  -v /root/tugraph/log:/var/log/lgraph_log \
+-v /root/tugraph/demo:/root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo \
+ --name demo ${REPOSITORY}:${VERSION} /bin/bash
+
+docker exec -it demo bash
+
+#--gpus means enabling gpus in the docker container
+```
+
+Verify you can use gpu in the docker container.
+You will see the information of gpu after input the instruction bellow. If you can't see the gpu information, back to the the steps before to make sure you have installed Nvidia-Docker successfully and started docker with `--gpus`.
+
+```
+nvidia-smi
+```
+
+#### 1.4 Generate Dataset In Runtime Container
 
 ##### Install MiniConda
 
@@ -162,10 +200,14 @@ conda activate demo
 ##### Generate Dataset with Awesome-Text2GQL
 
 ```
-cd /path/to/work_repo/Awesome-Text2GQL
+mkdir -p /root/work_repo/
+cd /work_repo
+git clone https://github.com/TuGraph-family/Awesome-Text2GQL.git
+git clone https://github.com/eosphoros-ai/DB-GPT-Hub.git
+cd /root/work_repo/Awesome-Text2GQL
 mkdir tugraph-db
 ```
-Add templates in ./input_examples/corpus_template.txt, and run the whole flow to get datasets generated after setting up the environments.Please check [README.md](https://github.com/TuGraph-family/Awesome-Text2GQL.git) for more details.
+Add templates in ./input_examples/corpus_template.txt, and run the whole flow to get datasets generated after setting up the environments.Please check [README.md](https://github.com/TuGraph-family/Awesome-Text2GQL) for more details.
 
 Finally, split the datasets into train and dev part. The datasets should be organized as bellow.
 ```
@@ -175,39 +217,34 @@ tugraph-db/
 |-gold_dev.txt                   # for evaluation
 ```
 
-#### 1.5 Fine-tune with DB-GPT-GQL
+### 2. Fine-tune
 
 Before you excute training、inference or evaluation, mkdir for outputs:
 ```
-cd ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql
+cd ../DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql
 mkdir -p ./output/logs ./output/adapter ./output/pred
+```
+
+Copy datasets
+```
+cd /root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt-hub-gql
+cp -r /path/to/datasets/generated/tugraph-db ./data  # path to your tugraph-db dataset built above.
 ```
 
 Follow the [README.md](https://github.com/eosphoros-ai/DB-GPT-Hub/blob/main/src/dbgpt-hub-gql/) in DB-GPT-GQL to fine-tune LLMs. Replace the virtual env `dbgpt_hub_gql` with `demo` while installing dependencies.
 The model CodeLlama-7B-Instruct and the corresponding LoRA method are tested. 
 
-### 2. Fine-tune
-
-```
-cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt-hub-gql
-cp -r path/to/datasets/generated/ ./data  # path to your tugraph-db dataset built above.
-```
-
 ### 3. Run Demo
 
 Copy necesarry dependencies into the demo directory.
 ```
-cd path/to/work_repo/
+cd /root/work_repo/
 mkdir -p ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
 cd ./Awesome-Text2GQL/demo
-cp * path/to/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
+cp * /root/work_repo/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
-cd path/to/work_repo/
-cp ./tugraph-db/build/output/liblgraph_client_cpp_rpc.so  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
-cp ./tugraph-db/build/output/liblgraph_client_python.so  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
-cp ./tugraph-db/build/output/liblgraph.so ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
-cp ./tugraph-db/build/output/lgraph_import  ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
+cd /root/work_repo/
 cp -r ./tugraph-db/demo/movie ./DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo/
 
 cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo
@@ -215,14 +252,13 @@ cd DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/demo
 
 Import data of TuGraph-DB
 ```
-mkdir -p /var/lib/lgraph/
-./lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./movie/import.json --continue_on_error 1 --overwrite 1 --online false
+lgraph_import --dir /var/lib/lgraph/movie_db --verbose 2 -c ./movie/import.json --continue_on_error 1 --overwrite 1 --online false
 rm -rf import_tmp
 ```
 
 Start TuGraph-DB
 ```
-path/to/work_repo/tugraph-db/build/output/lgraph_server -c ./lgraph.json -d start
+lgraph_server -c /usr/local/etc/lgraph.json -d run --log_dir ""
 ```
 
 Run demo
@@ -233,6 +269,4 @@ sh ./dbgpt_hub_gql/demo/demo.sh
 ```
 
 Stop server
-```
-path/to/work_repo/tugraph-db/build/output/lgraph_server -c ./lgraph.json -d stop
-```
+`Ctrl+C`
