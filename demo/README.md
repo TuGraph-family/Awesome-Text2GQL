@@ -139,8 +139,8 @@ exit
 Copy dydamic link library to a certain path.
 ```
 mkdir -p /root/tugraph/demo/
-docker cp /root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  /root/tugraph/demo/
-docker cp /root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  /root/tugraph/demo/
+docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_cpp_rpc.so  /root/tugraph/demo/
+docker cp demo_comp:/root/work_repo/tugraph-db/build/output/liblgraph_client_python.so  /root/tugraph/demo/
 ```
 
 #### 1.3 Prepare Runtime Container
@@ -154,7 +154,7 @@ docker pull tugraph/tugraph-runtime-centos7
 Set environment variables
 
 ```
-export VERSION=latest                                       # the version of compile image is latest
+export VERSION=latest
 export REPOSITORY=docker.io/tugraph/tugraph-runtime-centos7 # path to your docker image
 ```
 
