@@ -9,6 +9,9 @@ from tqdm import tqdm
 import os
 import copy
 import sys
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import transformers
+import torch
 
 
 def gen_question_directly(
@@ -134,7 +137,7 @@ def gen_question_with_template(input_path, output_path):
     print("output file:", output_path)
 
 
-def call_with_messages(messages):
+def call_with_messages_online(messages):
     response = Generation.call(
         model="qwen-plus-0723",
         messages=messages,
@@ -163,6 +166,38 @@ def call_with_messages(messages):
             )
             print("Failed!", messages[1]["content"])
             return ""
+
+def call_with_message_local(messages, model_path = "meta-llama/CodeLlama-7b-hf"):
+    #1.load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+
+    #2.load model
+    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to("cuda")
+
+    #3.generate content
+    inputs = tokenizer.apply_chat_template(messages, tokenize=True, return_dict=True, return_tensors="pt")
+
+    #add more args
+    output = model.generate(
+        **inputs,
+        do_sample=True,
+        top_k=10,
+        temperature=0.1,
+        top_p=0.95,
+        num_return_sequences=1,
+        eos_token_id=tokenizer.eos_token_id,
+        max_length=200,
+    )
+    #deal with output and return
+    return output
+
+    return seq['generated_text']
+
+def call_with_message(messages,model_path = ""):
+    if model_path = "":
+        call_with_message_online(messages)
+    else:
+        call_with_message_local(messages, model_path)
 
 
 def load_file_gen_question_with_template(input_path):
