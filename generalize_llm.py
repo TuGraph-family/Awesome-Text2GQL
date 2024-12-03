@@ -184,14 +184,14 @@ def call_with_message_local(messages, model_path = "meta-llama/CodeLlama-7b-hf")
         top_k=10,
         temperature=0.1,
         top_p=0.95,
-        num_return_sequences=1,
+        pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id,
-        max_length=200,
+        max_length=512,
     )
+    
     #deal with output and return
+    output = tokenizer.decode(output[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
     return output
-
-    return seq['generated_text']
 
 def call_with_message(messages,model_path = ""):
     if model_path = "":
