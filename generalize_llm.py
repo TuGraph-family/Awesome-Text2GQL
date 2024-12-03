@@ -15,7 +15,7 @@ import torch
 
 
 def gen_question_directly(
-    input_path, output_path
+    input_path, output_path, model_path
 ):  # generate multi questions according to input cypher
     # 1. readt files
     with open(input_path, "r") as file:
@@ -33,7 +33,7 @@ def gen_question_directly(
             {"role": "user", "content": cypher},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, model_path)
         if responses != "":
             questions = process_handler.process(responses)
             # 4. save to file
@@ -43,7 +43,7 @@ def gen_question_directly(
 
 # deprecated
 def general_question_directly(
-    input_path, output_path
+    input_path, output_path, model_path
 ):  # generate multi questions according to input question
     # 1. read file
     with open(input_path, "r") as file:
@@ -61,7 +61,7 @@ def general_question_directly(
             {"role": "user", "content": question},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, model_path)
         # 4. postprocess and save
         if responses != "":
             questions = process_handler.process(responses)
@@ -71,7 +71,7 @@ def general_question_directly(
 
 # recommended
 def generalization(
-    input_path, output_path
+    input_path, output_path, model_path
 ):  # generate multi questions according to input cypher and question
     # 1. read file
     with open(input_path, "r") as file:
@@ -90,7 +90,7 @@ def generalization(
             {"role": "user", "content": content},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, model_path)
         # 4. postprocess and save
         if responses != "":
             questions = process_handler.process(responses)
@@ -98,7 +98,7 @@ def generalization(
     print("corpus output file:", output_path)
 
 
-def gen_question_with_template(input_path, output_path):
+def gen_question_with_template(input_path, output_path, model_path):
     (
         db_id,
         tmplt_cypher_list,
@@ -129,7 +129,7 @@ def gen_question_with_template(input_path, output_path):
                 {"role": "user", "content": content},
             ]
             # 3. get response
-            responses = call_with_messages(massages)
+            responses = call_with_messages(massages, model_path)
             # 4. postprocess and save
             if responses != "":
                 questions = process_handler.process(responses)
@@ -259,15 +259,15 @@ def chunk_list(lst, chunk_size=5):
         yield lst[i : i + chunk_size]
 
 
-def state_machine(input_path, output_path):
+def state_machine(input_path, output_path, model_path=""):
     if mode == Status.GEN_QUESTION_DIRECTLY.value[0]:  # 100
-        gen_question_directly(input_path, output_path)
+        gen_question_directly(input_path, output_path, model_path)
     elif mode == Status.GENERAL_QUESTION_DIRECTLY.value[0]:  # 200
-        general_question_directly(input_path, output_path)  # deprecated # 300
+        general_question_directly(input_path, output_path, model_path)  # deprecated # 300
     elif mode == Status.GENERALIZATION.value[0]:
-        generalization(input_path, output_path)  # recommended # 400
+        generalization(input_path, output_path, model_path)  # recommended # 400
     elif mode == Status.GEN_QUESTION_WITH_TEMPLATE.value[0]:
-        gen_question_with_template(input_path, output_path)
+        gen_question_with_template(input_path, output_path, model_path)
     else:
         print("[ERROR]: work_mode is not proper, current work_mode is:", mode)
 
@@ -294,7 +294,7 @@ def main():
                 output_path = os.path.join(root, file_name).replace(
                     input_dir, output_dir
                 )
-                state_machine(input_path, output_path)
+                state_machine(input_path, output_path, model_path)
     else:
         print("[ERROR]: input file is not exsit", input_dir_or_file)
 
@@ -306,6 +306,7 @@ if __name__ == "__main__":
         input_dir_or_file = sys.argv[2]
         output_dir = sys.argv[3]
         suffix = sys.argv[4]
+        model_path = sys.argv[5]
         if not os.path.isdir(output_dir):
             print("[ERROR]: output_dir do not exsit!")
             sys.exit()
@@ -317,6 +318,7 @@ if __name__ == "__main__":
         input_dir_or_file = configs["input_dir_or_file"]
         output_dir = configs["output_dir"]
         suffix = configs["suffix"]
+        model_path = configs["model_path"]
         if not os.path.isdir(output_dir):
             print("[ERROR]: output_dir do not exsit!")
             sys.exit()
