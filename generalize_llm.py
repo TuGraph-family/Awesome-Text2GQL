@@ -153,7 +153,7 @@ def call_with_messages_online(messages):
         return content
     else:
         if response.code == 429:  # Requests rate limit exceeded
-            call_with_messages(messages)
+            call_with_messages_online(messages)
         else:
             print(
                 "Request id: %s, Status code: %s, error code: %s, error message: %s"
@@ -168,14 +168,17 @@ def call_with_messages_online(messages):
             return ""
 
 def call_with_message_local(messages, model_path = "meta-llama/CodeLlama-7b-hf"):
+    #0. check current device
+    current_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
     #1.load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     #2.load model
-    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to("cuda")
+    model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to(current_device)
 
     #3.generate content
-    inputs = tokenizer.apply_chat_template(messages, tokenize=True, return_dict=True, return_tensors="pt")
+    inputs = tokenizer.apply_chat_template(messages, tokenize=True, return_dict=True, return_tensors="pt").to(current_device)
 
     #add more args
     output = model.generate(
@@ -183,10 +186,10 @@ def call_with_message_local(messages, model_path = "meta-llama/CodeLlama-7b-hf")
         do_sample=True,
         top_k=10,
         temperature=0.1,
-        top_p=0.95,
+        top_p=0.9,
         pad_token_id=tokenizer.eos_token_id,
         eos_token_id=tokenizer.eos_token_id,
-        max_length=512,
+        max_length=1024,
     )
     
     #deal with output and return
