@@ -322,7 +322,6 @@ def main():
             tokenizer = ""
             model = ""
             current_device = ""
-            state_machine(input_path, output_path, tokenizer, model, current_device)
         
         input_dir = input_dir_or_file
         for root, dirs, file_names in os.walk(input_dir):
