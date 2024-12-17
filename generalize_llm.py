@@ -9,10 +9,13 @@ from tqdm import tqdm
 import os
 import copy
 import sys
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import transformers
+import torch
 
 
 def gen_question_directly(
-    input_path, output_path
+    input_path, output_path, tokenizer, model, current_device
 ):  # generate multi questions according to input cypher
     # 1. readt files
     with open(input_path, "r") as file:
@@ -30,17 +33,17 @@ def gen_question_directly(
             {"role": "user", "content": cypher},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, tokenizer, model, current_device)
         if responses != "":
             questions = process_handler.process(responses)
-            # 4. save to file
+        # 4. save to file
         save2file(db_id, cypher, questions, output_path)
     print("corpus output file:", output_path)
 
 
 # deprecated
 def general_question_directly(
-    input_path, output_path
+    input_path, output_path, tokenizer, model, current_device
 ):  # generate multi questions according to input question
     # 1. read file
     with open(input_path, "r") as file:
@@ -58,7 +61,7 @@ def general_question_directly(
             {"role": "user", "content": question},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, tokenizer, model, current_device)
         # 4. postprocess and save
         if responses != "":
             questions = process_handler.process(responses)
@@ -68,7 +71,7 @@ def general_question_directly(
 
 # recommended
 def generalization(
-    input_path, output_path
+    input_path, output_path, tokenizer, model, current_device
 ):  # generate multi questions according to input cypher and question
     # 1. read file
     with open(input_path, "r") as file:
@@ -87,7 +90,8 @@ def generalization(
             {"role": "user", "content": content},
         ]
         # 3. get response
-        responses = call_with_messages(massages)
+        responses = call_with_messages(massages, tokenizer, model, current_device)
+        print(responses)
         # 4. postprocess and save
         if responses != "":
             questions = process_handler.process(responses)
@@ -95,7 +99,7 @@ def generalization(
     print("corpus output file:", output_path)
 
 
-def gen_question_with_template(input_path, output_path):
+def gen_question_with_template(input_path, output_path, tokenizer, model, current_device):
     (
         db_id,
         tmplt_cypher_list,
@@ -118,15 +122,18 @@ def gen_question_with_template(input_path, output_path):
                 + "cyphers:\n"
                 + cypher_content
             )
-            massages = [
+
+            messages = [
                 {
                     "role": "system",
                     "content": "设想你是一个图数据库的前端，用户给你一个提问，你要给出对应的cypher语句。现在需要你反过来，将我给你的cypher语句翻译为使用者可能输入的提问，要求符合图数据库使用者的口吻，尽量准确地符合cypher含义，不要遗漏cypher中关键字如DISTINCT、OPTIONAL等，可以修改为问句或者陈述句，必须是中文。我每次会给你一个跟需要翻译的cypher相同句式的template帮助你理解cypher的含义。这是一个例子：\ntempalte:\nMATCH (m:keyword{name: 'news report'})<-[:has_keyword]-(a:movie) RETURN a,m ,关键词是news report的电影有哪些？返回相应的节点。cypher:MATCH (m:movie{title: 'The Dark Knight'})<-[:write]-(a:person) RETURN a,m\nMATCH (m:user{login: 'Sherman'})<-[:is_friend]-(a:user) RETURN a,m\n你应当回答：电影The Dark Knight的作者有哪些？返回相关节点。\n在图中找到登录用户Sheman的朋友节点，返回相关的节点信息。\n下面请你对cyphers逐条cypher语句输出翻译的结果，不需要注明是对哪条语句进行的泛化，结果按照换行符隔开，注意句子应当有标点符号",
                 },
                 {"role": "user", "content": content},
             ]
+            
             # 3. get response
-            responses = call_with_messages(massages)
+            responses = call_with_messages(messages, tokenizer, model, current_device)
+            print(responses)
             # 4. postprocess and save
             if responses != "":
                 questions = process_handler.process(responses)
@@ -134,7 +141,7 @@ def gen_question_with_template(input_path, output_path):
     print("output file:", output_path)
 
 
-def call_with_messages(messages):
+def call_with_messages_online(messages):
     response = Generation.call(
         model="qwen-plus-0723",
         messages=messages,
@@ -146,11 +153,11 @@ def call_with_messages(messages):
     )
     if response.status_code == HTTPStatus.OK:
         content = response.output.choices[0].message.content
-        # print(content)
+        #print(content)
         return content
     else:
         if response.code == 429:  # Requests rate limit exceeded
-            call_with_messages(messages)
+            call_with_messages_online(messages)
         else:
             print(
                 "Request id: %s, Status code: %s, error code: %s, error message: %s"
@@ -163,6 +170,34 @@ def call_with_messages(messages):
             )
             print("Failed!", messages[1]["content"])
             return ""
+
+def call_with_messages_local(messages, tokenizer, model, current_device):
+    #generate content
+    inputs = tokenizer.apply_chat_template(messages, tokenize=True, return_dict=True, return_tensors="pt").to(current_device)
+    
+    #add more args
+    output = model.generate(
+        **inputs,
+        do_sample=True,
+        temperature=0.8,
+        top_p=0.8,
+        top_k=50,
+        pad_token_id=tokenizer.eos_token_id,
+        eos_token_id=tokenizer.eos_token_id,
+        max_new_tokens = 2048
+    )
+    
+    #deal with output and return
+    output = tokenizer.decode(output[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
+    
+    return output
+
+def call_with_messages(messages,tokenizer="", model="", current_device=""):
+    if model_path == "":
+        output = call_with_messages_online(messages)
+    else:
+        output = call_with_messages_local(messages, tokenizer, model, current_device)
+    return output
 
 
 def load_file_gen_question_with_template(input_path):
@@ -214,9 +249,12 @@ def save2file_t(db_id, cyphers, questions, output_path):
     with open(output_path, "a+", encoding="utf-8") as file:
         if os.path.getsize(output_path) == 0:
             file.write(db_id + "\n")
-        for index, question in enumerate(questions):
-            file.write(cyphers[index] + "\n")
-            file.write(question + "\n")
+        #for index, question in enumerate(questions):
+        #    file.write(cyphers[index] + "\n")
+        #    file.write(question + "\n")
+        for index,cypher in enumerate(cyphers):
+            file.write(cypher + "\n")
+            file.write(questions[index] + "\n")
 
 
 def chunk_list(lst, chunk_size=5):
@@ -224,15 +262,15 @@ def chunk_list(lst, chunk_size=5):
         yield lst[i : i + chunk_size]
 
 
-def state_machine(input_path, output_path):
+def state_machine(input_path, output_path, tokenizer, model, current_device):
     if mode == Status.GEN_QUESTION_DIRECTLY.value[0]:  # 100
-        gen_question_directly(input_path, output_path)
+        gen_question_directly(input_path, output_path, tokenizer, model, current_device)
     elif mode == Status.GENERAL_QUESTION_DIRECTLY.value[0]:  # 200
-        general_question_directly(input_path, output_path)  # deprecated # 300
+        general_question_directly(input_path, output_path, tokenizer, model, current_device)  # deprecated # 300
     elif mode == Status.GENERALIZATION.value[0]:
-        generalization(input_path, output_path)  # recommended # 400
+        generalization(input_path, output_path, tokenizer, model, current_device)  # recommended # 400
     elif mode == Status.GEN_QUESTION_WITH_TEMPLATE.value[0]:
-        gen_question_with_template(input_path, output_path)
+        gen_question_with_template(input_path, output_path, tokenizer, model, current_device)
     else:
         print("[ERROR]: work_mode is not proper, current work_mode is:", mode)
 
@@ -244,8 +282,47 @@ def main():
         dir, file_name = os.path.split(input_path)
         file_base, file_extension = os.path.splitext(file_name)
         output_path = os.path.join(output_dir, file_base + suffix + ".txt")
-        state_machine(input_path, output_path)
+
+        #load local model 
+        if model_path != "":
+            #0. check current device
+            current_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            print("model running on %s"%current_device)
+            print("the model path is %s"%model_path) 
+    
+            #1.load tokenizer
+            tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    
+            #2.load model
+            model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to(current_device)
+
+            #3.call
+            state_machine(input_path, output_path, tokenizer, model, current_device)
+        else:
+            tokenizer = ""
+            model = ""
+            current_device = ""
+            state_machine(input_path, output_path, tokenizer, model, current_device)
+
     elif os.path.isdir(input_dir_or_file):
+        #load local model
+        if model_path != "":
+            #0. check current device
+            current_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            print("model running on %s"%current_device)
+            print("the model path is %s"%model_path)
+
+            #1.load tokenizer
+            tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+
+            #2.load model
+            model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to(current_device)
+
+        else:
+            tokenizer = ""
+            model = ""
+            current_device = ""
+        
         input_dir = input_dir_or_file
         for root, dirs, file_names in os.walk(input_dir):
             for file_name in file_names:
@@ -259,7 +336,7 @@ def main():
                 output_path = os.path.join(root, file_name).replace(
                     input_dir, output_dir
                 )
-                state_machine(input_path, output_path)
+                state_machine(input_path, output_path, tokenizer, model, current_device)
     else:
         print("[ERROR]: input file is not exsit", input_dir_or_file)
 
@@ -271,6 +348,8 @@ if __name__ == "__main__":
         input_dir_or_file = sys.argv[2]
         output_dir = sys.argv[3]
         suffix = sys.argv[4]
+        model_path = sys.argv[5]
+        print(model_path)
         if not os.path.isdir(output_dir):
             print("[ERROR]: output_dir do not exsit!")
             sys.exit()
@@ -282,8 +361,10 @@ if __name__ == "__main__":
         input_dir_or_file = configs["input_dir_or_file"]
         output_dir = configs["output_dir"]
         suffix = configs["suffix"]
+        model_path = configs["model_path"]
         if not os.path.isdir(output_dir):
             print("[ERROR]: output_dir do not exsit!")
             sys.exit()
     process_handler = CorpusPostProcess()
     main()
+
