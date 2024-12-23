@@ -13,7 +13,7 @@ DB_ID='movie'
 MODEL_PATH=''
 #For local model calling
 #Using relative model path or HuggingFace model id
-#MODEL_PATH='../Qwen_Qwen2.5-Coder-14B-Instruct'
+#MODEL_PATH='../codellama/CodeLlama-7b-hf'
 echo "----------------Running generator.py to generate cyphers----------------"
 python3 generator.py "$CONFIG_PATH" "$GEN_QUERY" "$DB_ID"
 

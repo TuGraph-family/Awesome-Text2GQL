@@ -91,7 +91,7 @@ def generalization(
         ]
         # 3. get response
         responses = call_with_messages(massages, tokenizer, model, current_device)
-        print(responses)
+
         # 4. postprocess and save
         if responses != "":
             questions = process_handler.process(responses)
@@ -133,7 +133,7 @@ def gen_question_with_template(input_path, output_path, tokenizer, model, curren
             
             # 3. get response
             responses = call_with_messages(messages, tokenizer, model, current_device)
-            print(responses)
+
             # 4. postprocess and save
             if responses != "":
                 questions = process_handler.process(responses)

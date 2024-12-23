@@ -36,7 +36,7 @@ pip install .
 
 #### Setup for LLMs
 
-To run generating qusetions and generalization functions based on LLMs，apply API-KEY before you run the whole flow.
+To run generating questions and generalization functions based on LLMs，apply API-KEY before you run the whole flow.
 
 1. Apply API-KEY
 
@@ -51,6 +51,13 @@ source ~/.bashrc
 echo $DASHSCOPE_API_KEY
 conda activate text2gql
 ```
+
+### Setup for Local LLMs
+To run generating questions and generalization functions based on LLMs, use model id from HuggingFace model hub if you can access HuggingFace or use the related local file path where the LLM model is.
+
+1. Change the model path in each llm related sh file with model id or model local path. If you want to use online LLMs API, please keep model path=""
+   
+2. You can also change model path in Config.json file to setup your local LLM.
 
 ### Run
 
