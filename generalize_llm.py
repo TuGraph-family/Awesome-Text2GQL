@@ -145,7 +145,7 @@ def gen_question_with_template(input_path, output_path, tokenizer, model, curren
                 if questions_size > chunk_size:
                     questions = questions[0:chunk_size]
                 elif questions_size < chunk_size:
-                    filled_questions = ['no question generate'] * (trunk_size - questions_size)
+                    filled_questions = ['Question 生成失败'] * (chunk_size - questions_size)
                     questions = questions + filled_questions
                 else:
                     pass
@@ -166,7 +166,6 @@ def call_with_messages_online(messages):
     )
     if response.status_code == HTTPStatus.OK:
         content = response.output.choices[0].message.content
-        #print(content)
         return content
     else:
         if response.code == 429:  # Requests rate limit exceeded

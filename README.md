@@ -52,7 +52,7 @@ echo $DASHSCOPE_API_KEY
 conda activate text2gql
 ```
 
-### Setup for Local LLMs
+#### Setup for Local LLMs
 To run generating questions and generalization functions based on LLMs, use model id from HuggingFace model hub if you can access HuggingFace or use the related local file path where the LLM model is.
 
 1. Change the model path in each llm related sh file with model id or model local path. If you want to use online LLMs API, please keep model path=""
