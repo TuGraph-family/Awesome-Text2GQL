@@ -23,7 +23,7 @@
         "input_dir_or_file": "./output/output_query.txt",
         "output_dir": "./output",
         "suffix": "_t",
-        "model_path":"codellama/CodeLlama-7b-Instruct-hf""
+        "model_path":"Qwen/Qwen2.5-Coder-7B-Instruct"
     },
     "generate_dataset": {
         "input_corpus_dir_or_file": "./output/output_query_t_general.txt",
