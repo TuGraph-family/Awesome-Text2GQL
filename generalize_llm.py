@@ -137,6 +137,19 @@ def gen_question_with_template(input_path, output_path, tokenizer, model, curren
             # 4. postprocess and save
             if responses != "":
                 questions = process_handler.process(responses)
+                
+                #deal with unexpected questions length
+                chunk_size = len(cypher_trunk)
+                questions_size = len(questions)
+                
+                if questions_size > chunk_size:
+                    questions = questions[0:chunk_size]
+                elif questions_size < chunk_size:
+                    filled_questions = ['no question generate'] * (trunk_size - questions_size)
+                    questions = questions + filled_questions
+                else:
+                    pass
+
                 save2file_t(db_id, cypher_trunk, questions, output_path)
     print("output file:", output_path)
 
@@ -249,12 +262,9 @@ def save2file_t(db_id, cyphers, questions, output_path):
     with open(output_path, "a+", encoding="utf-8") as file:
         if os.path.getsize(output_path) == 0:
             file.write(db_id + "\n")
-        #for index, question in enumerate(questions):
-        #    file.write(cyphers[index] + "\n")
-        #    file.write(question + "\n")
-        for index,cypher in enumerate(cyphers):
-            file.write(cypher + "\n")
-            file.write(questions[index] + "\n")
+        for index, question in enumerate(questions):
+            file.write(cyphers[index] + "\n")
+            file.write(question + "\n")
 
 
 def chunk_list(lst, chunk_size=5):
