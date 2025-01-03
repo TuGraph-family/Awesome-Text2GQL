@@ -25,6 +25,8 @@ def core_dependencies():
         "graphviz==0.20.1",
         "dashscope",
         "tqdm",
+        "torch",
+        "transformers"
     ]
 
 

@@ -22,10 +22,12 @@
         "work_mode": "400",
         "input_dir_or_file": "./output/output_query.txt",
         "output_dir": "./output",
-        "suffix": "_t"
+        "suffix": "_t",
+        "model_path":"Qwen/Qwen2.5-Coder-7B-Instruct"
     },
     "generate_dataset": {
         "input_corpus_dir_or_file": "./output/output_query_t_general.txt",
         "output_corpus_path": "./output/text2gql_train.json"
     }
 }
+
