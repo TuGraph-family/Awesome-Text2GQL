@@ -1,0 +1,457 @@
+[
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the birth year of those born in 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show the birth year for people with a birth year of 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the birth year of individuals born in 1956?",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the birth year for people whose birth year matches 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "List the birth year for anyone born in 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the birth year for those who were born in 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the birth year for entities born in 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the birth year for people with a birth record of 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Query the birth year for those born in the year 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the birth year of people born in 1956.",
+        "output": "MATCH (n{born: 1956}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the ID for the entity named \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the ID of the entity called \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the ID associated with \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the ID of the entity labeled \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show the ID for the entity named \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the ID of the entity \"Suspense\"?",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Fetch the ID of the entity known as \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the ID of the entity \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Obtain the ID for the entity titled \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Display the ID of the entity referred to as \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the ID of the entity named \"Suspense.\"",
+        "output": "MATCH (n{name: \"Suspense\"}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the name associated with entity ID 2094?",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the name for the entity having ID 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the name of the entity identified by 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the name of the entity with the identifier 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Display the name of the entity whose ID is 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the name of the entity indexed by 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the name of the entity marked with ID 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show the name corresponding to the entity with ID 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Determine the name linked to entity ID 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Fetch the name for the entity tagged with 2094.",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the name of the entity with the ID 2094?",
+        "output": "MATCH (n{id: 2094}) RETURN n.name AS name",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the title associated with the tagline \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the title of the entity that has the tagline \"Evil breeds pain.\"?",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the title for the entry with the tagline \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show me the title of the item that features the tagline \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the title of any entity tagged with \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the title of the object that includes the tagline \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Discover the title of the record with the description \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "List the title of the element with the phrase \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Query the title of the node labeled with \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Determine the title of the instance marked with \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the title of the entity with the tagline \"Evil breeds pain.\"",
+        "output": "MATCH (n{tagline: \"Evil breeds pain.\"}) RETURN n.title AS title",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the ID of the entity with the given ID 388?",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Display the ID for the entity where the ID is 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the ID of the node whose ID is 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the ID of the element identified by ID 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the ID of the object that has the ID 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show the ID of the item with an ID of 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the ID for the entity where its ID is 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the ID of the node labeled with ID 388?",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Provide the ID of the entity having the ID 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the ID of the entity marked with ID 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Return the ID of the entity with the ID 388.",
+        "output": "MATCH (n{id: 388}) RETURN n.id AS id",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the birth year of Carrie-Anne Moss?",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "When was Carrie-Anne Moss born?",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Display the birth year for Carrie-Anne Moss.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Retrieve the birth year of Carrie-Anne Moss.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Show the birth year for Carrie-Anne Moss.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Get the birth year of Carrie-Anne Moss from the database.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Query the system for Carrie-Anne Moss's birth year.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find out when Carrie-Anne Moss was born.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "What is the recorded birth year of Carrie-Anne Moss?",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Identify the birth year of Carrie-Anne Moss in the data.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    },
+    {
+        "db_id": "movie",
+        "instruction": "\nI want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.\nBelow is an description about the graph database' schema to help you with your work.\nSchema Description:\nmovie includes\nnodes: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write\nedges: acted_in, rate, directed, is_friend, has_genre, has_keyword, produce, write.\nNode person has properties: id, name, born, poster_image.\nNode genre has properties: id, name.\nNode keyword has properties: id, name.\nNode movie has properties: id, title, tagline, summary, poster_image, duration, rated.\nNode user has properties: id, login.\nEdge acted_in has properties: role.\nEdge rate has properties: stars.\n",
+        "input": "Find the birth year of Carrie-Anne Moss.",
+        "output": "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
+        "history": []
+    }
+]
