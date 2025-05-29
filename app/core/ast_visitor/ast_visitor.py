@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from app.core.clauses.Clause import Clause
+from app.core.clauses.clause import Clause
 
-class QueryVisitor(ABC):
+class AstVisitor(ABC):
 
     @abstractmethod
     def get_query_pattern(self, query: str) -> List[Clause]:

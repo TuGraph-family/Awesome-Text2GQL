@@ -1,7 +1,7 @@
 import pandas as pd
-from app.impl.iso_gql.translator.GraphQueryTranslator import GraphQueryTranslator as GQLTranslator
-from app.impl.tugraph_cypher.query_visitor.GraphQueryVisitor import GraphQueryVisitor
-from app.impl.tugraph_cypher.translator.GraphQueryTranslator import GraphQueryTranslator as CypherTranslator
+from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator as CypherTranslator
 
 # Login using e.g. `huggingface-cli login` to access this dataset
 splits = {'train': 'data/train-00000-of-00001.parquet', 'test': 'data/test-00000-of-00001.parquet'}
@@ -10,7 +10,7 @@ cols = df.columns.values.copy()
 cols[2] = 'gql'
 new_df = pd.DataFrame(columns=cols)
 
-query_visitor = GraphQueryVisitor()
+query_visitor = TugraphCypherAstVisitor()
 gql_translator = GQLTranslator()
 cypher_translator = CypherTranslator()
 for index, row in df.iterrows():

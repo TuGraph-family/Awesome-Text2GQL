@@ -1,6 +1,6 @@
 from typing import List
 from dataclasses import dataclass
-from app.core.clauses.Clause import Clause
+from app.core.clauses.clause import Clause
 
 @dataclass
 class ReturnItem:

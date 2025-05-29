@@ -4,11 +4,11 @@ from typing import Dict, List, Tuple, Union
 from collections import deque
 import random
 
-from app.core.schema.Node import Node
-from app.core.schema.Edge import Edge
-from app.core.clauses.MatchClause import PathPattern, NodePattern, EdgePattern
-from app.core.clauses.WhereClause import CompareExpression
-from app.core.clauses.ReturnClause import ReturnBody, ReturnItem
+from app.core.schema.node import Node
+from app.core.schema.edge import Edge
+from app.core.clauses.match_clause import PathPattern, NodePattern, EdgePattern
+from app.core.clauses.where_clause import CompareExpression
+from app.core.clauses.return_clause import ReturnBody, ReturnItem
 
 
 class SchemaGraph:

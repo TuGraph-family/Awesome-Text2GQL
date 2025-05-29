@@ -3,10 +3,10 @@ import os
 import csv
 import random
 from app.impl.tugraph_cypher.generalizer.base.Parse import Node
-from app.core.schema.Node import Node
-from app.core.schema.Edge import Edge
-from app.core.schema.SchemaGraph import SchemaGraph
-from app.core.schema.SchemaParser import SchemaParser
+from app.core.schema.node import Node
+from app.core.schema.edge import Edge
+from app.core.schema.schema_graph import SchemaGraph
+from app.core.schema.schema_parser import SchemaParser
 
 class TuGraphVertex:
     def __init__(self) -> None:

@@ -1,18 +1,18 @@
 from typing import List, Tuple
-from app.core.clauses.ReturnClause import ReturnClause, ReturnBody, ReturnItem, SortItem
-from app.core.clauses.Clause import Clause
-from app.core.clauses.MatchClause import EdgePattern, MatchClause, NodePattern, PathPattern
-from app.core.clauses.WhereClause import CompareExpression, WhereClause
-from app.core.clauses.WithClause import WithClause
-from app.impl.iso_gql.translator.GraphQueryTranslator import GraphQueryTranslator
+from app.core.clauses.return_clause import ReturnClause, ReturnBody, ReturnItem, SortItem
+from app.core.clauses.clause import Clause
+from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern, PathPattern
+from app.core.clauses.where_clause import CompareExpression, WhereClause
+from app.core.clauses.with_clause import WithClause
+from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator
 from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 from antlr4 import *
 
-from app.core.query_visitor.QueryVisitor import QueryVisitor
+from app.core.ast_visitor.ast_visitor import AstVisitor
 
-class GraphQueryVisitor(LcypherVisitor, QueryVisitor):
+class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
     
     def get_query_pattern(self, query: str) -> Tuple[bool, List[Clause]]:
         input_stream = InputStream(query)
@@ -284,7 +284,7 @@ class GraphQueryVisitor(LcypherVisitor, QueryVisitor):
         return result
 
 if __name__ == "__main__":
-    query_visitor = GraphQueryVisitor()
+    query_visitor = TugraphCypherAstVisitor()
     # query = "MATCH (s:Supplier)-[:SUPPLIES]->(p:Product) WITH s, avg(p.unitPrice) AS avgUnitPrice ORDER BY avgUnitPrice DESC LIMIT 5 RETURN s.companyName AS Supplier, avgUnitPrice AS AverageUnitPrice"
     # query = "MATCH (n:Topic) WHERE NOT n.label STARTS WITH 'P' RETURN DISTINCT n.label AS label, n.description AS description"
     # query = "MATCH (o:Organization {name: 'Accenture'})<-[:HAS_SUBSIDIARY*1..3]-(parent:Organization) RETURN parent.name AS a ORDER BY a DESC LIMIT 3"
@@ -302,7 +302,7 @@ if __name__ == "__main__":
     # gql_query = ""
     # for clause in query_pattern:
     #     gql_query += clause.to_string_gql() + " "
-    gql_translator = GraphQueryTranslator()
+    gql_translator = IsoGqlQueryTranslator()
     gql_query = gql_translator.translate(query_pattern)
     print(f"GQL: {gql_query.strip()}")
     

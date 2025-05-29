@@ -1,8 +1,8 @@
 from typing import Dict, List, Tuple
 from dataclasses import dataclass
-from app.core.clauses.Clause import Clause
-from app.core.clauses.ReturnClause import ReturnBody
-from app.core.clauses.WhereClause import CompareExpression
+from app.core.clauses.clause import Clause
+from app.core.clauses.return_clause import ReturnBody
+from app.core.clauses.where_clause import CompareExpression
 
 class WithClause(Clause):
 

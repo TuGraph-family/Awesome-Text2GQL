@@ -1,8 +1,8 @@
 from functools import singledispatchmethod
 from typing import List
 from antlr4 import CommonTokenStream, InputStream
-from app.core.clauses.Clause import Clause
-from app.core.translator.QueryTranslator import QueryTranslator
+from app.core.clauses.clause import Clause
+from app.core.translator.query_translator import QueryTranslator
 from antlr4.error.ErrorListener import ErrorListener
 
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
@@ -14,7 +14,7 @@ class MyErrorListener(ErrorListener):
             "ERROR: when parsing line %d column %d: %s\n" % (line, column, msg)
         )
 
-class GraphQueryTranslator(QueryTranslator):
+class TugraphCypherQueryTranslator(QueryTranslator):
     
     def grammar_check(self, query: str) -> bool:
         error_listener = MyErrorListener()

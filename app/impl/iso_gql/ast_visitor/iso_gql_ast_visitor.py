@@ -4,9 +4,9 @@ from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
 from app.impl.iso_gql.grammar.GQLParser import GQLParser
 from antlr4 import *
 
-from app.core.query_visitor.QueryVisitor import QueryVisitor
+from app.core.ast_visitor.ast_visitor import AstVisitor
 
-class GraphQueryVisitor(GQLVisitor, QueryVisitor):
+class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
 
     def get_query_pattern(self, query: str) -> List:
         input_stream = InputStream(query)
@@ -52,7 +52,7 @@ class GraphQueryVisitor(GQLVisitor, QueryVisitor):
         return result
 
 if __name__ == "__main__":
-    query_visitor = GraphQueryVisitor()
+    query_visitor = IsoGqlAstVisitor()
     # query = "MATCH (s:Supplier)-[:SUPPLIES]->(p:Product) WITH s, avg(p.unitPrice) AS avgUnitPrice ORDER BY avgUnitPrice DESC LIMIT 5 RETURN s.companyName AS Supplier, avgUnitPrice AS AverageUnitPrice"
     query = "MATCH (n:Topic) WHERE n.label = 'P' RETURN DISTINCT n.label AS label, n.description AS description"
     query_pattern = query_visitor.get_query_pattern(query)

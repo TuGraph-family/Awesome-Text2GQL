@@ -1,11 +1,11 @@
 import json
-from app.core.generalizer.QueryGeneralizer import QueryGeneralizer
-from app.core.generalizer.QuestionGeneralizer import QuestionGeneralizer
+from app.core.generalizer.query_generalizer import QueryGeneralizer
+from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
-from app.core.translator.QuestionTranslator import QuestionTranslator
-from app.impl.iso_gql.translator.GraphQueryTranslator import GraphQueryTranslator as GQLTranslator
-from app.impl.tugraph_cypher.query_visitor.GraphQueryVisitor import GraphQueryVisitor
-from app.impl.tugraph_cypher.translator.GraphQueryTranslator import GraphQueryTranslator as CypherTranslator
+from app.core.translator.question_translator import QuestionTranslator
+from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator as CypherTranslator
 
 INSTRUCTION_TEMPLATE = """
 I want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.
@@ -28,7 +28,7 @@ schema_description=query_generalizer.schema_graph.gen_desc()
 instruction = INSTRUCTION_TEMPLATE.format(schema_description=schema_description)
 
 # generalize query
-query_visitor = GraphQueryVisitor()
+query_visitor = TugraphCypherAstVisitor()
 gql_translator = GQLTranslator()
 query_list = query_generalizer.generalize_from_cypher(query_template=query_template)
 

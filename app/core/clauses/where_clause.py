@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict
-from app.core.clauses.Clause import Clause
+from app.core.clauses.clause import Clause
 
 @dataclass
 class CompareExpression:

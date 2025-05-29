@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from app.core.schema.SchemaGraph import SchemaGraph
+from app.core.schema.schema_graph import SchemaGraph
 
 class SchemaParser(ABC):
     @abstractmethod

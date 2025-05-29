@@ -6,14 +6,14 @@ from app.impl.tugraph_cypher.generalizer.base.Config import Config
 from app.impl.tugraph_cypher.generalizer.base.TransVisitor import TransVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from app.impl.tugraph_cypher.translator.GraphQueryTranslator import GraphQueryTranslator
+from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator
 
 CURRENT_PATH = f"{os.path.dirname(__file__)}"
 
 
 class GraphQueryGeneralizer:
     def __init__(self, db_id, instance_path):
-        self.translator = GraphQueryTranslator()
+        self.translator = TugraphCypherQueryTranslator()
         self.config = Config(f"{CURRENT_PATH}/base/config.json")
         self.config.gen_query = True
         self.config.db_id = db_id

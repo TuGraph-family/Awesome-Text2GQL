@@ -2,12 +2,12 @@ from typing import List, overload
 from functools import singledispatchmethod
 from antlr4 import CommonTokenStream, InputStream
 from multipledispatch import dispatch
-from app.core.clauses.Clause import Clause
-from app.core.clauses.MatchClause import EdgePattern, MatchClause, NodePattern, PathPattern
-from app.core.clauses.ReturnClause import ReturnBody, ReturnClause, ReturnItem, SortItem
-from app.core.clauses.WhereClause import CompareExpression, WhereClause
-from app.core.clauses.WithClause import WithClause
-from app.core.translator.QueryTranslator import QueryTranslator
+from app.core.clauses.clause import Clause
+from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern, PathPattern
+from app.core.clauses.return_clause import ReturnBody, ReturnClause, ReturnItem, SortItem
+from app.core.clauses.where_clause import CompareExpression, WhereClause
+from app.core.clauses.with_clause import WithClause
+from app.core.translator.query_translator import QueryTranslator
 from antlr4.error.ErrorListener import ErrorListener
 
 from app.impl.iso_gql.grammar.GQLParser import GQLParser
@@ -19,7 +19,7 @@ class MyErrorListener(ErrorListener):
             "ERROR: when parsing line %d column %d: %s\n" % (line, column, msg)
         )
 
-class GraphQueryTranslator(QueryTranslator):
+class IsoGqlQueryTranslator(QueryTranslator):
 
     def __init__(self):
         self.reserved_words = [

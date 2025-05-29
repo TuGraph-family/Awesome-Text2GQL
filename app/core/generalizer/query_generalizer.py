@@ -1,11 +1,11 @@
 from typing import List
-from app.core.clauses.Clause import Clause
-from app.core.clauses.WhereClause import CompareExpression, WhereClause
-from app.impl.tugraph_cypher.schema.SchemaParser import TuGraphSchemaParser
-from app.core.schema.SchemaParser import SchemaParser
-from app.core.schema.SchemaGraph import SchemaGraph
-from app.core.clauses.MatchClause import PathPattern, NodePattern, EdgePattern, MatchClause
-from app.core.clauses.ReturnClause import ReturnClause, ReturnBody
+from app.core.clauses.clause import Clause
+from app.core.clauses.where_clause import CompareExpression, WhereClause
+from app.impl.tugraph_cypher.schema.schema_parser import TuGraphSchemaParser
+from app.core.schema.schema_parser import SchemaParser
+from app.core.schema.schema_graph import SchemaGraph
+from app.core.clauses.match_clause import PathPattern, NodePattern, EdgePattern, MatchClause
+from app.core.clauses.return_clause import ReturnClause, ReturnBody
 
 class QueryGeneralizer:
     def __init__(self, db_id, instance_path):
@@ -42,7 +42,7 @@ class QueryGeneralizer:
     
     def generalize_from_cypher(self, query_template: str) -> List[str]:
         # TODO: use original awesome-text2gql to generalize new query.
-        from app.impl.tugraph_cypher.generalizer.GraphQueryGeneralizer import GraphQueryGeneralizer as CypherGeneralizer
+        from app.impl.tugraph_cypher.generalizer.graph_query_generalizer import GraphQueryGeneralizer as CypherGeneralizer
         cypher_generalizer = CypherGeneralizer(self.db_id, self.instance_path)
         return cypher_generalizer.generalize(query_template)
     
