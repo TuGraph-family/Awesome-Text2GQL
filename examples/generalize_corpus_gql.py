@@ -14,8 +14,8 @@ Schema Description:
 {schema_description}
 """
 
-query_template="MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born"
-question_template="Find the birth year of Carrie-Anne Moss."
+query_template="MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
+question_template="Who are Roy Redgrave's second generations?"
 
 db_id = "movie"
 instance_path = "../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
@@ -30,7 +30,13 @@ instruction = INSTRUCTION_TEMPLATE.format(schema_description=schema_description)
 # generalize query
 query_visitor = TugraphCypherAstVisitor()
 gql_translator = GQLTranslator()
-query_list = query_generalizer.generalize_from_cypher(query_template=query_template)
+query_list = []
+success, query_pattern = query_visitor.get_query_pattern(query_template)
+if success:
+    query_pattern_list = query_generalizer.generalize(query_pattern=query_pattern)
+    for query_pattern in query_pattern_list:
+        query = gql_translator.translate(query_pattern)
+        query_list.append(query)
 
 # translate query into question
 question_translator = QuestionTranslator(llm_client, 5)
@@ -40,6 +46,7 @@ question_list = question_translator.translate(
     query_list = query_list
 )
 
+# contruct corpus pair
 corpus_pair_list = []
 for i in range(len(query_list)):
     corpus_pair_list.append((query_list[i], question_list[i]))

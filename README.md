@@ -1,6 +1,6 @@
 # Awesome-Text2GQL
 
-This is the repository for the text2GQL generator implementation. Awesome-Text2GQL aims to generate cyphers/gqls and corresponding prompts as training corpus for fine-tuning of large language models (LLMs). Based on TuGraph-DB, the training corpus helps to train the Text2GQL and Text2Cypher models that are suitable for TuGraph-DB query engine capabilities.
+Awesome-Text2GQL is an AI-assisted framework for Text2GQL dataset construction. The framework supports translation, generalization and generation of Text2GQL corpus and corresponding database instance. With the assistance of this framework, users are able to construct a high quality Text2GQL dataset on any graph query language(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) with a significantly lower cost than pure human labor annotation.
 
 ![image](./images/overview.jpg)
 
@@ -14,9 +14,7 @@ Refer to [demo](./demo/README.md) for more information.
 
 ## Quick Start
 
-### Preparation
-
-#### Environment
+### Environment Preparation
 
 For Linux, it is recommended to use miniconda to manage your python environment while other tools may also work.
 
@@ -33,6 +31,8 @@ Install related python dependency packages
 ```
 pip install .
 ```
+
+### LLM Setup
 
 #### Setup for LLMs
 
@@ -59,80 +59,96 @@ To run generating questions and generalization functions based on LLMs, use mode
    
 2. You can also change model path in Config.json file to setup your local LLM.
 
-### Run
+### Run Example
 
-#### The whole flow
+#### Cypher2GQL
 
-Make sure you have done the preparations above. To experience the whole flow recommended, you can run as below：
+#### Generalize Cypher Corpus
 
-```
-sh ./scripts/run_the_whole_flow.sh
-```
+#### Generalize GQL Corpus
 
-The following steps will be execuated in sequence:
+## Modules
 
-- generate cyphers by generation module based on Antlr4 with templates as input.
-- generate questions by generalization module based on LLMs with the cyphers generated in the last step as input.
-- generalize the questions generated in the last step by generalization module based on LLMs.
-- transform the corpus generated above into model training format.
+Awesome-Text2GQL use Translator, Generalizer and Generator to assit the entire process of Text2GQL dataset construction. 
 
-#### Run parts seperately
+### Translator
 
-##### Cypher generation
+Translator supports multilingual tranlsation for question translation and multi-graph-query-language translation for query translation. Users can use translator to translate existing corpus in different natural language and graph query language into target natural language and graph query language.
 
-```
-sh ./scripts/gen_query.sh
-```
+#### Question Translator
 
-The corpus generation module can be run in two modes, that is generating querys by instantiator and generating questions by translator.
+Coming soon.
 
-Set `GEN_QUERY=true` to generate querys according to templates in batch.
+#### Query Translator
 
-##### Question generation
+Query translator has the ability to translate queries in one query language into another, like cypher to gql. To achieve this, Awesome-Text2GQL designed and implemented a set of intermediate expression for commonly used graph query languages(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) and their dialects. With ast vistitor's implementations, different graph query language can be translated into the intermediate expression. With the query translator's implementations, intermediate expression can be translated into different graph query language.
 
-1. generate questions based on LLMs with template as additional input(recommened)
+<!-- 添加示例代码 -->
 
-```
-sh ./scripts/gen_question_with_template_llm.sh
-```
+Query translator also has the ability to translate a query into a natural language question with a similar query template and corresponding question template.
 
-2. generate questions based on LLMs without template as input. It helps to generate questions which don't have corresponding template initially.
+<!-- 添加示例代码 -->
 
-```
-sh ./scripts/gen_question_directly_llm.sh
-```
+### Generalizer
 
-3. generate questions based on Antlr4(deprecated)
+Generalizer supports the corpus generalization based on the given query template and question template. Users can use generalizer to construct a large scale corpus dataset across multiple database instance from a limited number of existing corpus templates.
 
-Set `GEN_QUERY=false`  to generate questions using translator of the generation module based on Antlr4.
+#### Question Generalizer
 
-```
-sh ./scripts/gen_question.sh
-```
+Question generalizer has the ability to generalize the given natural language question into similar questions with different language styles, and the symantic similarity is ensured with the given corresponding query. This generalization aims to increase the linguistic diversity of corpus to simulate the real world Text2GQL scenario.
 
-##### Corpus generalization
+<!-- 添加示例代码 -->
 
-1. generalize corpus with query and question as input(recommened)
+#### Query Generalizer
 
-```
-sh ./scripts/generalize_llm.sh
-```
+Query generalizer has the ability to generalize the given query into queries with similar query pattern on the given schema. With the intermediate expression for graph query languages, Awesome-Text2GQL can translate a query into intermediate query pattern, and the similar query pattern can be constructed with different variables on different schema. This generalization aims to migrate existing query patterns onto new database instance efficiently.
 
-2. generalize question without querys as input(deprecated)
+<!-- 添加示例代码 -->
 
-```
-sh ./scripts/general_questions_directly_llm.sh
-```
+## Development Guide
 
-##### Transform
+To make Awesome-Text2GQL supports the corpus construction of more types of graph query languages, we welcome contribution to the compatibility of itermediate expression, and the implementation of ast visitor and schema parser of new graph query languages.
 
-transform the corpus generated above into model training format.
+### Clause
 
-```
-sh ./scripts/generate_dataset.sh
-```
+The clause class is the core of Awesome-Text2GQL's itermediate expression for graph query languages. Currently clause class has match clause, return clause, where clause and with clause as subclasses. The design of subclasses might be updated in the future for the compatibility of more graph query languages
 
++ Match Clause: the itermediate representation for pattern match
+
++ Return Clause: the itermediate representation for item return.
+
++ Where Clause: the itermediate representation for condition expression.
+
++ With Clause: the itermediate representation for variable control.
+
+### AST Visitor
+
+The ast visitor class is a virtual class and should be implemented for different graph query language, like cypher ast visitor or gql ast visitor. Implementation on each graph query language should be able to parse the given query, visit the abstarct syntax tree, then return the graph pattern(a list of clauses) of the given query as the intermediate representation for further translation or generalization.
+
+### Schema Parser
+
+The schema parser class is a virtual class and should be implemented for different DBMS, like neo4j schema parser or tugraph schema parser. Implementation on each DBMS should be able to parse the correspongding schema file, whether it's a set of queries or a json file, then return a in memory schema graph for query generalization.
+
+## Future Plan
+
+Awesome-Text2GQL plans to support the Text2GQL corpus construction from only a schema with the generator module.
+
+### Generator
+
+Generator supports the corpus and database instance generation only based on a given schema with the assistance of LLM. Users can use generator to generate corpus and correponding database instance with only a schema when there is no avaliable corpus.
+
+#### Data Generator
+
+Data generator aims to generate actual database instance from a graph schema with the assistance of LLM. LLM can understand the structure of a graph schema and generate corresponding data to construct a real database instance for query execution. 
+
+#### Question Generator
+
+Question generator aims to generate natural language questions on given database instance with the assistance of LLM. LLM can understand the structure and the content of the database instance then ask natural language questions as a database user.
+
+#### Query Generator
+
+Query generator aims to generate the actual query of a corresponding natural language question with the current Text2GQL ability of LLM. The generated question may not be executable or grammarly correct, but can be use as a reference for further annotation.
 
 ## Attention
 
-This project is still under development, suggestions or issues are welcome.
+This project is still under development, suggestions, issues or pull requests are welcome.
