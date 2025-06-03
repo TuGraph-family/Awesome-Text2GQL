@@ -13,61 +13,282 @@ from antlr4.error.ErrorListener import ErrorListener
 from app.impl.iso_gql.grammar.GQLParser import GQLParser
 from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
 
+
 class MyErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        raise Exception(
-            "ERROR: when parsing line %d column %d: %s\n" % (line, column, msg)
-        )
+        raise Exception("ERROR: when parsing line %d column %d: %s\n" % (line, column, msg))
+
 
 class IsoGqlQueryTranslator(QueryTranslator):
-
     def __init__(self):
         self.reserved_words = [
             # Rereserved words
-            'ABS', 'ACOS', 'ALL', 'ALL_DIFFERENT', 'AND', 'ANY', 'ARRAY', 'AS', 'ASC', 'ASCENDING', 
-            'ASIN', 'AT', 'ATAN', 'AVG', 'BIG', 'BIGINT', 'BINARY', 'BOOL', 'BOOLEAN', 'BOTH', 
-            'BTRIM', 'BY', 'BYTE_LENGTH', 'BYTES', 'CALL', 'CARDINALITY', 'CASE', 'CAST', 'CEIL', 
-            'CEILING', 'CHAR', 'CHAR_LENGTH', 'CHARACTER_LENGTH', 'CHARACTERISTICS', 'CLOSE', 
-            'COALESCE', 'COLLECT_LIST', 'COMMIT', 'COPY', 'COS', 'COSH', 'COT', 'COUNT', 'CREATE', 
-            'CURRENT_DATE', 'CURRENT_GRAPH', 'CURRENT_PROPERTY_GRAPH', 'CURRENT_SCHEMA', 
-            'CURRENT_TIME', 'CURRENT_TIMESTAMP', 'DATE', 'DATETIME', 'DAY', 'DEC', 'DECIMAL', 
-            'DEGREES', 'DELETE', 'DESC', 'DESCENDING', 'DETACH', 'DISTINCT', 'DOUBLE', 'DROP', 
-            'DURATION', 'DURATION_BETWEEN', 'ELEMENT_ID', 'ELSE', 'END', 'EXCEPT', 'EXISTS', 
-            'EXP', 'FILTER', 'FINISH', 'FLOAT', 'FLOAT16', 'FLOAT32', 'FLOAT64', 'FLOAT128', 
-            'FLOAT256', 'FLOOR', 'FOR', 'FROM', 'GROUP', 'HAVING', 'HOME_GRAPH', 
-            'HOME_PROPERTY_GRAPH', 'HOME_SCHEMA', 'HOUR', 'IF', 'IN', 'INSERT', 'INT', 'INTEGER', 
-            'INT8', 'INTEGER8', 'INT16', 'INTEGER16', 'INT32', 'INTEGER32', 'INT64', 'INTEGER64', 
-            'INT128', 'INTEGER128', 'INT256', 'INTEGER256', 'INTERSECT', 'INTERVAL', 'IS', 
-            'LEADING', 'LEFT', 'LET', 'LIKE', 'LIMIT', 'LIST', 'LN', 'LOCAL', 'LOCAL_DATETIME', 
-            'LOCAL_TIME', 'LOCAL_TIMESTAMP', 'LOG', 'LOG10', 'LOWER', 'LTRIM', 'MATCH', 'MAX', 
-            'MIN', 'MINUTE', 'MOD', 'MONTH', 'NEXT', 'NODETACH', 'NORMALIZE', 'NOT', 'NOTHING', 
-            'NULL', 'NULLS', 'NULLIF', 'OCTET_LENGTH', 'OF', 'OFFSET', 'OPTIONAL', 'OR', 'ORDER', 
-            'OTHERWISE', 'PARAMETER', 'PARAMETERS', 'PATH', 'PATH_LENGTH', 'PATHS', 
-            'PERCENTILE_CONT', 'PERCENTILE_DISC', 'POWER', 'PRECISION', 'PROPERTY_EXISTS', 
-            'RADIANS', 'REAL', 'RECORD', 'REMOVE', 'REPLACE', 'RESET', 'RETURN', 'RIGHT', 
-            'ROLLBACK', 'RTRIM', 'SAME', 'SCHEMA', 'SECOND', 'SELECT', 'SESSION', 'SESSION_USER', 
-            'SET', 'SIGNED', 'SIN', 'SINH', 'SIZE', 'SKIP', 'SMALL', 'SMALLINT', 'SQRT', 'START', 
-            'STDDEV_POP', 'STDDEV_SAMP', 'STRING', 'SUM', 'TAN', 'TANH', 'THEN', 'TIME', 
-            'TIMESTAMP', 'TRAILING', 'TRIM', 'TYPED', 'UBIGINT', 'UINT', 'UINT8', 'UINT16', 
-            'UINT32', 'UINT64', 'UINT128', 'UINT256', 'UNION', 'UNSIGNED', 'UPPER', 'USE', 
-            'USMALLINT', 'VALUE', 'VARBINARY', 'VARCHAR', 'VARIABLE', 'WHEN', 'WHERE', 'WITH', 
-            'XOR', 'YEAR', 'YIELD', 'ZONED', 'ZONED_DATETIME', 'ZONED_TIME',
-            
+            "ABS",
+            "ACOS",
+            "ALL",
+            "ALL_DIFFERENT",
+            "AND",
+            "ANY",
+            "ARRAY",
+            "AS",
+            "ASC",
+            "ASCENDING",
+            "ASIN",
+            "AT",
+            "ATAN",
+            "AVG",
+            "BIG",
+            "BIGINT",
+            "BINARY",
+            "BOOL",
+            "BOOLEAN",
+            "BOTH",
+            "BTRIM",
+            "BY",
+            "BYTE_LENGTH",
+            "BYTES",
+            "CALL",
+            "CARDINALITY",
+            "CASE",
+            "CAST",
+            "CEIL",
+            "CEILING",
+            "CHAR",
+            "CHAR_LENGTH",
+            "CHARACTER_LENGTH",
+            "CHARACTERISTICS",
+            "CLOSE",
+            "COALESCE",
+            "COLLECT_LIST",
+            "COMMIT",
+            "COPY",
+            "COS",
+            "COSH",
+            "COT",
+            "COUNT",
+            "CREATE",
+            "CURRENT_DATE",
+            "CURRENT_GRAPH",
+            "CURRENT_PROPERTY_GRAPH",
+            "CURRENT_SCHEMA",
+            "CURRENT_TIME",
+            "CURRENT_TIMESTAMP",
+            "DATE",
+            "DATETIME",
+            "DAY",
+            "DEC",
+            "DECIMAL",
+            "DEGREES",
+            "DELETE",
+            "DESC",
+            "DESCENDING",
+            "DETACH",
+            "DISTINCT",
+            "DOUBLE",
+            "DROP",
+            "DURATION",
+            "DURATION_BETWEEN",
+            "ELEMENT_ID",
+            "ELSE",
+            "END",
+            "EXCEPT",
+            "EXISTS",
+            "EXP",
+            "FILTER",
+            "FINISH",
+            "FLOAT",
+            "FLOAT16",
+            "FLOAT32",
+            "FLOAT64",
+            "FLOAT128",
+            "FLOAT256",
+            "FLOOR",
+            "FOR",
+            "FROM",
+            "GROUP",
+            "HAVING",
+            "HOME_GRAPH",
+            "HOME_PROPERTY_GRAPH",
+            "HOME_SCHEMA",
+            "HOUR",
+            "IF",
+            "IN",
+            "INSERT",
+            "INT",
+            "INTEGER",
+            "INT8",
+            "INTEGER8",
+            "INT16",
+            "INTEGER16",
+            "INT32",
+            "INTEGER32",
+            "INT64",
+            "INTEGER64",
+            "INT128",
+            "INTEGER128",
+            "INT256",
+            "INTEGER256",
+            "INTERSECT",
+            "INTERVAL",
+            "IS",
+            "LEADING",
+            "LEFT",
+            "LET",
+            "LIKE",
+            "LIMIT",
+            "LIST",
+            "LN",
+            "LOCAL",
+            "LOCAL_DATETIME",
+            "LOCAL_TIME",
+            "LOCAL_TIMESTAMP",
+            "LOG",
+            "LOG10",
+            "LOWER",
+            "LTRIM",
+            "MATCH",
+            "MAX",
+            "MIN",
+            "MINUTE",
+            "MOD",
+            "MONTH",
+            "NEXT",
+            "NODETACH",
+            "NORMALIZE",
+            "NOT",
+            "NOTHING",
+            "NULL",
+            "NULLS",
+            "NULLIF",
+            "OCTET_LENGTH",
+            "OF",
+            "OFFSET",
+            "OPTIONAL",
+            "OR",
+            "ORDER",
+            "OTHERWISE",
+            "PARAMETER",
+            "PARAMETERS",
+            "PATH",
+            "PATH_LENGTH",
+            "PATHS",
+            "PERCENTILE_CONT",
+            "PERCENTILE_DISC",
+            "POWER",
+            "PRECISION",
+            "PROPERTY_EXISTS",
+            "RADIANS",
+            "REAL",
+            "RECORD",
+            "REMOVE",
+            "REPLACE",
+            "RESET",
+            "RETURN",
+            "RIGHT",
+            "ROLLBACK",
+            "RTRIM",
+            "SAME",
+            "SCHEMA",
+            "SECOND",
+            "SELECT",
+            "SESSION",
+            "SESSION_USER",
+            "SET",
+            "SIGNED",
+            "SIN",
+            "SINH",
+            "SIZE",
+            "SKIP",
+            "SMALL",
+            "SMALLINT",
+            "SQRT",
+            "START",
+            "STDDEV_POP",
+            "STDDEV_SAMP",
+            "STRING",
+            "SUM",
+            "TAN",
+            "TANH",
+            "THEN",
+            "TIME",
+            "TIMESTAMP",
+            "TRAILING",
+            "TRIM",
+            "TYPED",
+            "UBIGINT",
+            "UINT",
+            "UINT8",
+            "UINT16",
+            "UINT32",
+            "UINT64",
+            "UINT128",
+            "UINT256",
+            "UNION",
+            "UNSIGNED",
+            "UPPER",
+            "USE",
+            "USMALLINT",
+            "VALUE",
+            "VARBINARY",
+            "VARCHAR",
+            "VARIABLE",
+            "WHEN",
+            "WHERE",
+            "WITH",
+            "XOR",
+            "YEAR",
+            "YIELD",
+            "ZONED",
+            "ZONED_DATETIME",
+            "ZONED_TIME",
             # Prereserved words
-            'ABSTRACT', 'AGGREGATE', 'AGGREGATES', 'ALTER', 'CATALOG', 'CLEAR', 'CLONE', 
-            'CONSTRAINT', 'CURRENT_ROLE', 'CURRENT_USER', 'DATA', 'DIRECTORY', 'DRYRUN', 
-            'EXACT', 'EXISTING', 'FUNCTION', 'GQLSTATUS', 'GRANT', 'INSTANT', 'INFINITY', 
-            'NUMBER', 'NUMERIC', 'ON', 'OPEN', 'PARTITION', 'PROCEDURE', 'PRODUCT', 'PROJECT', 
-            'QUERY', 'RECORDS', 'REFERENCE', 'RENAME', 'REVOKE', 'SUBSTRING', 'SYSTEM_USER', 
-            'TEMPORAL', 'UNIQUE', 'UNIT', 'VALUES'
+            "ABSTRACT",
+            "AGGREGATE",
+            "AGGREGATES",
+            "ALTER",
+            "CATALOG",
+            "CLEAR",
+            "CLONE",
+            "CONSTRAINT",
+            "CURRENT_ROLE",
+            "CURRENT_USER",
+            "DATA",
+            "DIRECTORY",
+            "DRYRUN",
+            "EXACT",
+            "EXISTING",
+            "FUNCTION",
+            "GQLSTATUS",
+            "GRANT",
+            "INSTANT",
+            "INFINITY",
+            "NUMBER",
+            "NUMERIC",
+            "ON",
+            "OPEN",
+            "PARTITION",
+            "PROCEDURE",
+            "PRODUCT",
+            "PROJECT",
+            "QUERY",
+            "RECORDS",
+            "REFERENCE",
+            "RENAME",
+            "REVOKE",
+            "SUBSTRING",
+            "SYSTEM_USER",
+            "TEMPORAL",
+            "UNIQUE",
+            "UNIT",
+            "VALUES",
         ]
-    
+
     def is_reserved(self, word: str) -> bool:
         if word.upper() in self.reserved_words:
             return True
         else:
             return False
-    
+
     def grammar_check(self, query: str) -> bool:
         error_listener = MyErrorListener()
         try:
@@ -87,16 +308,16 @@ class IsoGqlQueryTranslator(QueryTranslator):
 
     @singledispatchmethod
     def translate(self, query_pattern: List[Clause]) -> str:
-        query = ''
+        query = ""
         for clause in query_pattern:
             query += self.translate(clause) + " "
         return query.strip()
-    
+
     @translate.register
     def _(self, match_clause: MatchClause) -> str:
         match_str = "MATCH "
         match_str += self.translate(match_clause.path_pattern)
-        
+
         return match_str
 
     @translate.register
@@ -106,8 +327,8 @@ class IsoGqlQueryTranslator(QueryTranslator):
         path_pattern_str += self.translate(path_pattern.node_pattern_list[0])
         for i in range(path_degree):
             path_pattern_str += self.translate(path_pattern.edge_pattern_list[i])
-            path_pattern_str += self.translate(path_pattern.node_pattern_list[i+1])
-        
+            path_pattern_str += self.translate(path_pattern.node_pattern_list[i + 1])
+
         return path_pattern_str
 
     @translate.register
@@ -131,10 +352,10 @@ class IsoGqlQueryTranslator(QueryTranslator):
                 if self.is_reserved(map[0]):
                     map[0] = f"`{map[0]}`"
                 property_maps_str += f"{map[0]}:{map[1]},"
-            property_maps_str = f"{{{property_maps_str.strip(",")}}}"
+            property_maps_str = f"{{{property_maps_str.strip(',')}}}"
             node_pattern_str += f"{property_maps_str}"
         node_pattern_str = f"({node_pattern_str})"
-        
+
         return node_pattern_str
 
     @translate.register
@@ -158,7 +379,7 @@ class IsoGqlQueryTranslator(QueryTranslator):
                 if self.is_reserved(map[0]):
                     map[0] = f"`{map[0]}`"
                 property_maps_str += f"{map[0]}:{map[1]},"
-            property_maps_str = f"{{{property_maps_str.strip(",")}}}"
+            property_maps_str = f"{{{property_maps_str.strip(',')}}}"
             edge_pattern_str += f"{property_maps_str}"
         # add direction
         edge_pattern_str = "-[" + edge_pattern_str + "]-"
@@ -177,7 +398,7 @@ class IsoGqlQueryTranslator(QueryTranslator):
                 edge_pattern_str += f"{{{hop_range[0]},{hop_range[1]}}}"
 
         return edge_pattern_str
-    
+
     @translate.register
     def _(self, with_clause: WithClause) -> str:
         with_str = "RETURN "
@@ -185,9 +406,9 @@ class IsoGqlQueryTranslator(QueryTranslator):
             with_str += "DISTINCT "
         with_str += f"{self.translate(with_clause.return_body)}"
         with_str += " NEXT"
-        
+
         return with_str
-    
+
     @translate.register
     def _(self, return_body: ReturnBody) -> str:
         return_body_str = ""
@@ -195,23 +416,23 @@ class IsoGqlQueryTranslator(QueryTranslator):
         for return_item in return_body.return_item_list:
             return_item_str = self.translate(return_item)
             return_body_str += f"{return_item_str}, "
-        return_body_str = return_body_str.strip(', ')
+        return_body_str = return_body_str.strip(", ")
         # add sort items
         if len(return_body.sort_item_list) != 0:
             return_body_str += " ORDER BY "
             for sort_item in return_body.sort_item_list:
                 sort_item_str = self.translate(sort_item)
                 return_body_str += f"{sort_item_str}, "
-            return_body_str = return_body_str.strip(', ')
+            return_body_str = return_body_str.strip(", ")
         # add skip
         if return_body.skip != -1:
             return_body_str += f" SKIP {return_body.skip}"
         # add limit
         if return_body.limit != -1:
             return_body_str += f" LIMIT {return_body.limit}"
-        
+
         return return_body_str
-    
+
     @translate.register
     def _(self, return_item: ReturnItem) -> str:
         return_item_str = ""
@@ -232,7 +453,7 @@ class IsoGqlQueryTranslator(QueryTranslator):
             return_item_str += f" AS {return_item.alias}"
 
         return return_item_str
-    
+
     @translate.register
     def _(self, sort_item: SortItem) -> str:
         sort_item_str = ""
@@ -250,23 +471,23 @@ class IsoGqlQueryTranslator(QueryTranslator):
             sort_item_str += f" {sort_item.order}"
 
         return sort_item_str
-    
+
     @translate.register
     def _(self, return_clause: ReturnClause) -> str:
         return_str = "RETURN "
         if return_clause.distinct:
             return_str += "DISTINCT "
         return_str += f"{self.translate(return_clause.return_body)}"
-        
+
         return return_str
 
     @translate.register
     def _(self, where_clause: WhereClause) -> str:
         where_str = "WHERE "
         where_str += f"{self.translate(where_clause.compare_expression)}"
-        
+
         return where_str
-    
+
     @translate.register
     def _(self, compare_expression: CompareExpression) -> str:
         compare_expression_str = ""

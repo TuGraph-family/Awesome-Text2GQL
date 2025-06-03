@@ -159,9 +159,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    def visitOC_AnonymousPatternPart(
-        self, ctx: LcypherParser.OC_AnonymousPatternPartContext
-    ):
+    def visitOC_AnonymousPatternPart(self, ctx: LcypherParser.OC_AnonymousPatternPartContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElement.
@@ -173,21 +171,15 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElementChain.
-    def visitOC_PatternElementChain(
-        self, ctx: LcypherParser.OC_PatternElementChainContext
-    ):
+    def visitOC_PatternElementChain(self, ctx: LcypherParser.OC_PatternElementChainContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipPattern.
-    def visitOC_RelationshipPattern(
-        self, ctx: LcypherParser.OC_RelationshipPatternContext
-    ):
+    def visitOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipDetail.
-    def visitOC_RelationshipDetail(
-        self, ctx: LcypherParser.OC_RelationshipDetailContext
-    ):
+    def visitOC_RelationshipDetail(self, ctx: LcypherParser.OC_RelationshipDetailContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_Properties.
@@ -239,15 +231,11 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
-    def visitOC_ComparisonExpression(
-        self, ctx: LcypherParser.OC_ComparisonExpressionContext
-    ):
+    def visitOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
-    def visitOC_AddOrSubtractExpression(
-        self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext
-    ):
+    def visitOC_AddOrSubtractExpression(self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_MultiplyDivideModuloExpression.
@@ -273,9 +261,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ListOperatorExpression.
-    def visitOC_ListOperatorExpression(
-        self, ctx: LcypherParser.OC_ListOperatorExpressionContext
-    ):
+    def visitOC_ListOperatorExpression(self, ctx: LcypherParser.OC_ListOperatorExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_StringOperatorExpression.
@@ -285,9 +271,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_NullOperatorExpression.
-    def visitOC_NullOperatorExpression(
-        self, ctx: LcypherParser.OC_NullOperatorExpressionContext
-    ):
+    def visitOC_NullOperatorExpression(self, ctx: LcypherParser.OC_NullOperatorExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyOrLabelsExpression.
@@ -319,15 +303,11 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ParenthesizedExpression.
-    def visitOC_ParenthesizedExpression(
-        self, ctx: LcypherParser.OC_ParenthesizedExpressionContext
-    ):
+    def visitOC_ParenthesizedExpression(self, ctx: LcypherParser.OC_ParenthesizedExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipsPattern.
-    def visitOC_RelationshipsPattern(
-        self, ctx: LcypherParser.OC_RelationshipsPatternContext
-    ):
+    def visitOC_RelationshipsPattern(self, ctx: LcypherParser.OC_RelationshipsPatternContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FilterExpression.
@@ -339,9 +319,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionInvocation.
-    def visitOC_FunctionInvocation(
-        self, ctx: LcypherParser.OC_FunctionInvocationContext
-    ):
+    def visitOC_FunctionInvocation(self, ctx: LcypherParser.OC_FunctionInvocationContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionName.
@@ -361,9 +339,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ProcedureResultField.
-    def visitOC_ProcedureResultField(
-        self, ctx: LcypherParser.OC_ProcedureResultFieldContext
-    ):
+    def visitOC_ProcedureResultField(self, ctx: LcypherParser.OC_ProcedureResultFieldContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ProcedureName.
@@ -379,9 +355,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PatternComprehension.
-    def visitOC_PatternComprehension(
-        self, ctx: LcypherParser.OC_PatternComprehensionContext
-    ):
+    def visitOC_PatternComprehension(self, ctx: LcypherParser.OC_PatternComprehensionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyLookup.
@@ -413,9 +387,7 @@ class LcypherVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyExpression.
-    def visitOC_PropertyExpression(
-        self, ctx: LcypherParser.OC_PropertyExpressionContext
-    ):
+    def visitOC_PropertyExpression(self, ctx: LcypherParser.OC_PropertyExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyKeyName.

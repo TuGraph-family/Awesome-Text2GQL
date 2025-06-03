@@ -26,7 +26,7 @@ def core_dependencies():
         "dashscope",
         "tqdm",
         "torch",
-        "transformers"
+        "transformers",
     ]
 
 

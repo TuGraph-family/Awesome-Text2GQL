@@ -8,6 +8,7 @@ from app.core.schema.edge import Edge
 from app.core.schema.schema_graph import SchemaGraph
 from app.core.schema.schema_parser import SchemaParser
 
+
 class TuGraphVertex:
     def __init__(self) -> None:
         self.label = ""
@@ -31,6 +32,7 @@ class TuGraphEdge:
         self.header = 0
         self.column_keyword = []
 
+
 class TuGraphSchemaParser(SchemaParser):
     def __init__(self, db_id, instance_path):
         self.vertex_dict = {}
@@ -40,7 +42,7 @@ class TuGraphSchemaParser(SchemaParser):
         self.dir_path = f"{instance_path}/"
         self.is_parse_finished = False
         self.parse_schema()
-    
+
     def parse_schema(self):
         try:
             with open(self.schema_path, "r") as file:
@@ -48,7 +50,7 @@ class TuGraphSchemaParser(SchemaParser):
                 self.parse_schema_impl(data)
         except FileNotFoundError:
             print("[ERROR] schema file not found", self.schema_path)
-    
+
     def parse_schema_impl(self, json):
         schema = json["schema"]
         for item in schema:
@@ -95,7 +97,7 @@ class TuGraphSchemaParser(SchemaParser):
                 if "header" in item:
                     node.header = int(item["header"])
         self.is_parse_finished = True
-    
+
     def get_schema_graph(self):
         schema_graph = SchemaGraph(self.db_id)
         for vertex_label in self.vertex_dict:
@@ -119,9 +121,8 @@ class TuGraphSchemaParser(SchemaParser):
             src_dst_list = [[tugraph_edge.src, tugraph_edge.dst]]
             edge = Edge(edge_label, properties, src_dst_list)
             schema_graph.add_edge(edge)
-        
-        return schema_graph 
 
+        return schema_graph
 
     def get_vertex_instance_by_id(self, label, id):
         if label in self.vertex_dict:

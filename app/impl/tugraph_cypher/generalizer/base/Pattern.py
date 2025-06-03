@@ -76,9 +76,7 @@ class Pattern:
         mactched_pattern_parts_label_lists = []
         for pattern_part_idx, pattern_part in enumerate(self.pattern_parts):
             # 1. find all matched patterns
-            cur_pattern_part_label_lists = self.__get_matched_pattern_part_label_lists(
-                pattern_part
-            )
+            cur_pattern_part_label_lists = self.__get_matched_pattern_part_label_lists(pattern_part)
             if len(cur_pattern_part_label_lists) == 0:
                 print("[WARNING]: No matched pattern find in schema")
                 return False
@@ -107,9 +105,7 @@ class Pattern:
             # 3. update
             latest_matched_pattern_parts = []
             for label_list in cur_pattern_part_label_lists:
-                for (
-                    mactched_pattern_parts_label_list
-                ) in mactched_pattern_parts_label_lists:
+                for mactched_pattern_parts_label_list in mactched_pattern_parts_label_lists:
                     check_success_flag = True
                     for variable, idxs in matched_variable_dict.items():
                         if (
@@ -122,16 +118,12 @@ class Pattern:
                             mactched_pattern_parts_label_list
                         )
                         latest_matched_pattern_parts_label_list.append(label_list)
-                        latest_matched_pattern_parts.append(
-                            latest_matched_pattern_parts_label_list
-                        )
+                        latest_matched_pattern_parts.append(latest_matched_pattern_parts_label_list)
             mactched_pattern_parts_label_lists = latest_matched_pattern_parts
         self.matched_pattern_parts_label_lists = mactched_pattern_parts_label_lists
         return True
 
-    def gen_pattern_part(
-        self, parsed_pattern_part, matched_label_list, pattern_part_instance
-    ):
+    def gen_pattern_part(self, parsed_pattern_part, matched_label_list, pattern_part_instance):
         query = ""
         if parsed_pattern_part.variable != "":
             query = query + parsed_pattern_part.variable + " = "
@@ -146,9 +138,7 @@ class Pattern:
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.rm_long_property_of_instance(
-                        node_instance
-                    )
+                    node_instance = self.schema.rm_long_property_of_instance(node_instance)
                     if len(node_instance) != 0:
                         query = query + "{"
                         size = max(0, min(2, len(node_instance) - 1))
@@ -169,9 +159,7 @@ class Pattern:
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.rm_long_property_of_instance(
-                        node_instance
-                    )
+                    node_instance = self.schema.rm_long_property_of_instance(node_instance)
                     query = query + "{"
                     size = min(3, len(node_instance))
                     assert size >= 0
@@ -207,8 +195,7 @@ class ReadPattern(Pattern):
                     break
                 if node.type == "edge":
                     if (
-                        node.left_arrow
-                        != compared_pattern_part.chain_list[node_idx].left_arrow
+                        node.left_arrow != compared_pattern_part.chain_list[node_idx].left_arrow
                         or node.right_arrow
                         != compared_pattern_part.chain_list[node_idx].right_arrow
                     ):
@@ -240,9 +227,7 @@ class ReadPattern(Pattern):
                     ):
                         # duplicates if patternparts are the same
                         idxs_to_rm = []
-                        for list_idx, list in enumerate(
-                            self.matched_pattern_parts_label_lists
-                        ):
+                        for list_idx, list in enumerate(self.matched_pattern_parts_label_lists):
                             if list[part_idx] == list[compared_part_idx]:
                                 idxs_to_rm.append(list_idx)
                         idxs_to_rm.sort(reverse=True)
@@ -267,9 +252,7 @@ class UpdatePattern(Pattern):
     def get_matched_pattern_parts_label_lists(self):
         return self.matched_pattern_parts_label_lists
 
-    def gen_pattern_part(
-        self, parsed_pattern_part, matched_label_list, pattern_part_instance
-    ):
+    def gen_pattern_part(self, parsed_pattern_part, matched_label_list, pattern_part_instance):
         query = ""
         if matched_label_list == []:
             return ""
@@ -286,9 +269,7 @@ class UpdatePattern(Pattern):
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.get_create_instance(
-                        label, node_instance
-                    )
+                    node_instance = self.schema.get_create_instance(label, node_instance)
                     property_keys = list(node_instance.keys())
                     if len(property_keys) > 0:
                         query = query + "{"
@@ -296,9 +277,7 @@ class UpdatePattern(Pattern):
                             property_text = node_instance[property_key]
                             if type(property_text) == str:
                                 property_text = f'"{property_text}"'
-                            query = (
-                                query + property_key + ": " + str(property_text) + ", "
-                            )
+                            query = query + property_key + ": " + str(property_text) + ", "
                         query = query[:-2] + "}"
                 query = query + ")"
             if chain_node.type == "edge":
@@ -311,9 +290,7 @@ class UpdatePattern(Pattern):
                 if chain_node.labels != []:
                     query = query + ":" + label
                 if len(chain_node.properties) != 0:
-                    node_instance = self.schema.get_create_instance(
-                        label, node_instance
-                    )
+                    node_instance = self.schema.get_create_instance(label, node_instance)
                     property_keys = list(node_instance.keys())
                     if len(property_keys) > 0:
                         query = query + "{"
@@ -321,9 +298,7 @@ class UpdatePattern(Pattern):
                             property_text = node_instance[property_key]
                             if type(property_text) == str:
                                 property_text = f'"{property_text}"'
-                            query = (
-                                query + property_key + ": " + str(property_text) + ", "
-                            )
+                            query = query + property_key + ": " + str(property_text) + ", "
                         query = query[:-2] + "}"
                 if chain_node.right_arrow == True:
                     query += "]->"
@@ -377,14 +352,8 @@ class CurrentPattern:
         # find corordinate of the variable
         part_idx, node_idx = self.read_pattern.find_variable_index(variable)
         pattern_idx = 0
-        while (
-            part_idx == -1
-            and node_idx == -1
-            and pattern_idx < len(self.update_patterns)
-        ):
-            part_idx, node_idx = self.update_patterns[pattern_idx].find_variable_index(
-                variable
-            )
+        while part_idx == -1 and node_idx == -1 and pattern_idx < len(self.update_patterns):
+            part_idx, node_idx = self.update_patterns[pattern_idx].find_variable_index(variable)
             pattern_idx += 1
             if part_idx != -1 and node_idx != -1:
                 return pattern_idx, part_idx, node_idx
@@ -408,24 +377,18 @@ class CurrentPattern:
         ]
         self.read_pattern.matched_pattern_parts_label_lists = [
             item
-            for index, item in enumerate(
-                self.read_pattern.matched_pattern_parts_label_lists
-            )
+            for index, item in enumerate(self.read_pattern.matched_pattern_parts_label_lists)
             if index not in list_idx_to_rm
         ]
         for update_pattern in self.update_patterns:
             update_pattern.matched_pattern_parts_label_lists = [
                 item
-                for index, item in enumerate(
-                    update_pattern.matched_pattern_parts_label_lists
-                )
+                for index, item in enumerate(update_pattern.matched_pattern_parts_label_lists)
                 if index not in list_idx_to_rm
             ]
         self.cur_update_pattern.matched_pattern_parts_label_lists = [
             item
-            for index, item in enumerate(
-                self.cur_update_pattern.matched_pattern_parts_label_lists
-            )
+            for index, item in enumerate(self.cur_update_pattern.matched_pattern_parts_label_lists)
             if index not in list_idx_to_rm
         ]
         query_list = latest_query_lists
@@ -453,9 +416,7 @@ class CurrentPattern:
                 self.if_extend_list and query_list != None
             ):  # extend, if no match pattern or other situations
                 multiplier = len(self.__matched_label_lists) / len(query_list)
-                query_list = [
-                    element for _ in range(int(multiplier)) for element in query_list
-                ]
+                query_list = [element for _ in range(int(multiplier)) for element in query_list]
                 self.read_pattern.matched_pattern_parts_label_lists = [
                     element
                     for _ in range(int(multiplier))
@@ -498,9 +459,7 @@ class CurrentPattern:
                     ]
                     return True
                 return False
-            elif (
-                len(self.cur_update_pattern.pattern_parts[0].chain_list) == 1
-            ):  # create a vertex
+            elif len(self.cur_update_pattern.pattern_parts[0].chain_list) == 1:  # create a vertex
                 # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
                 # todo: deal with the constraints, support the template above
                 if len(self.__matched_label_lists) < 10:
@@ -514,24 +473,18 @@ class CurrentPattern:
                             for pre_label_list in self.__matched_label_lists:
                                 temp_label_list = copy.deepcopy(pre_label_list)
                                 temp_label_list.append(update_label_list)
-                                latest_matched_label_lists.append(
-                                    copy.deepcopy(temp_label_list)
-                                )
+                                latest_matched_label_lists.append(copy.deepcopy(temp_label_list))
                         self.__matched_label_lists = latest_matched_label_lists
                         return True
                 else:
                     if self.cur_update_pattern.gen_matched_pattern_parts_label_lists():
-                        for list_idx, pre_label_list in enumerate(
-                            self.__matched_label_lists
-                        ):
+                        for list_idx, pre_label_list in enumerate(self.__matched_label_lists):
                             pre_label_list.append(
                                 random.choice(
                                     self.cur_update_pattern.matched_pattern_parts_label_lists
                                 )
                             )
-                            self.__matched_label_lists[list_idx] = copy.deepcopy(
-                                pre_label_list
-                            )
+                            self.__matched_label_lists[list_idx] = copy.deepcopy(pre_label_list)
                         return True
                 return False
             else:  # create an edge, will not change the matched_lists size
@@ -587,9 +540,7 @@ class CurrentPattern:
                     for (
                         cur_update_part_matched_label_lists
                     ) in cur_update_parts_matched_label_lists:  # pattern_part
-                        pattern_lable_list.append(
-                            cur_update_part_matched_label_lists[list_idx]
-                        )
+                        pattern_lable_list.append(cur_update_part_matched_label_lists[list_idx])
                     self.cur_update_pattern.matched_pattern_parts_label_lists.append(
                         pattern_lable_list
                     )

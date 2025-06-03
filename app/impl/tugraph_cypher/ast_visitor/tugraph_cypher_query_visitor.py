@@ -12,8 +12,8 @@ from antlr4 import *
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
 
+
 class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
-    
     def get_query_pattern(self, query: str) -> Tuple[bool, List[Clause]]:
         input_stream = InputStream(query)
         lexer = LcypherLexer(input_stream)
@@ -25,7 +25,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             return True, querry_pattern
         except Exception as e:
             return False, []
-        
+
     def visitOC_SinglePartQuery(self, ctx: LcypherParser.OC_SinglePartQueryContext):
         clause_list = []
         # add clause list from reading clause
@@ -51,7 +51,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
 
     def visitOC_Unwind(self, ctx: LcypherParser.OC_UnwindContext):
         return []
-    
+
     def visitOC_Match(self, ctx: LcypherParser.OC_MatchContext):
         clause_list = []
         # add match clause
@@ -64,16 +64,18 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         if ctx.oC_Where() != None:
             clause_list.append(self.visitOC_Where(ctx.oC_Where()))
         return clause_list
-    
+
     def visitOC_PatternElement(self, ctx: LcypherParser.OC_PatternElementContext):
         node_pattern_list = []
         edge_pattern_list = []
         node_pattern_list.append(self.visitOC_NodePattern(ctx.oC_NodePattern()))
         for chain_ctx in ctx.oC_PatternElementChain():
-            edge_pattern_list.append(self.visitOC_RelationshipPattern(chain_ctx.oC_RelationshipPattern()))
+            edge_pattern_list.append(
+                self.visitOC_RelationshipPattern(chain_ctx.oC_RelationshipPattern())
+            )
             node_pattern_list.append(self.visitOC_NodePattern(chain_ctx.oC_NodePattern()))
         return [PathPattern(node_pattern_list, edge_pattern_list)]
-    
+
     def visitOC_NodePattern(self, ctx: LcypherParser.OC_NodePatternContext):
         symbolic_name = ""
         label = ""
@@ -88,9 +90,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             property_maps = self.visitOC_Properties(ctx.oC_Properties())
         return NodePattern(symbolic_name, label, property_maps)
 
-    def visitOC_RelationshipPattern(
-        self, ctx: LcypherParser.OC_RelationshipPatternContext
-    ):
+    def visitOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
         symbolic_name = ""
         label = ""
         property_maps = []
@@ -107,7 +107,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
                 range_ctx = rel_det_ctx.oC_RangeLiteral()
                 if len(range_ctx.oC_IntegerLiteral()) == 0:
                     # no lower bound and upper bound
-                    hop_range = (1,-1)
+                    hop_range = (1, -1)
                 elif len(range_ctx.oC_IntegerLiteral()) == 2:
                     # lower bound and upper bound
                     lower_bound = int(range_ctx.oC_IntegerLiteral(0).getText())
@@ -115,17 +115,17 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
                     hop_range = (lower_bound, upper_bound)
                 else:
                     if ".." in range_ctx.getText():
-                        # lower bound or upper bound       
+                        # lower bound or upper bound
                         bound_index = 0
                         dot_index = 0
                         for i in range(range_ctx.getChildCount()):
-                                child = range_ctx.getChild(i)
-                                if child.getText() == "..":
-                                    dot_index = i
-                                if isinstance(child, LcypherParser.OC_IntegerLiteralContext):
-                                    bound_index = i
+                            child = range_ctx.getChild(i)
+                            if child.getText() == "..":
+                                dot_index = i
+                            if isinstance(child, LcypherParser.OC_IntegerLiteralContext):
+                                bound_index = i
                         if bound_index < dot_index:
-                            # lower bound 
+                            # lower bound
                             lower_bound = int(range_ctx.oC_IntegerLiteral(0).getText())
                             hop_range = (lower_bound, -1)
                         else:
@@ -149,7 +149,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             else:
                 direction = "bidirection"
         return EdgePattern(symbolic_name, label, property_maps, direction, hop_range)
-    
+
     def visitOC_MapLiteral(self, ctx: LcypherParser.OC_MapLiteralContext):
         property_maps = []
         count = len(ctx.oC_PropertyKeyName())
@@ -157,28 +157,29 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             property_name = ctx.oC_PropertyKeyName(i).oC_SchemaName().oC_SymbolicName().getText()
             value = ctx.oC_Expression(i).getText()
             property_maps.append([property_name, value])
-        return property_maps 
+        return property_maps
 
     def visitOC_Where(self, ctx: LcypherParser.OC_WhereContext):
         [compare_expression] = self.visitOC_Expression(ctx.oC_Expression())
         return WhereClause(compare_expression)
-    
-    def visitOC_ComparisonExpression(
-        self, ctx: LcypherParser.OC_ComparisonExpressionContext
-    ):
+
+    def visitOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
         # print(self.visitOC_AddOrSubtractExpression(ctx.oC_AddOrSubtractExpression()))
-        [symbolic_name, property, function_name] = self.visitOC_AddOrSubtractExpression(ctx.oC_AddOrSubtractExpression())[:3]
+        [symbolic_name, property, function_name] = self.visitOC_AddOrSubtractExpression(
+            ctx.oC_AddOrSubtractExpression()
+        )[:3]
         if len(ctx.oC_PartialComparisonExpression()) != 0:
-            [comparison_type, comparison_value] = self.visitOC_PartialComparisonExpression(ctx.oC_PartialComparisonExpression(0))
+            [comparison_type, comparison_value] = self.visitOC_PartialComparisonExpression(
+                ctx.oC_PartialComparisonExpression(0)
+            )
             return [CompareExpression(symbolic_name, property, comparison_type, comparison_value)]
         else:
             return [symbolic_name, property, function_name]
 
-    
     def visitOC_PartialComparisonExpression(
         self, ctx: LcypherParser.OC_PartialComparisonExpressionContext
     ):
-        [compare_value]= self.visitOC_AddOrSubtractExpression(ctx.oC_AddOrSubtractExpression())
+        [compare_value] = self.visitOC_AddOrSubtractExpression(ctx.oC_AddOrSubtractExpression())
         compare_type = ""
         compare_symbol = ctx.getChild(0).getText()
         if compare_symbol == "=":
@@ -195,7 +196,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             compare_type = "geq"
 
         return [compare_type, compare_value]
-    
+
     def visitOC_With(self, ctx: LcypherParser.OC_WithContext):
         return_body = self.visitOC_ReturnBody(ctx.oC_ReturnBody())
         where_expression = None
@@ -203,7 +204,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             where_expression = self.visitOC_Expression(ctx.oC_Where().oC_Expression())
         distinct = ctx.DISTINCT() is not None
         return WithClause(return_body, where_expression, distinct)
-    
+
     def visitOC_Return(self, ctx: LcypherParser.OC_ReturnContext):
         return_body = self.visitOC_ReturnBody(ctx.oC_ReturnBody())
         distinct = ctx.DISTINCT() is not None
@@ -224,14 +225,14 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         if ctx.oC_Limit():
             limit = int(ctx.oC_Limit().oC_Expression().getText())
         return ReturnBody(return_item_list, sort_item_list, skip, limit)
-    
+
     def visitOC_ReturnItems(self, ctx: LcypherParser.OC_ReturnItemsContext):
         return_item_list = []
         for item_ctx in ctx.oC_ReturnItem():
             return_item = self.visitOC_ReturnItem(item_ctx)
             return_item_list.append(return_item)
         return return_item_list
-    
+
     def visitOC_ReturnItem(self, ctx: LcypherParser.OC_ReturnItemContext):
         symbolic_name = ""
         property = ""
@@ -240,7 +241,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             alias = ctx.oC_Variable().oC_SymbolicName().getText()
         [symbolic_name, property, function_name] = self.visitOC_Expression(ctx.oC_Expression())
         return ReturnItem(symbolic_name, property, alias, function_name)
-    
+
     def visitOC_PropertyOrLabelsExpression(
         self, ctx: LcypherParser.OC_PropertyOrLabelsExpressionContext
     ):
@@ -249,11 +250,19 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
             symbolic_name = ctx.oC_Atom().oC_Variable().oC_SymbolicName().getText()
             property = ""
             if len(ctx.oC_PropertyLookup()) != 0:
-                property = ctx.oC_PropertyLookup(0).oC_PropertyKeyName().oC_SchemaName().oC_SymbolicName().getText()
+                property = (
+                    ctx.oC_PropertyLookup(0)
+                    .oC_PropertyKeyName()
+                    .oC_SchemaName()
+                    .oC_SymbolicName()
+                    .getText()
+                )
             return [symbolic_name, property, ""]
         if ctx.oC_Atom().oC_FunctionInvocation():
             function_name = ctx.oC_Atom().oC_FunctionInvocation().oC_FunctionName().getText()
-            [symbolic_name, property, _] = self.visitOC_Expression(ctx.oC_Atom().oC_FunctionInvocation().oC_Expression(0))
+            [symbolic_name, property, _] = self.visitOC_Expression(
+                ctx.oC_Atom().oC_FunctionInvocation().oC_Expression(0)
+            )
             return [symbolic_name, property, function_name]
         if ctx.oC_Atom().oC_Literal():
             # return comparison value
@@ -271,10 +280,10 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         order = ""
         count = ctx.getChildCount()
         if count > 1:
-            order = ctx.getChild(count-1).getText()
+            order = ctx.getChild(count - 1).getText()
         [symbolic_name, property, function_name] = self.visitOC_Expression(ctx.oC_Expression())
         return SortItem(symbolic_name, property, order, function_name)
-    
+
     def aggregateResult(self, aggregate, nextResult):
         result = []
         if aggregate != None:
@@ -282,6 +291,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         if nextResult != None:
             result += nextResult
         return result
+
 
 if __name__ == "__main__":
     query_visitor = TugraphCypherAstVisitor()
@@ -291,10 +301,10 @@ if __name__ == "__main__":
     # query = "MATCH (r:Review) WITH r ORDER BY r.stars DESC, r.date ASC LIMIT 3 WHERE r.a = 100 RETURN r.reviewId, r.text, r.stars, r.date"
     # query = """MATCH (l:List) WHERE l.Classroom = 'David' RETURN l.FirstName"""
     # query = "MATCH (a:Topic{label:'Dynamical Systems_10'})-[r]->(n) RETURN properties(n), r"
-    
+
     # query = "MATCH (targetQuestion:Question {id: 62220505}) WITH targetQuestion.favorites AS targetFavorites MATCH (question:Question) WHERE question.favorites = targetFavorites RETURN question.id, question.text"
     # query = MATCH (p:Person)-[:PRODUCED]->(m:Movie) WHERE m.tagline IS NOT NULL WITH p, count(DISTINCT m.tagline) AS distinctTaglines ORDER BY distinctTaglines DESC LIMIT 3 RETURN p.name, distinctTaglines
-    
+
     query = "MATCH (m:Movie) UNWIND m.countries AS country WITH country, COUNT(DISTINCT m) AS movieCount ORDER BY movieCount DESC RETURN country, movieCount LIMIT 1"
     # print(f"CYPHER: {query.strip()}")
     success, query_pattern = query_visitor.get_query_pattern(query.strip())
@@ -305,7 +315,7 @@ if __name__ == "__main__":
     gql_translator = IsoGqlQueryTranslator()
     gql_query = gql_translator.translate(query_pattern)
     print(f"GQL: {gql_query.strip()}")
-    
+
     # gql_translator = GraphQueryTranslator()
     # f = open("/root/Code/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/eval/evaluator/impl/tugraph-db/test_gql_error_cypher_correct.log")
     # query_list = f.readlines()

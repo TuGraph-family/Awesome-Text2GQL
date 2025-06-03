@@ -8,14 +8,13 @@ from antlr4.error.ErrorListener import ErrorListener
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 
+
 class MyErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        raise Exception(
-            "ERROR: when parsing line %d column %d: %s\n" % (line, column, msg)
-        )
+        raise Exception("ERROR: when parsing line %d column %d: %s\n" % (line, column, msg))
+
 
 class TugraphCypherQueryTranslator(QueryTranslator):
-    
     def grammar_check(self, query: str) -> bool:
         error_listener = MyErrorListener()
         try:
@@ -32,10 +31,10 @@ class TugraphCypherQueryTranslator(QueryTranslator):
             return False
 
         return True
-    
+
     @singledispatchmethod
     def translate(self, query_pattern: List[Clause]) -> str:
-        query = ''
+        query = ""
         for clause in query_pattern:
             query += self.translate(clause) + " "
         return query

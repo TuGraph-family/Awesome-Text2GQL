@@ -74,11 +74,7 @@ class Node:
                 for property in self.properties:
                     property_desc = self.cypher_base.get_schema_desc(property)
                     self.desc = (
-                        self.desc
-                        + property_desc
-                        + "为"
-                        + self.text_properties[property]
-                        + ","
+                        self.desc + property_desc + "为" + self.text_properties[property] + ","
                     )
                 self.desc = self.desc[:-1]
                 self.desc = self.desc + "的" + label_desc + self.variable
@@ -90,11 +86,7 @@ class Node:
                 for property in self.properties:
                     property_desc = self.cypher_base.get_schema_desc(property)
                     self.desc = (
-                        self.desc
-                        + property_desc
-                        + "为"
-                        + self.text_properties[property]
-                        + ","
+                        self.desc + property_desc + "为" + self.text_properties[property] + ","
                     )
                 self.desc = self.desc[:-1]
                 self.desc = self.desc + "的节点" + self.variable
@@ -243,10 +235,7 @@ class PatternPart:
                 ):
                     # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
                     self.match_type = 2
-            elif (
-                self.chain_list[1].type == "edge"
-                and self.chain_list[1].left_arrow == True
-            ):
+            elif self.chain_list[1].type == "edge" and self.chain_list[1].left_arrow == True:
                 # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
                 self.match_type = 3
             elif (
@@ -265,9 +254,7 @@ class PatternPart:
             if gen_return:
                 if self.random_numbers.pop() < 5:
                     self.desc = (
-                        "返回图中所有通过"
-                        + self.chain_list[1].labels[0]
-                        + "关系相连的节点和关系。"
+                        "返回图中所有通过" + self.chain_list[1].labels[0] + "关系相连的节点和关系。"
                     )
                 else:
                     self.desc = (
@@ -403,9 +390,7 @@ class ReturnBody:
                         if label == "":
                             label = variable
                         merge_list.append(self.cypher_base.get_schema_desc(label))
-                    self.return_desc = self.return_desc + self.cypher_base.merge_desc(
-                        merge_list
-                    )
+                    self.return_desc = self.return_desc + self.cypher_base.merge_desc(merge_list)
 
             # type 2 todo
             # RETURN n.name, n.age, n.belt ORDER BY n.name
@@ -452,9 +437,7 @@ class ReturnBody:
                 elif len(item) == 2 and item[1] == 0:
                     return_desc_list.append(type_desc + item[0])
                 else:
-                    return_desc_list.append(
-                        item[0] + type_desc + "的" + item[1] + "属性值"
-                    )
+                    return_desc_list.append(item[0] + type_desc + "的" + item[1] + "属性值")
             self.return_desc += self.cypher_base.merge_desc(return_desc_list)
         merge_list.append(self.return_desc)
 
@@ -507,13 +490,7 @@ class ReturnBody:
         merge_list.append(self.order_desc)
 
         if self.skip != 0 and self.limit != 0:
-            desc = (
-                "保留去除前"
-                + str(self.skip)
-                + "条数据后的"
-                + str(self.limit)
-                + "条数据"
-            )
+            desc = "保留去除前" + str(self.skip) + "条数据后的" + str(self.limit) + "条数据"
             merge_list.append(desc)
         else:
             if self.skip != 0:

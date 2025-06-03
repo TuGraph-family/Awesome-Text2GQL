@@ -1,10 +1,19 @@
 from antlr4 import *
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
-from app.impl.tugraph_cypher.generalizer.base.Parse import Node, ReturnBody, PatternPart, EdgeInstance
+from app.impl.tugraph_cypher.generalizer.base.Parse import (
+    Node,
+    ReturnBody,
+    PatternPart,
+    EdgeInstance,
+)
 from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
 from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
-from app.impl.tugraph_cypher.generalizer.base.Pattern import ReadPattern, UpdatePattern, CurrentPattern
+from app.impl.tugraph_cypher.generalizer.base.Pattern import (
+    ReadPattern,
+    UpdatePattern,
+    CurrentPattern,
+)
 from app.impl.tugraph_cypher.generalizer.base.Expr import ExprTree, ExprLeaf
 from app.impl.tugraph_cypher.generalizer.base import Config
 import copy
@@ -134,9 +143,7 @@ class TransVisitor(LcypherVisitor):
         if where_tree != None:
             pass
 
-    def visitGenOC_Match(
-        self, ctx: LcypherParser.OC_MatchContext, where_tree: ExprTree
-    ):
+    def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext, where_tree: ExprTree):
         match_pattern = self.current_pattern.get_read_pattern()
         if self.current_pattern.get_matched_label_lists() == ([], []):
             return
@@ -164,10 +171,8 @@ class TransVisitor(LcypherVisitor):
                         query = ""
                         for part_idx, part in enumerate(match_pattern.pattern_parts):
                             label_list = matched_pattern_parts_label_list[part_idx]
-                            pattern_part_instance = (
-                                self.schema.get_instance_of_matched_label_list(
-                                    label_list
-                                )
+                            pattern_part_instance = self.schema.get_instance_of_matched_label_list(
+                                label_list
                             )
                             if pattern_part_instance == []:
                                 list_idx_to_rm.append(index)
@@ -186,10 +191,8 @@ class TransVisitor(LcypherVisitor):
                         query = query[:-1]
                         self.gen_query_list[index] = query
                     if len(list_idx_to_rm) != 0:
-                        label_list, self.gen_query_list = (
-                            self.current_pattern.rm_query_by_index(
-                                list_idx_to_rm, self.gen_query_list
-                            )
+                        label_list, self.gen_query_list = self.current_pattern.rm_query_by_index(
+                            list_idx_to_rm, self.gen_query_list
                         )
                 if rule_name == "oC_Hint":
                     pass
@@ -256,14 +259,10 @@ class TransVisitor(LcypherVisitor):
         #                | ( ON SP CREATE SP oC_Set )
         if ctx.MATCH():
             for list_idx in range(len(self.gen_query_list)):
-                self.gen_query_list[list_idx] = (
-                    self.gen_query_list[list_idx] + " ON MATCH"
-                )
+                self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " ON MATCH"
         if ctx.CREATE():
             for list_idx in range(len(self.gen_query_list)):
-                self.gen_query_list[list_idx] = (
-                    self.gen_query_list[list_idx] + " ON CREATE"
-                )
+                self.gen_query_list[list_idx] = self.gen_query_list[list_idx] + " ON CREATE"
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 self.visitOC_Set(child)
@@ -284,9 +283,7 @@ class TransVisitor(LcypherVisitor):
             for part_idx, part in enumerate(update_pattern.pattern_parts):
                 label_list = matched_pattern_parts_label_list[part_idx]
                 # get_instance(label_list)
-                pattern_part_instance = self.schema.get_instance_of_matched_label_list(
-                    label_list
-                )
+                pattern_part_instance = self.schema.get_instance_of_matched_label_list(label_list)
                 if pattern_part_instance == []:
                     list_idx_to_rm.append(list_idx)
                     continue
@@ -391,9 +388,7 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_Expression":
                     expr = self.visitOC_Expression(child)
                 if rule_name == "oC_NodeLables":
-                    self.visitOC_NodeLabels(
-                        child
-                    )  # set node label , unnassary, do not supprt now
+                    self.visitOC_NodeLabels(child)  # set node label , unnassary, do not supprt now
 
     # Visit a parse tree produced by LcypherParser#oC_Delete.
     def visitOC_Delete(self, ctx: LcypherParser.OC_DeleteContext):
@@ -435,14 +430,7 @@ class TransVisitor(LcypherVisitor):
                         properties = self.schema.get_properties_by_lable(label)
                         if len(properties) != 0:
                             property_key = random.choice(properties)
-                            query = (
-                                query
-                                + " "
-                                + str(variable)
-                                + "."
-                                + str(property_key)
-                                + ", "
-                            )
+                            query = query + " " + str(variable) + "." + str(property_key) + ", "
                             self.gen_query_list[idx] = query
                 if rule_name == "oC_Variable":
                     variable = self.visitOC_Variable(child)
@@ -485,9 +473,9 @@ class TransVisitor(LcypherVisitor):
                             matched_pattern_parts_label_lists,
                             query_lists,
                         ) = self.current_pattern.get_matched_label_lists()
-                        label = matched_pattern_parts_label_lists[query_index][
-                            type_idx
-                        ][part_idx][node_idx]
+                        label = matched_pattern_parts_label_lists[query_index][type_idx][part_idx][
+                            node_idx
+                        ]
                         if (
                             len(self.return_body.return_items) == 2
                             and self.return_body.return_items[0][1] != 0
@@ -542,13 +530,7 @@ class TransVisitor(LcypherVisitor):
                                 rand = random.randint(0, size)
                                 property = properties[rand]
                                 query = (
-                                    query
-                                    + tmp_variable
-                                    + "."
-                                    + property
-                                    + " AS "
-                                    + property
-                                    + ","
+                                    query + tmp_variable + "." + property + " AS " + property + ","
                                 )
                             property_list.append((label, property))
                     elif type_idx == -1:
@@ -557,12 +539,8 @@ class TransVisitor(LcypherVisitor):
                 # orderby
                 if self.return_body.order_by != []:
                     query = query + " ORDER BY "
-                    order_by_len = min(
-                        len(property_list), len(self.return_body.order_by)
-                    )
-                    rand_nums = random.sample(
-                        range(0, len(property_list)), order_by_len
-                    )
+                    order_by_len = min(len(property_list), len(self.return_body.order_by))
+                    rand_nums = random.sample(range(0, len(property_list)), order_by_len)
                     for i in range(order_by_len):
                         tmp_variable = self.return_body.order_by[i][0]
                         property = property_list[rand_nums[i]]  # (label,property)
@@ -592,9 +570,7 @@ class TransVisitor(LcypherVisitor):
         self.visitGenOC_Return(ctx)
         if self.if_gen_query:
             return ""
-        return self.return_body.get_desc(
-            self.current_pattern.read_pattern.pattern_parts
-        )
+        return self.return_body.get_desc(self.current_pattern.read_pattern.pattern_parts)
 
     # Visit a parse tree produced by LcypherParser#oC_ReturnBody.
     def visitOC_ReturnBody(self, ctx: LcypherParser.OC_ReturnBodyContext):
@@ -728,9 +704,7 @@ class TransVisitor(LcypherVisitor):
         return desc
 
     # Visit a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    def visitOC_AnonymousPatternPart(
-        self, ctx: LcypherParser.OC_AnonymousPatternPartContext
-    ):
+    def visitOC_AnonymousPatternPart(self, ctx: LcypherParser.OC_AnonymousPatternPartContext):
         # oC_AnonymousPatternPart : oC_PatternElement ;
         return self.visitChildren(ctx)
 
@@ -794,9 +768,7 @@ class TransVisitor(LcypherVisitor):
         return node_instance
 
     # Visit a parse tree produced by LcypherParser#oC_PatternElementChain.
-    def visitOC_PatternElementChain(
-        self, ctx: LcypherParser.OC_PatternElementChainContext
-    ):
+    def visitOC_PatternElementChain(self, ctx: LcypherParser.OC_PatternElementChainContext):
         # oC_PatternElementChain : oC_RelationshipPattern SP? oC_NodePattern ;
         n = ctx.getChildCount()
         for i in range(n):
@@ -811,9 +783,7 @@ class TransVisitor(LcypherVisitor):
         return edge, node
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipPattern.
-    def visitOC_RelationshipPattern(
-        self, ctx: LcypherParser.OC_RelationshipPatternContext
-    ):
+    def visitOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
         # oC_RelationshipPattern : ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
         #                        | ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash )
         #                        | ( oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
@@ -834,9 +804,7 @@ class TransVisitor(LcypherVisitor):
         return edge
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipDetail.
-    def visitOC_RelationshipDetail(
-        self, ctx: LcypherParser.OC_RelationshipDetailContext
-    ):
+    def visitOC_RelationshipDetail(self, ctx: LcypherParser.OC_RelationshipDetailContext):
         # oC_RelationshipDetail : '[' SP? ( oC_Variable SP? )? ( oC_RelationshipTypes SP? )? oC_RangeLiteral? ( oC_Properties SP? )? ']' ;
         edge = EdgeInstance()
         n = ctx.getChildCount()
@@ -987,9 +955,7 @@ class TransVisitor(LcypherVisitor):
             return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
-    def visitOC_ComparisonExpression(
-        self, ctx: LcypherParser.OC_ComparisonExpressionContext
-    ):
+    def visitOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
         # oC_ComparisonExpression : oC_AddOrSubtractExpression ( SP? oC_PartialComparisonExpression )* ;
         symbol = ""
         for child in ctx.getChildren():
@@ -1007,9 +973,7 @@ class TransVisitor(LcypherVisitor):
         return left_expr
 
     # Visit a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
-    def visitOC_AddOrSubtractExpression(
-        self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext
-    ):
+    def visitOC_AddOrSubtractExpression(self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_MultiplyDivideModuloExpression.
@@ -1035,9 +999,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ListOperatorExpression.
-    def visitOC_ListOperatorExpression(
-        self, ctx: LcypherParser.OC_ListOperatorExpressionContext
-    ):
+    def visitOC_ListOperatorExpression(self, ctx: LcypherParser.OC_ListOperatorExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_StringOperatorExpression.
@@ -1047,9 +1009,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_NullOperatorExpression.
-    def visitOC_NullOperatorExpression(
-        self, ctx: LcypherParser.OC_NullOperatorExpressionContext
-    ):
+    def visitOC_NullOperatorExpression(self, ctx: LcypherParser.OC_NullOperatorExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyOrLabelsExpression.
@@ -1122,15 +1082,11 @@ class TransVisitor(LcypherVisitor):
         return symbol, add_Or_sub_expr
 
     # Visit a parse tree produced by LcypherParser#oC_ParenthesizedExpression.
-    def visitOC_ParenthesizedExpression(
-        self, ctx: LcypherParser.OC_ParenthesizedExpressionContext
-    ):
+    def visitOC_ParenthesizedExpression(self, ctx: LcypherParser.OC_ParenthesizedExpressionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipsPattern.
-    def visitOC_RelationshipsPattern(
-        self, ctx: LcypherParser.OC_RelationshipsPatternContext
-    ):
+    def visitOC_RelationshipsPattern(self, ctx: LcypherParser.OC_RelationshipsPatternContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FilterExpression.
@@ -1142,9 +1098,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionInvocation.
-    def visitOC_FunctionInvocation(
-        self, ctx: LcypherParser.OC_FunctionInvocationContext
-    ):
+    def visitOC_FunctionInvocation(self, ctx: LcypherParser.OC_FunctionInvocationContext):
         # oC_FunctionInvocation : oC_FunctionName SP? '(' SP? ( DISTINCT SP? )? ( oC_Expression SP? ( ',' SP? oC_Expression SP? )* )? ')' ;
         return self.visitChildren(ctx)
 
@@ -1165,9 +1119,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ProcedureResultField.
-    def visitOC_ProcedureResultField(
-        self, ctx: LcypherParser.OC_ProcedureResultFieldContext
-    ):
+    def visitOC_ProcedureResultField(self, ctx: LcypherParser.OC_ProcedureResultFieldContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_ProcedureName.
@@ -1183,9 +1135,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PatternComprehension.
-    def visitOC_PatternComprehension(
-        self, ctx: LcypherParser.OC_PatternComprehensionContext
-    ):
+    def visitOC_PatternComprehension(self, ctx: LcypherParser.OC_PatternComprehensionContext):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyLookup.
@@ -1231,9 +1181,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_PropertyExpression.
-    def visitOC_PropertyExpression(
-        self, ctx: LcypherParser.OC_PropertyExpressionContext
-    ):
+    def visitOC_PropertyExpression(self, ctx: LcypherParser.OC_PropertyExpressionContext):
         # oC_PropertyExpression : oC_Atom ( SP? oC_PropertyLookup )+ ;
         tokens = []
         for child in ctx.getChildren():

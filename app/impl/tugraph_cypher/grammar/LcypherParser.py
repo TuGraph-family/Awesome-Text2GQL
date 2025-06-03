@@ -15531,9 +15531,7 @@ class LcypherParser(Parser):
     class OC_CypherContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15615,9 +15613,7 @@ class LcypherParser(Parser):
     class OC_StatementContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15705,9 +15701,7 @@ class LcypherParser(Parser):
     class OC_QueryContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15764,9 +15758,7 @@ class LcypherParser(Parser):
     class OC_RegularQueryContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15839,9 +15831,7 @@ class LcypherParser(Parser):
     class OC_UnionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15930,9 +15920,7 @@ class LcypherParser(Parser):
     class OC_SingleQueryContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -15989,9 +15977,7 @@ class LcypherParser(Parser):
     class OC_SinglePartQueryContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16002,9 +15988,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_ReadingClauseContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_ReadingClauseContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_ReadingClauseContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -16016,9 +16000,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_UpdatingClauseContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_UpdatingClauseContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_UpdatingClauseContext, i)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_SinglePartQuery
@@ -16134,9 +16116,7 @@ class LcypherParser(Parser):
     class OC_MultiPartQueryContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16153,17 +16133,13 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_ReadingClauseContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_ReadingClauseContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_ReadingClauseContext, i)
 
         def oC_UpdatingClause(self, i: int = None):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_UpdatingClauseContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_UpdatingClauseContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_UpdatingClauseContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -16202,9 +16178,7 @@ class LcypherParser(Parser):
                     self.state = 303
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-                    while ((_la) & ~0x3F) == 0 and (
-                        (1 << _la) & 2313724308561592320
-                    ) != 0:
+                    while ((_la) & ~0x3F) == 0 and ((1 << _la) & 2313724308561592320) != 0:
                         self.state = 297
                         self.oC_ReadingClause()
                         self.state = 299
@@ -16221,9 +16195,7 @@ class LcypherParser(Parser):
                     self.state = 312
                     self._errHandler.sync(self)
                     _la = self._input.LA(1)
-                    while ((_la) & ~0x3F) == 0 and (
-                        (1 << _la) & 2251799813685248000
-                    ) != 0:
+                    while ((_la) & ~0x3F) == 0 and ((1 << _la) & 2251799813685248000) != 0:
                         self.state = 306
                         self.oC_UpdatingClause()
                         self.state = 308
@@ -16265,9 +16237,7 @@ class LcypherParser(Parser):
     class OC_UpdatingClauseContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16349,9 +16319,7 @@ class LcypherParser(Parser):
     class OC_ReadingClauseContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16417,9 +16385,7 @@ class LcypherParser(Parser):
     class OC_MatchContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16533,9 +16499,7 @@ class LcypherParser(Parser):
     class OC_UnwindContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16610,9 +16574,7 @@ class LcypherParser(Parser):
     class OC_MergeContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16692,9 +16654,7 @@ class LcypherParser(Parser):
     class OC_MergeActionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16779,9 +16739,7 @@ class LcypherParser(Parser):
     class OC_CreateContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16839,9 +16797,7 @@ class LcypherParser(Parser):
     class OC_SetContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -16932,16 +16888,12 @@ class LcypherParser(Parser):
     class OC_SetItemContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_PropertyExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PropertyExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PropertyExpressionContext, 0)
 
         def oC_Expression(self):
             return self.getTypedRuleContext(LcypherParser.OC_ExpressionContext, 0)
@@ -17081,9 +17033,7 @@ class LcypherParser(Parser):
     class OC_DeleteContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17186,9 +17136,7 @@ class LcypherParser(Parser):
     class OC_RemoveContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17274,9 +17222,7 @@ class LcypherParser(Parser):
     class OC_RemoveItemContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17287,9 +17233,7 @@ class LcypherParser(Parser):
             return self.getTypedRuleContext(LcypherParser.OC_NodeLabelsContext, 0)
 
         def oC_PropertyExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PropertyExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PropertyExpressionContext, 0)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_RemoveItem
@@ -17340,9 +17284,7 @@ class LcypherParser(Parser):
     class OC_InQueryCallContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17356,9 +17298,7 @@ class LcypherParser(Parser):
                 return self.getToken(LcypherParser.SP, i)
 
         def oC_ExplicitProcedureInvocation(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ExplicitProcedureInvocationContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ExplicitProcedureInvocationContext, 0)
 
         def YIELD(self):
             return self.getToken(LcypherParser.YIELD, 0)
@@ -17424,9 +17364,7 @@ class LcypherParser(Parser):
     class OC_StandaloneCallContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17440,14 +17378,10 @@ class LcypherParser(Parser):
                 return self.getToken(LcypherParser.SP, i)
 
         def oC_ExplicitProcedureInvocation(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ExplicitProcedureInvocationContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ExplicitProcedureInvocationContext, 0)
 
         def oC_ImplicitProcedureInvocation(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ImplicitProcedureInvocationContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ImplicitProcedureInvocationContext, 0)
 
         def YIELD(self):
             return self.getToken(LcypherParser.YIELD, 0)
@@ -17518,9 +17452,7 @@ class LcypherParser(Parser):
     class OC_YieldItemsContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17628,9 +17560,7 @@ class LcypherParser(Parser):
     class OC_YieldItemContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17638,9 +17568,7 @@ class LcypherParser(Parser):
             return self.getTypedRuleContext(LcypherParser.OC_VariableContext, 0)
 
         def oC_ProcedureResultField(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ProcedureResultFieldContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ProcedureResultFieldContext, 0)
 
         def SP(self, i: int = None):
             if i is None:
@@ -17699,9 +17627,7 @@ class LcypherParser(Parser):
     class OC_WithContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17791,9 +17717,7 @@ class LcypherParser(Parser):
     class OC_ReturnContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17866,9 +17790,7 @@ class LcypherParser(Parser):
     class OC_ReturnBodyContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -17952,9 +17874,7 @@ class LcypherParser(Parser):
     class OC_ReturnItemsContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18102,9 +18022,7 @@ class LcypherParser(Parser):
     class OC_ReturnItemContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18178,9 +18096,7 @@ class LcypherParser(Parser):
     class OC_OrderContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18265,9 +18181,7 @@ class LcypherParser(Parser):
     class OC_SkipContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18319,9 +18233,7 @@ class LcypherParser(Parser):
     class OC_LimitContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18373,9 +18285,7 @@ class LcypherParser(Parser):
     class OC_SortItemContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18435,9 +18345,7 @@ class LcypherParser(Parser):
 
                 self.state = 660
                 _la = self._input.LA(1)
-                if not (
-                    ((((_la - 70)) & ~0x3F) == 0 and ((1 << (_la - 70)) & 15) != 0)
-                ):
+                if not (((_la - 70) & ~0x3F) == 0 and ((1 << (_la - 70)) & 15) != 0):
                     self._errHandler.recoverInline(self)
                 else:
                     self._errHandler.reportMatch(self)
@@ -18454,9 +18362,7 @@ class LcypherParser(Parser):
     class OC_HintContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18552,9 +18458,7 @@ class LcypherParser(Parser):
     class OC_WhereContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18606,9 +18510,7 @@ class LcypherParser(Parser):
     class OC_PatternContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18687,9 +18589,7 @@ class LcypherParser(Parser):
     class OC_PatternPartContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18697,9 +18597,7 @@ class LcypherParser(Parser):
             return self.getTypedRuleContext(LcypherParser.OC_VariableContext, 0)
 
         def oC_AnonymousPatternPart(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_AnonymousPatternPartContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_AnonymousPatternPartContext, 0)
 
         def SP(self, i: int = None):
             if i is None:
@@ -18774,9 +18672,7 @@ class LcypherParser(Parser):
     class OC_AnonymousPatternPartContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18801,9 +18697,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_AnonymousPatternPart(self):
-        localctx = LcypherParser.OC_AnonymousPatternPartContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_AnonymousPatternPartContext(self, self._ctx, self.state)
         self.enterRule(localctx, 74, self.RULE_oC_AnonymousPatternPart)
         try:
             self.enterOuterAlt(localctx, 1)
@@ -18820,9 +18714,7 @@ class LcypherParser(Parser):
     class OC_PatternElementContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18831,13 +18723,9 @@ class LcypherParser(Parser):
 
         def oC_PatternElementChain(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_PatternElementChainContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_PatternElementChainContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PatternElementChainContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PatternElementChainContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -18918,9 +18806,7 @@ class LcypherParser(Parser):
     class OC_NodePatternContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -18974,7 +18860,7 @@ class LcypherParser(Parser):
             self.state = 736
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la - 89)) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
+            if ((_la - 89) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
                 self.state = 732
                 self.oC_Variable()
                 self.state = 734
@@ -19023,16 +18909,12 @@ class LcypherParser(Parser):
     class OC_PatternElementChainContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_RelationshipPattern(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_RelationshipPatternContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_RelationshipPatternContext, 0)
 
         def oC_NodePattern(self):
             return self.getTypedRuleContext(LcypherParser.OC_NodePatternContext, 0)
@@ -19058,9 +18940,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PatternElementChain(self):
-        localctx = LcypherParser.OC_PatternElementChainContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PatternElementChainContext(self, self._ctx, self.state)
         self.enterRule(localctx, 80, self.RULE_oC_PatternElementChain)
         self._la = 0  # Token type
         try:
@@ -19087,9 +18967,7 @@ class LcypherParser(Parser):
     class OC_RelationshipPatternContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19112,9 +18990,7 @@ class LcypherParser(Parser):
                 return self.getToken(LcypherParser.SP, i)
 
         def oC_RelationshipDetail(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_RelationshipDetailContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_RelationshipDetailContext, 0)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_RelationshipPattern
@@ -19134,9 +19010,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_RelationshipPattern(self):
-        localctx = LcypherParser.OC_RelationshipPatternContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_RelationshipPatternContext(self, self._ctx, self.state)
         self.enterRule(localctx, 82, self.RULE_oC_RelationshipPattern)
         self._la = 0  # Token type
         try:
@@ -19306,9 +19180,7 @@ class LcypherParser(Parser):
     class OC_RelationshipDetailContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19322,9 +19194,7 @@ class LcypherParser(Parser):
             return self.getTypedRuleContext(LcypherParser.OC_VariableContext, 0)
 
         def oC_RelationshipTypes(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_RelationshipTypesContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_RelationshipTypesContext, 0)
 
         def oC_RangeLiteral(self):
             return self.getTypedRuleContext(LcypherParser.OC_RangeLiteralContext, 0)
@@ -19350,9 +19220,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_RelationshipDetail(self):
-        localctx = LcypherParser.OC_RelationshipDetailContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_RelationshipDetailContext(self, self._ctx, self.state)
         self.enterRule(localctx, 84, self.RULE_oC_RelationshipDetail)
         self._la = 0  # Token type
         try:
@@ -19369,7 +19237,7 @@ class LcypherParser(Parser):
             self.state = 832
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la - 89)) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
+            if ((_la - 89) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
                 self.state = 828
                 self.oC_Variable()
                 self.state = 830
@@ -19425,9 +19293,7 @@ class LcypherParser(Parser):
     class OC_PropertiesContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19485,9 +19351,7 @@ class LcypherParser(Parser):
     class OC_RelationshipTypesContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19521,9 +19385,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_RelationshipTypes(self):
-        localctx = LcypherParser.OC_RelationshipTypesContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_RelationshipTypesContext(self, self._ctx, self.state)
         self.enterRule(localctx, 88, self.RULE_oC_RelationshipTypes)
         self._la = 0  # Token type
         try:
@@ -19584,9 +19446,7 @@ class LcypherParser(Parser):
     class OC_NodeLabelsContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19656,9 +19516,7 @@ class LcypherParser(Parser):
     class OC_NodeLabelContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19713,9 +19571,7 @@ class LcypherParser(Parser):
     class OC_RangeLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19729,9 +19585,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_IntegerLiteralContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_IntegerLiteralContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_IntegerLiteralContext, i)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_RangeLiteral
@@ -19768,7 +19622,7 @@ class LcypherParser(Parser):
             self.state = 900
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la - 103)) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0:
+            if ((_la - 103) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0:
                 self.state = 896
                 self.oC_IntegerLiteral()
                 self.state = 898
@@ -19794,7 +19648,7 @@ class LcypherParser(Parser):
                 self.state = 910
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if (((_la - 103)) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0:
+                if ((_la - 103) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0:
                     self.state = 906
                     self.oC_IntegerLiteral()
                     self.state = 908
@@ -19815,9 +19669,7 @@ class LcypherParser(Parser):
     class OC_LabelNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19859,9 +19711,7 @@ class LcypherParser(Parser):
     class OC_RelTypeNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19903,9 +19753,7 @@ class LcypherParser(Parser):
     class OC_ExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19947,9 +19795,7 @@ class LcypherParser(Parser):
     class OC_OrExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -19957,9 +19803,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_XorExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_XorExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_XorExpressionContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -20025,9 +19869,7 @@ class LcypherParser(Parser):
     class OC_XorExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20035,9 +19877,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_AndExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_AndExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_AndExpressionContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -20103,9 +19943,7 @@ class LcypherParser(Parser):
     class OC_AndExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20113,9 +19951,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_NotExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_NotExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_NotExpressionContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -20181,16 +20017,12 @@ class LcypherParser(Parser):
     class OC_NotExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_ComparisonExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ComparisonExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ComparisonExpressionContext, 0)
 
         def NOT(self, i: int = None):
             if i is None:
@@ -20257,16 +20089,12 @@ class LcypherParser(Parser):
     class OC_ComparisonExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_AddOrSubtractExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_AddOrSubtractExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_AddOrSubtractExpressionContext, 0)
 
         def oC_PartialComparisonExpression(self, i: int = None):
             if i is None:
@@ -20302,9 +20130,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ComparisonExpression(self):
-        localctx = LcypherParser.OC_ComparisonExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ComparisonExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 110, self.RULE_oC_ComparisonExpression)
         self._la = 0  # Token type
         try:
@@ -20340,9 +20166,7 @@ class LcypherParser(Parser):
     class OC_AddOrSubtractExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20380,9 +20204,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_AddOrSubtractExpression(self):
-        localctx = LcypherParser.OC_AddOrSubtractExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_AddOrSubtractExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 112, self.RULE_oC_AddOrSubtractExpression)
         self._la = 0  # Token type
         try:
@@ -20454,21 +20276,15 @@ class LcypherParser(Parser):
     class OC_MultiplyDivideModuloExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_PowerOfExpression(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_PowerOfExpressionContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_PowerOfExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PowerOfExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PowerOfExpressionContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -20589,9 +20405,7 @@ class LcypherParser(Parser):
     class OC_PowerOfExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20629,9 +20443,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PowerOfExpression(self):
-        localctx = LcypherParser.OC_PowerOfExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PowerOfExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 116, self.RULE_oC_PowerOfExpression)
         self._la = 0  # Token type
         try:
@@ -20676,9 +20488,7 @@ class LcypherParser(Parser):
     class OC_UnaryAddOrSubtractExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20711,9 +20521,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_UnaryAddOrSubtractExpression(self):
-        localctx = LcypherParser.OC_UnaryAddOrSubtractExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_UnaryAddOrSubtractExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 118, self.RULE_oC_UnaryAddOrSubtractExpression)
         self._la = 0  # Token type
         try:
@@ -20753,46 +20561,30 @@ class LcypherParser(Parser):
     class OC_StringListNullOperatorExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_PropertyOrLabelsExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PropertyOrLabelsExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PropertyOrLabelsExpressionContext, 0)
 
         def oC_StringOperatorExpression(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_StringOperatorExpressionContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_StringOperatorExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_StringOperatorExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_StringOperatorExpressionContext, i)
 
         def oC_ListOperatorExpression(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_ListOperatorExpressionContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_ListOperatorExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_ListOperatorExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_ListOperatorExpressionContext, i)
 
         def oC_NullOperatorExpression(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_NullOperatorExpressionContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_NullOperatorExpressionContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_NullOperatorExpressionContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_NullOperatorExpressionContext, i)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_StringListNullOperatorExpression
@@ -20858,9 +20650,7 @@ class LcypherParser(Parser):
     class OC_ListOperatorExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -20874,9 +20664,7 @@ class LcypherParser(Parser):
             return self.getToken(LcypherParser.IN, 0)
 
         def oC_PropertyOrLabelsExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PropertyOrLabelsExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PropertyOrLabelsExpressionContext, 0)
 
         def oC_Expression(self, i: int = None):
             if i is None:
@@ -20902,9 +20690,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ListOperatorExpression(self):
-        localctx = LcypherParser.OC_ListOperatorExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ListOperatorExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 122, self.RULE_oC_ListOperatorExpression)
         self._la = 0  # Token type
         try:
@@ -20960,8 +20746,7 @@ class LcypherParser(Parser):
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if (((_la) & ~0x3F) == 0 and ((1 << _la) & 562950037332288) != 0) or (
-                    (((_la - 81)) & ~0x3F) == 0
-                    and ((1 << (_la - 81)) & 563083161436033) != 0
+                    ((_la - 81) & ~0x3F) == 0 and ((1 << (_la - 81)) & 563083161436033) != 0
                 ):
                     self.state = 1074
                     self.oC_Expression()
@@ -20972,8 +20757,7 @@ class LcypherParser(Parser):
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
                 if (((_la) & ~0x3F) == 0 and ((1 << _la) & 562950037332288) != 0) or (
-                    (((_la - 81)) & ~0x3F) == 0
-                    and ((1 << (_la - 81)) & 563083161436033) != 0
+                    ((_la - 81) & ~0x3F) == 0 and ((1 << (_la - 81)) & 563083161436033) != 0
                 ):
                     self.state = 1078
                     self.oC_Expression()
@@ -20993,16 +20777,12 @@ class LcypherParser(Parser):
     class OC_StringOperatorExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_PropertyOrLabelsExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PropertyOrLabelsExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PropertyOrLabelsExpressionContext, 0)
 
         def SP(self, i: int = None):
             if i is None:
@@ -21043,9 +20823,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_StringOperatorExpression(self):
-        localctx = LcypherParser.OC_StringOperatorExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_StringOperatorExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 124, self.RULE_oC_StringOperatorExpression)
         self._la = 0  # Token type
         try:
@@ -21109,9 +20887,7 @@ class LcypherParser(Parser):
     class OC_NullOperatorExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21148,9 +20924,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_NullOperatorExpression(self):
-        localctx = LcypherParser.OC_NullOperatorExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_NullOperatorExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 126, self.RULE_oC_NullOperatorExpression)
         try:
             self.state = 1113
@@ -21195,9 +20969,7 @@ class LcypherParser(Parser):
     class OC_PropertyOrLabelsExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21208,9 +20980,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_PropertyLookupContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PropertyLookupContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PropertyLookupContext, i)
 
         def oC_NodeLabels(self):
             return self.getTypedRuleContext(LcypherParser.OC_NodeLabelsContext, 0)
@@ -21239,9 +21009,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PropertyOrLabelsExpression(self):
-        localctx = LcypherParser.OC_PropertyOrLabelsExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PropertyOrLabelsExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 128, self.RULE_oC_PropertyOrLabelsExpression)
         self._la = 0  # Token type
         try:
@@ -21291,9 +21059,7 @@ class LcypherParser(Parser):
     class OC_AtomContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21316,14 +21082,10 @@ class LcypherParser(Parser):
                 return self.getToken(LcypherParser.SP, i)
 
         def oC_ListComprehension(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ListComprehensionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ListComprehensionContext, 0)
 
         def oC_PatternComprehension(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_PatternComprehensionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_PatternComprehensionContext, 0)
 
         def ALL(self):
             return self.getToken(LcypherParser.ALL, 0)
@@ -21341,19 +21103,13 @@ class LcypherParser(Parser):
             return self.getToken(LcypherParser.SINGLE, 0)
 
         def oC_RelationshipsPattern(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_RelationshipsPatternContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_RelationshipsPatternContext, 0)
 
         def oC_ParenthesizedExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_ParenthesizedExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_ParenthesizedExpressionContext, 0)
 
         def oC_FunctionInvocation(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_FunctionInvocationContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_FunctionInvocationContext, 0)
 
         def oC_Variable(self):
             return self.getTypedRuleContext(LcypherParser.OC_VariableContext, 0)
@@ -21613,9 +21369,7 @@ class LcypherParser(Parser):
     class OC_LiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21705,9 +21459,7 @@ class LcypherParser(Parser):
     class OC_BooleanLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21758,9 +21510,7 @@ class LcypherParser(Parser):
     class OC_ListLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -21812,8 +21562,7 @@ class LcypherParser(Parser):
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3F) == 0 and ((1 << _la) & 562950037332288) != 0) or (
-                (((_la - 81)) & ~0x3F) == 0
-                and ((1 << (_la - 81)) & 563083161436033) != 0
+                ((_la - 81) & ~0x3F) == 0 and ((1 << (_la - 81)) & 563083161436033) != 0
             ):
                 self.state = 1225
                 self.oC_Expression()
@@ -21863,16 +21612,12 @@ class LcypherParser(Parser):
     class OC_PartialComparisonExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_AddOrSubtractExpression(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_AddOrSubtractExpressionContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_AddOrSubtractExpressionContext, 0)
 
         def SP(self):
             return self.getToken(LcypherParser.SP, 0)
@@ -21895,9 +21640,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PartialComparisonExpression(self):
-        localctx = LcypherParser.OC_PartialComparisonExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PartialComparisonExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 138, self.RULE_oC_PartialComparisonExpression)
         self._la = 0  # Token type
         try:
@@ -22002,9 +21745,7 @@ class LcypherParser(Parser):
     class OC_ParenthesizedExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22035,9 +21776,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ParenthesizedExpression(self):
-        localctx = LcypherParser.OC_ParenthesizedExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ParenthesizedExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 140, self.RULE_oC_ParenthesizedExpression)
         self._la = 0  # Token type
         try:
@@ -22073,9 +21812,7 @@ class LcypherParser(Parser):
     class OC_RelationshipsPatternContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22084,13 +21821,9 @@ class LcypherParser(Parser):
 
         def oC_PatternElementChain(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_PatternElementChainContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_PatternElementChainContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PatternElementChainContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PatternElementChainContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -22116,9 +21849,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_RelationshipsPattern(self):
-        localctx = LcypherParser.OC_RelationshipsPatternContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_RelationshipsPatternContext(self, self._ctx, self.state)
         self.enterRule(localctx, 142, self.RULE_oC_RelationshipsPattern)
         self._la = 0  # Token type
         try:
@@ -22157,9 +21888,7 @@ class LcypherParser(Parser):
     class OC_FilterExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22222,9 +21951,7 @@ class LcypherParser(Parser):
     class OC_IdInCollContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22286,9 +22013,7 @@ class LcypherParser(Parser):
     class OC_FunctionInvocationContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22328,9 +22053,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_FunctionInvocation(self):
-        localctx = LcypherParser.OC_FunctionInvocationContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_FunctionInvocationContext(self, self._ctx, self.state)
         self.enterRule(localctx, 148, self.RULE_oC_FunctionInvocation)
         self._la = 0  # Token type
         try:
@@ -22370,8 +22093,7 @@ class LcypherParser(Parser):
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3F) == 0 and ((1 << _la) & 562950037332288) != 0) or (
-                (((_la - 81)) & ~0x3F) == 0
-                and ((1 << (_la - 81)) & 563083161436033) != 0
+                ((_la - 81) & ~0x3F) == 0 and ((1 << (_la - 81)) & 563083161436033) != 0
             ):
                 self.state = 1324
                 self.oC_Expression()
@@ -22421,9 +22143,7 @@ class LcypherParser(Parser):
     class OC_FunctionNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22486,9 +22206,7 @@ class LcypherParser(Parser):
     class OC_ExplicitProcedureInvocationContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22525,9 +22243,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ExplicitProcedureInvocation(self):
-        localctx = LcypherParser.OC_ExplicitProcedureInvocationContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ExplicitProcedureInvocationContext(self, self._ctx, self.state)
         self.enterRule(localctx, 152, self.RULE_oC_ExplicitProcedureInvocation)
         self._la = 0  # Token type
         try:
@@ -22554,8 +22270,7 @@ class LcypherParser(Parser):
             self._errHandler.sync(self)
             _la = self._input.LA(1)
             if (((_la) & ~0x3F) == 0 and ((1 << _la) & 562950037332288) != 0) or (
-                (((_la - 81)) & ~0x3F) == 0
-                and ((1 << (_la - 81)) & 563083161436033) != 0
+                ((_la - 81) & ~0x3F) == 0 and ((1 << (_la - 81)) & 563083161436033) != 0
             ):
                 self.state = 1359
                 self.oC_Expression()
@@ -22605,9 +22320,7 @@ class LcypherParser(Parser):
     class OC_ImplicitProcedureInvocationContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22632,9 +22345,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ImplicitProcedureInvocation(self):
-        localctx = LcypherParser.OC_ImplicitProcedureInvocationContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ImplicitProcedureInvocationContext(self, self._ctx, self.state)
         self.enterRule(localctx, 154, self.RULE_oC_ImplicitProcedureInvocation)
         try:
             self.enterOuterAlt(localctx, 1)
@@ -22651,9 +22362,7 @@ class LcypherParser(Parser):
     class OC_ProcedureResultFieldContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22678,9 +22387,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ProcedureResultField(self):
-        localctx = LcypherParser.OC_ProcedureResultFieldContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ProcedureResultFieldContext(self, self._ctx, self.state)
         self.enterRule(localctx, 156, self.RULE_oC_ProcedureResultField)
         try:
             self.enterOuterAlt(localctx, 1)
@@ -22697,9 +22404,7 @@ class LcypherParser(Parser):
     class OC_ProcedureNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22746,9 +22451,7 @@ class LcypherParser(Parser):
     class OC_NamespaceContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22804,9 +22507,7 @@ class LcypherParser(Parser):
     class OC_ListComprehensionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -22840,9 +22541,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_ListComprehension(self):
-        localctx = LcypherParser.OC_ListComprehensionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_ListComprehensionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 162, self.RULE_oC_ListComprehension)
         self._la = 0  # Token type
         try:
@@ -22901,16 +22600,12 @@ class LcypherParser(Parser):
     class OC_PatternComprehensionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
         def oC_RelationshipsPattern(self):
-            return self.getTypedRuleContext(
-                LcypherParser.OC_RelationshipsPatternContext, 0
-            )
+            return self.getTypedRuleContext(LcypherParser.OC_RelationshipsPatternContext, 0)
 
         def oC_Expression(self, i: int = None):
             if i is None:
@@ -22948,9 +22643,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PatternComprehension(self):
-        localctx = LcypherParser.OC_PatternComprehensionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PatternComprehensionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 164, self.RULE_oC_PatternComprehension)
         self._la = 0  # Token type
         try:
@@ -22967,7 +22660,7 @@ class LcypherParser(Parser):
             self.state = 1427
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (((_la - 89)) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
+            if ((_la - 89) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0:
                 self.state = 1419
                 self.oC_Variable()
                 self.state = 1421
@@ -23048,9 +22741,7 @@ class LcypherParser(Parser):
     class OC_PropertyLookupContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23105,9 +22796,7 @@ class LcypherParser(Parser):
     class OC_CaseExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23134,13 +22823,9 @@ class LcypherParser(Parser):
 
         def oC_CaseAlternatives(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_CaseAlternativesContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_CaseAlternativesContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_CaseAlternativesContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_CaseAlternativesContext, i)
 
         def getRuleIndex(self):
             return LcypherParser.RULE_oC_CaseExpression
@@ -23272,9 +22957,7 @@ class LcypherParser(Parser):
     class OC_CaseAlternativesContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23359,9 +23042,7 @@ class LcypherParser(Parser):
     class OC_VariableContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23403,9 +23084,7 @@ class LcypherParser(Parser):
     class OC_NumberLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23463,9 +23142,7 @@ class LcypherParser(Parser):
     class OC_MapLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23477,13 +23154,9 @@ class LcypherParser(Parser):
 
         def oC_PropertyKeyName(self, i: int = None):
             if i is None:
-                return self.getTypedRuleContexts(
-                    LcypherParser.OC_PropertyKeyNameContext
-                )
+                return self.getTypedRuleContexts(LcypherParser.OC_PropertyKeyNameContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PropertyKeyNameContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PropertyKeyNameContext, i)
 
         def oC_Expression(self, i: int = None):
             if i is None:
@@ -23526,10 +23199,9 @@ class LcypherParser(Parser):
             self.state = 1555
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if (
-                (((_la - 48)) & ~0x3F) == 0
-                and ((1 << (_la - 48)) & 297237300058759167) != 0
-            ) or ((((_la - 115)) & ~0x3F) == 0 and ((1 << (_la - 115)) & 40959) != 0):
+            if (((_la - 48) & ~0x3F) == 0 and ((1 << (_la - 48)) & 297237300058759167) != 0) or (
+                ((_la - 115) & ~0x3F) == 0 and ((1 << (_la - 115)) & 40959) != 0
+            ):
                 self.state = 1522
                 self.oC_PropertyKeyName()
                 self.state = 1524
@@ -23614,9 +23286,7 @@ class LcypherParser(Parser):
     class OC_ParameterContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23675,9 +23345,7 @@ class LcypherParser(Parser):
     class OC_PropertyExpressionContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23688,9 +23356,7 @@ class LcypherParser(Parser):
             if i is None:
                 return self.getTypedRuleContexts(LcypherParser.OC_PropertyLookupContext)
             else:
-                return self.getTypedRuleContext(
-                    LcypherParser.OC_PropertyLookupContext, i
-                )
+                return self.getTypedRuleContext(LcypherParser.OC_PropertyLookupContext, i)
 
         def SP(self, i: int = None):
             if i is None:
@@ -23716,9 +23382,7 @@ class LcypherParser(Parser):
                 return visitor.visitChildren(self)
 
     def oC_PropertyExpression(self):
-        localctx = LcypherParser.OC_PropertyExpressionContext(
-            self, self._ctx, self.state
-        )
+        localctx = LcypherParser.OC_PropertyExpressionContext(self, self._ctx, self.state)
         self.enterRule(localctx, 180, self.RULE_oC_PropertyExpression)
         self._la = 0  # Token type
         try:
@@ -23757,9 +23421,7 @@ class LcypherParser(Parser):
     class OC_PropertyKeyNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23801,9 +23463,7 @@ class LcypherParser(Parser):
     class OC_IntegerLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23841,7 +23501,7 @@ class LcypherParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 1575
             _la = self._input.LA(1)
-            if not (((((_la - 103)) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0)):
+            if not (((_la - 103) & ~0x3F) == 0 and ((1 << (_la - 103)) & 7) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -23857,9 +23517,7 @@ class LcypherParser(Parser):
     class OC_DoubleLiteralContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -23910,9 +23568,7 @@ class LcypherParser(Parser):
     class OC_SchemaNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24024,9 +23680,7 @@ class LcypherParser(Parser):
     class OC_SymbolicNameContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24082,12 +23736,7 @@ class LcypherParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 1583
             _la = self._input.LA(1)
-            if not (
-                (
-                    (((_la - 89)) & ~0x3F) == 0
-                    and ((1 << (_la - 89)) & 2199493148687) != 0
-                )
-            ):
+            if not (((_la - 89) & ~0x3F) == 0 and ((1 << (_la - 89)) & 2199493148687) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -24103,9 +23752,7 @@ class LcypherParser(Parser):
     class OC_ReservedWordContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24295,10 +23942,7 @@ class LcypherParser(Parser):
             _la = self._input.LA(1)
             if not (
                 (((_la) & ~0x3F) == 0 and ((1 << _la) & -6917810502617792512) != 0)
-                or (
-                    (((_la - 64)) & ~0x3F) == 0
-                    and ((1 << (_la - 64)) & -18014261578046465) != 0
-                )
+                or (((_la - 64) & ~0x3F) == 0 and ((1 << (_la - 64)) & -18014261578046465) != 0)
             ):
                 self._errHandler.recoverInline(self)
             else:
@@ -24315,9 +23959,7 @@ class LcypherParser(Parser):
     class OC_LeftArrowHeadContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24346,7 +23988,7 @@ class LcypherParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 1587
             _la = self._input.LA(1)
-            if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 2013790208) != 0)):
+            if not (((_la) & ~0x3F) == 0 and ((1 << _la) & 2013790208) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -24362,9 +24004,7 @@ class LcypherParser(Parser):
     class OC_RightArrowHeadContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24393,7 +24033,7 @@ class LcypherParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 1589
             _la = self._input.LA(1)
-            if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 32213303296) != 0)):
+            if not (((_la) & ~0x3F) == 0 and ((1 << _la) & 32213303296) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)
@@ -24409,9 +24049,7 @@ class LcypherParser(Parser):
     class OC_DashContext(ParserRuleContext):
         __slots__ = "parser"
 
-        def __init__(
-            self, parser, parent: ParserRuleContext = None, invokingState: int = -1
-        ):
+        def __init__(self, parser, parent: ParserRuleContext = None, invokingState: int = -1):
             super().__init__(parent, invokingState)
             self.parser = parser
 
@@ -24440,7 +24078,7 @@ class LcypherParser(Parser):
             self.enterOuterAlt(localctx, 1)
             self.state = 1591
             _la = self._input.LA(1)
-            if not ((((_la) & ~0x3F) == 0 and ((1 << _la) & 70334384455680) != 0)):
+            if not (((_la) & ~0x3F) == 0 and ((1 << _la) & 70334384455680) != 0):
                 self._errHandler.recoverInline(self)
             else:
                 self._errHandler.reportMatch(self)

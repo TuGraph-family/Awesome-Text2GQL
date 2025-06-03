@@ -307,15 +307,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    def enterOC_AnonymousPatternPart(
-        self, ctx: LcypherParser.OC_AnonymousPatternPartContext
-    ):
+    def enterOC_AnonymousPatternPart(self, ctx: LcypherParser.OC_AnonymousPatternPartContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_AnonymousPatternPart.
-    def exitOC_AnonymousPatternPart(
-        self, ctx: LcypherParser.OC_AnonymousPatternPartContext
-    ):
+    def exitOC_AnonymousPatternPart(self, ctx: LcypherParser.OC_AnonymousPatternPartContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PatternElement.
@@ -335,39 +331,27 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PatternElementChain.
-    def enterOC_PatternElementChain(
-        self, ctx: LcypherParser.OC_PatternElementChainContext
-    ):
+    def enterOC_PatternElementChain(self, ctx: LcypherParser.OC_PatternElementChainContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_PatternElementChain.
-    def exitOC_PatternElementChain(
-        self, ctx: LcypherParser.OC_PatternElementChainContext
-    ):
+    def exitOC_PatternElementChain(self, ctx: LcypherParser.OC_PatternElementChainContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_RelationshipPattern.
-    def enterOC_RelationshipPattern(
-        self, ctx: LcypherParser.OC_RelationshipPatternContext
-    ):
+    def enterOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_RelationshipPattern.
-    def exitOC_RelationshipPattern(
-        self, ctx: LcypherParser.OC_RelationshipPatternContext
-    ):
+    def exitOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_RelationshipDetail.
-    def enterOC_RelationshipDetail(
-        self, ctx: LcypherParser.OC_RelationshipDetailContext
-    ):
+    def enterOC_RelationshipDetail(self, ctx: LcypherParser.OC_RelationshipDetailContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_RelationshipDetail.
-    def exitOC_RelationshipDetail(
-        self, ctx: LcypherParser.OC_RelationshipDetailContext
-    ):
+    def exitOC_RelationshipDetail(self, ctx: LcypherParser.OC_RelationshipDetailContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_Properties.
@@ -467,27 +451,19 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_ComparisonExpression.
-    def enterOC_ComparisonExpression(
-        self, ctx: LcypherParser.OC_ComparisonExpressionContext
-    ):
+    def enterOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_ComparisonExpression.
-    def exitOC_ComparisonExpression(
-        self, ctx: LcypherParser.OC_ComparisonExpressionContext
-    ):
+    def exitOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
-    def enterOC_AddOrSubtractExpression(
-        self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext
-    ):
+    def enterOC_AddOrSubtractExpression(self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_AddOrSubtractExpression.
-    def exitOC_AddOrSubtractExpression(
-        self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext
-    ):
+    def exitOC_AddOrSubtractExpression(self, ctx: LcypherParser.OC_AddOrSubtractExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_MultiplyDivideModuloExpression.
@@ -535,15 +511,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_ListOperatorExpression.
-    def enterOC_ListOperatorExpression(
-        self, ctx: LcypherParser.OC_ListOperatorExpressionContext
-    ):
+    def enterOC_ListOperatorExpression(self, ctx: LcypherParser.OC_ListOperatorExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_ListOperatorExpression.
-    def exitOC_ListOperatorExpression(
-        self, ctx: LcypherParser.OC_ListOperatorExpressionContext
-    ):
+    def exitOC_ListOperatorExpression(self, ctx: LcypherParser.OC_ListOperatorExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_StringOperatorExpression.
@@ -559,15 +531,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_NullOperatorExpression.
-    def enterOC_NullOperatorExpression(
-        self, ctx: LcypherParser.OC_NullOperatorExpressionContext
-    ):
+    def enterOC_NullOperatorExpression(self, ctx: LcypherParser.OC_NullOperatorExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_NullOperatorExpression.
-    def exitOC_NullOperatorExpression(
-        self, ctx: LcypherParser.OC_NullOperatorExpressionContext
-    ):
+    def exitOC_NullOperatorExpression(self, ctx: LcypherParser.OC_NullOperatorExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PropertyOrLabelsExpression.
@@ -627,27 +595,19 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_ParenthesizedExpression.
-    def enterOC_ParenthesizedExpression(
-        self, ctx: LcypherParser.OC_ParenthesizedExpressionContext
-    ):
+    def enterOC_ParenthesizedExpression(self, ctx: LcypherParser.OC_ParenthesizedExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_ParenthesizedExpression.
-    def exitOC_ParenthesizedExpression(
-        self, ctx: LcypherParser.OC_ParenthesizedExpressionContext
-    ):
+    def exitOC_ParenthesizedExpression(self, ctx: LcypherParser.OC_ParenthesizedExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_RelationshipsPattern.
-    def enterOC_RelationshipsPattern(
-        self, ctx: LcypherParser.OC_RelationshipsPatternContext
-    ):
+    def enterOC_RelationshipsPattern(self, ctx: LcypherParser.OC_RelationshipsPatternContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_RelationshipsPattern.
-    def exitOC_RelationshipsPattern(
-        self, ctx: LcypherParser.OC_RelationshipsPatternContext
-    ):
+    def exitOC_RelationshipsPattern(self, ctx: LcypherParser.OC_RelationshipsPatternContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_FilterExpression.
@@ -667,15 +627,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_FunctionInvocation.
-    def enterOC_FunctionInvocation(
-        self, ctx: LcypherParser.OC_FunctionInvocationContext
-    ):
+    def enterOC_FunctionInvocation(self, ctx: LcypherParser.OC_FunctionInvocationContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_FunctionInvocation.
-    def exitOC_FunctionInvocation(
-        self, ctx: LcypherParser.OC_FunctionInvocationContext
-    ):
+    def exitOC_FunctionInvocation(self, ctx: LcypherParser.OC_FunctionInvocationContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_FunctionName.
@@ -711,15 +667,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_ProcedureResultField.
-    def enterOC_ProcedureResultField(
-        self, ctx: LcypherParser.OC_ProcedureResultFieldContext
-    ):
+    def enterOC_ProcedureResultField(self, ctx: LcypherParser.OC_ProcedureResultFieldContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_ProcedureResultField.
-    def exitOC_ProcedureResultField(
-        self, ctx: LcypherParser.OC_ProcedureResultFieldContext
-    ):
+    def exitOC_ProcedureResultField(self, ctx: LcypherParser.OC_ProcedureResultFieldContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_ProcedureName.
@@ -747,15 +699,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PatternComprehension.
-    def enterOC_PatternComprehension(
-        self, ctx: LcypherParser.OC_PatternComprehensionContext
-    ):
+    def enterOC_PatternComprehension(self, ctx: LcypherParser.OC_PatternComprehensionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_PatternComprehension.
-    def exitOC_PatternComprehension(
-        self, ctx: LcypherParser.OC_PatternComprehensionContext
-    ):
+    def exitOC_PatternComprehension(self, ctx: LcypherParser.OC_PatternComprehensionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PropertyLookup.
@@ -815,15 +763,11 @@ class LcypherListener(ParseTreeListener):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PropertyExpression.
-    def enterOC_PropertyExpression(
-        self, ctx: LcypherParser.OC_PropertyExpressionContext
-    ):
+    def enterOC_PropertyExpression(self, ctx: LcypherParser.OC_PropertyExpressionContext):
         pass
 
     # Exit a parse tree produced by LcypherParser#oC_PropertyExpression.
-    def exitOC_PropertyExpression(
-        self, ctx: LcypherParser.OC_PropertyExpressionContext
-    ):
+    def exitOC_PropertyExpression(self, ctx: LcypherParser.OC_PropertyExpressionContext):
         pass
 
     # Enter a parse tree produced by LcypherParser#oC_PropertyKeyName.

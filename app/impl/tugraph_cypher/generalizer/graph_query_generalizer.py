@@ -6,7 +6,9 @@ from app.impl.tugraph_cypher.generalizer.base.Config import Config
 from app.impl.tugraph_cypher.generalizer.base.TransVisitor import TransVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator
+from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import (
+    TugraphCypherQueryTranslator,
+)
 
 CURRENT_PATH = f"{os.path.dirname(__file__)}"
 
@@ -34,5 +36,7 @@ class GraphQueryGeneralizer:
 
 if __name__ == "__main__":
     query_generalizer = GraphQueryGeneralizer("movie", f"{CURRENT_PATH}/base/db_instance/movie")
-    query_list = query_generalizer.generalize("MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born")
+    query_list = query_generalizer.generalize(
+        "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born"
+    )
     print(query_list)

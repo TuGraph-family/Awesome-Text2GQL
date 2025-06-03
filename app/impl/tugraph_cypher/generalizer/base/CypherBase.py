@@ -127,14 +127,10 @@ class CypherBase:
             ]
         )
         self.template[self.token_dict["OPTIONAL"]].extend(["以可选的方式", "尝试"])
-        self.template[self.token_dict["DISTINCT"]].extend(
-            ["将查询结果去重", "最后将结果去重"]
-        )
+        self.template[self.token_dict["DISTINCT"]].extend(["将查询结果去重", "最后将结果去重"])
         self.template[self.token_dict["DESC"]].extend(["降序"])
         self.template[self.token_dict["ASC"]].extend(["升序", ""])
-        self.template[self.token_dict["RETURN"]].extend(
-            ["返回子图", "返回相关的节点和关系", ""]
-        )
+        self.template[self.token_dict["RETURN"]].extend(["返回子图", "返回相关的节点和关系", ""])
         # schema
         self.schema_dict = {}
         self.load_dict_from_file(config.get_schema_dict_path())

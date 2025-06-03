@@ -6,8 +6,8 @@ from antlr4 import *
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
 
-class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
 
+class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
     def get_query_pattern(self, query: str) -> List:
         input_stream = InputStream(query)
         lexer = GQLLexer(input_stream)
@@ -18,29 +18,31 @@ class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
         querry_pattern = self.visit(tree)
         return querry_pattern
 
-    def visitSimpleMatchStatement(self, ctx:GQLParser.SimpleMatchStatementContext):
+    def visitSimpleMatchStatement(self, ctx: GQLParser.SimpleMatchStatementContext):
         clause_list = []
         # get where clause and get path pattern
-        path_pattern, where_clause = self.visitGraphPatternBindingTable(ctx.graphPatternBindingTable())
+        path_pattern, where_clause = self.visitGraphPatternBindingTable(
+            ctx.graphPatternBindingTable()
+        )
         if where_clause != None:
             clause_list.append(where_clause)
         # add match clause
         clause_list.append("MATCH")
         return clause_list
 
-    def visitGraphPattern(self, ctx:GQLParser.GraphPatternContext):
+    def visitGraphPattern(self, ctx: GQLParser.GraphPatternContext):
         path_pattern = None
         where_clause = None
-        
+
         # add where clause
         if ctx.graphPatternWhereClause() != None:
             where_clause = self.visitGraphPatternWhereClause(ctx.graphPatternWhereClause())
         return path_pattern, where_clause
-    
-    def visitGraphPatternWhereClause(self, ctx:GQLParser.GraphPatternWhereClauseContext):
+
+    def visitGraphPatternWhereClause(self, ctx: GQLParser.GraphPatternWhereClauseContext):
         return "WHERE"
-    
-    def visitReturnStatement(self, ctx:GQLParser.ReturnStatementContext):
+
+    def visitReturnStatement(self, ctx: GQLParser.ReturnStatementContext):
         return ["RETURN"]
 
     def aggregateResult(self, aggregate, nextResult):
@@ -50,6 +52,7 @@ class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
         if nextResult != None:
             result += nextResult
         return result
+
 
 if __name__ == "__main__":
     query_visitor = IsoGqlAstVisitor()

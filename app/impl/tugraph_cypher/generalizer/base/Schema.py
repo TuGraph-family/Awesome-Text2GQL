@@ -125,9 +125,7 @@ class Schema:
             return desc
         return ""
 
-    def get_instance_of_matched_ptn_prts_label_list(
-        self, matched_pattern_parts_label_list
-    ):
+    def get_instance_of_matched_ptn_prts_label_list(self, matched_pattern_parts_label_list):
         instance = []
         for part in matched_pattern_parts_label_list:
             instance.append(self.get_instance_of_matched_label_lists(part))
@@ -166,10 +164,8 @@ class Schema:
                             instance.append(src_vertex_instance)
                             instance.append(copy.deepcopy(edge_instance))
                             instance.append(dst_vertex_instance)
-                            instance_of_pattern_match_lists.append(
-                                copy.deepcopy(instance)
-                            )
-                    elif edge.dst == label_list[edge_index - 1]: # ()<-[]-()
+                            instance_of_pattern_match_lists.append(copy.deepcopy(instance))
+                    elif edge.dst == label_list[edge_index - 1]:  # ()<-[]-()
                         src_vertex_instance = self.get_vertex_instance_by_id(
                             label_list[edge_index + 1], edge_instance["SRC_ID"]
                         )
@@ -182,13 +178,11 @@ class Schema:
                             instance.append(dst_vertex_instance)
                             instance.append(copy.deepcopy(edge_instance))
                             instance.append(src_vertex_instance)
-                            instance_of_pattern_match_lists.append(
-                                copy.deepcopy(instance)
-                            )
+                            instance_of_pattern_match_lists.append(copy.deepcopy(instance))
                     else:
                         print(f"[ERROR] Labellist is not right!")
                 continue
-            if instance_of_pattern_match_lists==[]:
+            if instance_of_pattern_match_lists == []:
                 # print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
                 pass
             # other edges
@@ -482,9 +476,7 @@ class Schema:
     def get_matched_pattern_list(self, pattern_part: PatternPart):
         chain_list = pattern_part.chain_list
         if len(chain_list) <= 3:
-            return self.get_matched_pattern_list_three_nodes(
-                pattern_part
-            )  # three nodes
+            return self.get_matched_pattern_list_three_nodes(pattern_part)  # three nodes
         all_label_lists = []
         edge_count = int(len(chain_list) / 2)
         for first_node_label, first_node in self.vertex_dict.items():
@@ -526,9 +518,7 @@ class Schema:
             all_label_lists = temp_label_lists
         return all_label_lists
 
-    def get_matched_pattern_list_three_nodes(
-        self, pattern_part: PatternPart
-    ):  # three nodes
+    def get_matched_pattern_list_three_nodes(self, pattern_part: PatternPart):  # three nodes
         chain_list = pattern_part.chain_list
         all_label_list = []
         edge_count = int(len(chain_list) / 2)
@@ -545,29 +535,21 @@ class Schema:
                     ):
                         for edge in left_node.dst_edge:
                             right_node_label = self.edge_dict[edge].src
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                     elif (
                         chain_list[edge_index].left_arrow == False
                         and chain_list[edge_index].right_arrow == True
                     ):
                         for edge in self.vertex_dict[left_node_label].src_edge:
                             right_node_label = self.edge_dict[edge].dst
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                     else:
                         for edge in self.vertex_dict[left_node_label].dst_edge:
                             right_node_label = self.edge_dict[edge].src
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                         for edge in self.vertex_dict[left_node_label].src_edge:
                             right_node_label = self.edge_dict[edge].dst
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
         return all_label_list
 
     def get_matched_pattern_list_create_edge(
@@ -586,9 +568,7 @@ class Schema:
                     for edge in left_node.dst_edge:
                         right_node_label = self.edge_dict[edge].src
                         if right_node_label == right_label:
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                 elif (
                     chain_list[edge_index].left_arrow == False
                     and chain_list[edge_index].right_arrow == True
@@ -596,22 +576,16 @@ class Schema:
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
                         if right_node_label == right_label or right_label == "":
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                 else:
                     for edge in self.vertex_dict[left_node_label].dst_edge:
                         right_node_label = self.edge_dict[edge].src
                         if right_node_label == right_label or right_label == "":
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
                         if right_node_label == right_label or right_label == "":
-                            all_label_list.append(
-                                [left_node_label, edge, right_node_label]
-                            )
+                            all_label_list.append([left_node_label, edge, right_node_label])
         return all_label_list
 
 
@@ -620,8 +594,6 @@ if __name__ == "__main__":
 
     config = Config("config.json")
     cypher_base = CypherBase(config)
-    schema = Schema(
-        "movie", "/root/work_repo/Awesome-Text2GQL/db_data/schema/movie_schema.json"
-    )
+    schema = Schema("movie", "/root/work_repo/Awesome-Text2GQL/db_data/schema/movie_schema.json")
 
     print(schema.gen_desc())

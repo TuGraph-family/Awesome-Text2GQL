@@ -3,9 +3,13 @@ from app.core.generalizer.query_generalizer import QueryGeneralizer
 from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
 from app.core.translator.question_translator import QuestionTranslator
-from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
+from app.impl.iso_gql.translator.iso_gql_query_translator import (
+    IsoGqlQueryTranslator as GQLTranslator,
+)
 from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
-from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator as CypherTranslator
+from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import (
+    TugraphCypherQueryTranslator as CypherTranslator,
+)
 
 INSTRUCTION_TEMPLATE = """
 I want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.
@@ -14,8 +18,8 @@ Schema Description:
 {schema_description}
 """
 
-query_template="MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
-question_template="Who are Roy Redgrave's second generations?"
+query_template = "MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
+question_template = "Who are Roy Redgrave's second generations?"
 
 db_id = "movie"
 instance_path = "../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
@@ -24,7 +28,7 @@ llm_client = LlmClient(model="qwen-plus-0723")
 
 # generate instruction
 query_generalizer = QueryGeneralizer(db_id, instance_path)
-schema_description=query_generalizer.schema_graph.gen_desc()
+schema_description = query_generalizer.schema_graph.gen_desc()
 instruction = INSTRUCTION_TEMPLATE.format(schema_description=schema_description)
 
 # generalize query
@@ -41,9 +45,7 @@ if success:
 # translate query into question
 question_translator = QuestionTranslator(llm_client=llm_client, chunk_size=5)
 question_list = question_translator.translate(
-    query_template=query_template,
-    question_template=question_template,
-    query_list = query_list
+    query_template=query_template, question_template=question_template, query_list=query_list
 )
 
 # contruct corpus pair
@@ -57,10 +59,7 @@ question_generalizer = QuestionGeneralizer(llm_client)
 for corpus_pair in corpus_pair_list:
     query = corpus_pair[0]
     question = corpus_pair[1]
-    generalized_question_list = question_generalizer.generalize(
-        query=query,
-        question=question
-    )
+    generalized_question_list = question_generalizer.generalize(query=query, question=question)
     for generalized_question in generalized_question_list:
         generalized_corpus_pair_list.append((query, generalized_question))
     generalized_corpus_pair_list.append((query, question))
@@ -82,4 +81,4 @@ for i in range(len(generalized_corpus_pair_list)):
     data_list[i].update(temp_data)
 json_data = json.dumps(data_list, ensure_ascii=False, indent=4)
 with open(output_path, "w") as file:
-        file.write(json_data)
+    file.write(json_data)
