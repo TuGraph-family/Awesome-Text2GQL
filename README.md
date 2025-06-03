@@ -115,6 +115,8 @@ question_list = question_translator.translate(
 
 #### Query Translator
 
+![query_translator](./images/query_translator.png)
+
 Query translator has the ability to translate queries in one query language into another, like cypher to gql. To achieve this, Awesome-Text2GQL designed and implemented a set of intermediate expression for commonly used graph query languages(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) and their dialects. With ast vistitor's implementations, different graph query language can be translated into the intermediate expression. With the query translator's implementations, intermediate expression can be translated into different graph query language.
 
 ``` python
@@ -167,6 +169,8 @@ for corpus_pair in corpus_pair_list:
 ```
 
 #### Query Generalizer
+
+![query_generalizer](./images/query_generalizer.png)
 
 Query generalizer has the ability to generalize the given query into queries with similar query pattern on the given schema. With the intermediate expression for graph query languages, Awesome-Text2GQL can translate a query into intermediate query pattern, and the similar query pattern can be constructed with different variables on different schema. This generalization aims to migrate existing query patterns onto new database instance efficiently.
 
