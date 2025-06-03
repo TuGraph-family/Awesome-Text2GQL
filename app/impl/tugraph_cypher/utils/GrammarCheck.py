@@ -1,8 +1,6 @@
-from antlr4 import *
-from cypher.LcypherLexer import LcypherLexer
-from cypher.LcypherParser import LcypherParser
-
-from utils.CypherStream import CypherStream
+from antlr4 import InputStream, CommonTokenStream
+from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
+from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 
 #
 # @description     test cypher line-by-line
@@ -28,7 +26,6 @@ def grammar_check_line(line_str, idx, file_path):
     lexer = LcypherLexer(input_stream)
     tokens = CommonTokenStream(lexer)  # Tokens
     parser = LcypherParser(tokens)
-    tree = parser.oC_Cypher()
     if parser.getNumberOfSyntaxErrors() > 0:
         print(f"[ERROR]: grammar check failed in file: {file_path} line {idx}")
         print(f"line {idx}: {line_str}")

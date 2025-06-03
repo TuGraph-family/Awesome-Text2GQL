@@ -2,7 +2,7 @@ from typing import List
 from app.impl.iso_gql.grammar.GQLVisitor import GQLVisitor
 from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
 from app.impl.iso_gql.grammar.GQLParser import GQLParser
-from antlr4 import *
+from antlr4 import InputStream, CommonTokenStream
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
 

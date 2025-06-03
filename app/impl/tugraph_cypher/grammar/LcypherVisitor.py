@@ -1,5 +1,5 @@
 # Generated from /root/work_repo/antlr_python/cypher/Lcypher.g4 by ANTLR 4.13.1
-from antlr4 import *
+from antlr4 import ParseTreeVisitor
 
 if "." in __name__:
     from .LcypherParser import LcypherParser

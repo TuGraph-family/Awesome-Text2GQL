@@ -2,10 +2,10 @@
 
 from antlr4.Token import Token
 from antlr4.Utils import escapeWhitespace
-from antlr4.tree.Tree import RuleNode, ErrorNode, TerminalNode, Tree, ParseTree
-from antlr4 import *
-from cypher.LcypherLexer import LcypherLexer
-from cypher.LcypherParser import LcypherParser
+from antlr4.tree.Tree import RuleNode, ErrorNode, TerminalNode, Tree
+from antlr4 import CommonTokenStream
+from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
+from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 from utils.CypherStream import CypherStream
 from graphviz import Digraph
 

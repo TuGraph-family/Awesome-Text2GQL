@@ -1,7 +1,19 @@
 # Generated from /root/work_repo/antlr_python/cypher/Lcypher.g4 by ANTLR 4.13.1
-# encoding: utf-8
-from antlr4 import *
-from io import StringIO
+from antlr4 import (
+    ParseTreeListener,
+    ParseTreeVisitor,
+    RecognitionException,
+    ParserRuleContext,
+    NoViableAltException,
+    ATN,
+    DFA,
+    ParserATNSimulator,
+    TokenStream,
+    Token,
+    PredictionContextCache,
+    ATNDeserializer,
+    Parser,
+)
 import sys
 
 if sys.version_info[1] > 5:

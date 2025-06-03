@@ -11,7 +11,7 @@ from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 
 class MyErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        raise Exception("ERROR: when parsing line %d column %d: %s\n" % (line, column, msg))
+        raise Exception(f"ERROR: when parsing line {line} column {column}: {msg}\n")
 
 
 class TugraphCypherQueryTranslator(QueryTranslator):

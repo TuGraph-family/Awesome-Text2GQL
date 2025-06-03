@@ -8,7 +8,7 @@ from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTran
 from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from antlr4 import *
+from antlr4 import InputStream, CommonTokenStream
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
 

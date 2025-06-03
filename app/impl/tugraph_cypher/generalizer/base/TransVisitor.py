@@ -1,4 +1,4 @@
-from antlr4 import *
+from antlr4 import ParserRuleContext
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 from app.impl.tugraph_cypher.generalizer.base.Parse import (
@@ -10,8 +10,6 @@ from app.impl.tugraph_cypher.generalizer.base.Parse import (
 from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
 from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
 from app.impl.tugraph_cypher.generalizer.base.Pattern import (
-    ReadPattern,
-    UpdatePattern,
     CurrentPattern,
 )
 from app.impl.tugraph_cypher.generalizer.base.Expr import ExprTree, ExprLeaf
@@ -160,7 +158,6 @@ class TransVisitor(LcypherVisitor):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
                 if rule_name == "oC_Pattern":
-                    query_list = []
                     list_idx_to_rm = []
                     self.gen_query_list = [
                         [] for i in match_pattern.matched_pattern_parts_label_lists
@@ -363,14 +360,13 @@ class TransVisitor(LcypherVisitor):
                         query_lists,
                     ) = self.current_pattern.get_matched_label_lists()
                     for idx, query in enumerate(self.gen_query_list):
-                        if_success = False
                         label = lable_lists[idx][clause_idx][part_idx][node_idx]
                         node_instance = self.schema.get_instance_by_label(label, 1)[0]
                         if len(node_instance) != 0:
                             property_key, property_value = random.choice(
                                 list(node_instance.items())
                             )
-                            if type(property_value) == str:
+                            if type(property_value) is str:
                                 property_value = f'"{property_value}"'
                             query = (
                                 query
@@ -740,7 +736,7 @@ class TransVisitor(LcypherVisitor):
                     return self.visitOC_PatternElement(c)
         if is_only_one_node:
             return desc
-        if self.if_gen_query == False:
+        if not self.if_gen_query:
             return self.cur_pattern_part.get_desc()
         else:
             return ""

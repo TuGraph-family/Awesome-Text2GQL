@@ -2,7 +2,6 @@ import json
 import os
 import csv
 import random
-from app.impl.tugraph_cypher.generalizer.base.Parse import Node
 from app.core.schema.node import Node
 from app.core.schema.edge import Edge
 from app.core.schema.schema_graph import SchemaGraph
@@ -45,7 +44,7 @@ class TuGraphSchemaParser(SchemaParser):
 
     def parse_schema(self):
         try:
-            with open(self.schema_path, "r") as file:
+            with open(self.schema_path) as file:
                 data = json.load(file)
                 self.parse_schema_impl(data)
         except FileNotFoundError:
@@ -60,7 +59,7 @@ class TuGraphSchemaParser(SchemaParser):
                 for property in item["properties"]:
                     vertex.property_type[property["name"]] = str(property["type"])
                     if "optional" in property:
-                        if bool(property["optional"]) == False:
+                        if not bool(property["optional"]):
                             vertex.required.append(property["name"])
                     else:
                         vertex.required.append(property["name"])
@@ -72,7 +71,7 @@ class TuGraphSchemaParser(SchemaParser):
                     for property in item["properties"]:
                         edge.property_type[property["name"]] = str(property["type"])
                     if "optional" in property:
-                        if bool(property["optional"]) == False:
+                        if not bool(property["optional"]):
                             edge.required.append(property["name"])
                     else:
                         edge.required.append(property["name"])
@@ -216,13 +215,10 @@ class TuGraphSchemaParser(SchemaParser):
 
     def __get_instance_by_label(self, vertex_or_edge_label, count):
         # instance includes 'SRC_ID' and 'DST_ID'
-        type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
-            type = "vertex"
         elif vertex_or_edge_label in self.edge_dict:
             node = self.edge_dict[vertex_or_edge_label]
-            type = "edge"
         else:
             print("[ERROR]: vertex or edge is not exist")
             return
@@ -258,13 +254,10 @@ class TuGraphSchemaParser(SchemaParser):
 
     def get_instance_by_label(self, vertex_or_edge_label, count):
         # instance excludes 'SRC_ID' and 'DST_ID'
-        type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
-            type = "vertex"
         elif vertex_or_edge_label in self.edge_dict:
             node = self.edge_dict[vertex_or_edge_label]
-            type = "edge"
         else:
             print("[ERROR]: vertex or edge is not exist")
             return

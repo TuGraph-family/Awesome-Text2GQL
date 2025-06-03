@@ -4,12 +4,10 @@ from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
 from app.core.translator.question_translator import QuestionTranslator
 from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
-from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import (
-    TugraphCypherQueryTranslator as CypherTranslator,
-)
 
 INSTRUCTION_TEMPLATE = """
-I want you to work like a Graph database expert, translate my question into a excutable query, and return only the query to me.
+I want you to work like a Graph database expert,
+translate my question into a excutable query, and return only the query to me.
 Below is an description about the graph database' schema to help you with your work.
 Schema Description:
 {schema_description}
