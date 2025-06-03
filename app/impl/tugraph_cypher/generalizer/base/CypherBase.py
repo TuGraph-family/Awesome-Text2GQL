@@ -138,10 +138,6 @@ class CypherBase:
     def get_rule_name(self, rule_index):
         return self.rule_names[rule_index]
 
-    def get_token_desc(self, token_index: int):
-        rand = random.randint(0, len(self.template[token_index]) - 1)
-        return self.template[token_index][rand]
-
     def get_token_desc(self, token_name: str):
         token_index = self.token_dict[token_name]
         rand = random.randint(0, len(self.template[token_index]) - 1)

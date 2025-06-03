@@ -15,7 +15,6 @@ class ExprLeaf:
                 return False  # require changing the size of query_lists
 
     def gen_leaf(self, matched_label_lists, query_lists):
-        idxs_2_rm = []
         # find those to been removed
         return query_lists
 
@@ -27,7 +26,7 @@ class ExprTree:
         self.right = None
 
     def add_leaf(self, expr: ExprLeaf):
-        if self.left_expr == None:
+        if self.left_expr is None:
             self.left_expr = expr
         else:
             self.right_expr = expr

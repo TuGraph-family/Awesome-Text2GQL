@@ -34,7 +34,7 @@ You should respond with:
 
 Now, translate each of the following queries one by one. Do not indicate which query you're translating from.
 Separate results with newline characters and ensure sentences include proper punctuation marks.
-"""
+"""  # noqa: E501
 
 
 class QuestionTranslator:

@@ -20,7 +20,7 @@ class LlmClient:
             # load model
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_path, torch_dtype=torch.float16
-            ).to(current_device)
+            ).to(self.current_device)
 
     def call_with_messages(self, messages):
         if self.model_path == "":
@@ -47,13 +47,7 @@ class LlmClient:
                 self.call_with_messages_online(messages)
             else:
                 print(
-                    "Request id: %s, Status code: %s, error code: %s, error message: %s"
-                    % (
-                        response.request_id,
-                        response.status_code,
-                        response.code,
-                        response.message,
-                    )
+                    f"Request id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}"
                 )
                 print("Failed!", messages[1]["content"])
                 return ""

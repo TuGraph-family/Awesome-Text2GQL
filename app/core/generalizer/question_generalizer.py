@@ -20,7 +20,7 @@ Find all descendants of a person named Roy Redgrave in the database.
 Who are the descendants of Roy Redgrave?
 
 Below, I will provide some sentences. For each statement, please generate 10 generalized results in sequence. Do not indicate which original statement they correspond to. Results should be separated by line breaks without spaces.
-"""
+"""  # noqa: E501
 
 
 class QuestionGeneralizer:

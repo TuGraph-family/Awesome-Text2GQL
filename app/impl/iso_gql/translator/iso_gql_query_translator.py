@@ -16,7 +16,7 @@ from app.impl.iso_gql.grammar.GQLParser import GQLParser
 
 class MyErrorListener(ErrorListener):
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
-        raise Exception("ERROR: when parsing line %d column %d: %s\n" % (line, column, msg))
+        raise Exception(f"ERROR: when parsing line {line} column {column}: {msg}\n")
 
 
 class IsoGqlQueryTranslator(QueryTranslator):
@@ -300,7 +300,7 @@ class IsoGqlQueryTranslator(QueryTranslator):
             parser = GQLParser(stream)
             parser.removeErrorListeners()
             parser.addErrorListener(error_listener)
-            tree = parser.gqlProgram()
+            _ = parser.gqlProgram()
         except Exception:
             return False
 

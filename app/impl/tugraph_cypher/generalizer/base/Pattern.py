@@ -108,7 +108,7 @@ class Pattern:
             for label_list in cur_pattern_part_label_lists:
                 for mactched_pattern_parts_label_list in mactched_pattern_parts_label_lists:
                     check_success_flag = True
-                    for variable, idxs in matched_variable_dict.items():
+                    for _, idxs in matched_variable_dict.items():
                         if (
                             label_list[idxs[0]]
                             != mactched_pattern_parts_label_list[idxs[1]][idxs[2]]
@@ -146,12 +146,12 @@ class Pattern:
                         rand = random.randint(0, size)
                         property_key = list(node_instance.keys())[rand]
                         property_text = node_instance[property_key]
-                        if type(property_text) == str:
+                        if type(property_text) is str:
                             property_text = f'"{property_text}"'
                         query = query + property_key + ": " + str(property_text) + "}"
                 query = query + ")"
             if chain_node.type == "edge":
-                if chain_node.left_arrow == True:
+                if chain_node.left_arrow:
                     query += "<-["
                 else:
                     query += "-["
@@ -167,10 +167,10 @@ class Pattern:
                     rand = random.randint(0, size)
                     property_key = list(node_instance.keys())[rand]
                     property_text = node_instance[property_key]
-                    if type(property_text) == str:
+                    if type(property_text) is str:
                         property_text = f'"{property_text}"'
                     query = query + property_key + ":" + str(property_text) + "}"
-                if chain_node.right_arrow == True:
+                if chain_node.right_arrow is True:
                     query += "]->"
                 else:
                     query += "]-"
@@ -276,13 +276,13 @@ class UpdatePattern(Pattern):
                         query = query + "{"
                         for property_key in property_keys:
                             property_text = node_instance[property_key]
-                            if type(property_text) == str:
+                            if type(property_text) is str:
                                 property_text = f'"{property_text}"'
                             query = query + property_key + ": " + str(property_text) + ", "
                         query = query[:-2] + "}"
                 query = query + ")"
             if chain_node.type == "edge":
-                if chain_node.left_arrow == True:
+                if chain_node.left_arrow is True:
                     query += "<-["
                 else:
                     query += "-["
@@ -297,11 +297,11 @@ class UpdatePattern(Pattern):
                         query = query + "{"
                         for property_key in property_keys:
                             property_text = node_instance[property_key]
-                            if type(property_text) == str:
+                            if type(property_text) is str:
                                 property_text = f'"{property_text}"'
                             query = query + property_key + ": " + str(property_text) + ", "
                         query = query[:-2] + "}"
-                if chain_node.right_arrow == True:
+                if chain_node.right_arrow:
                     query += "]->"
                 else:
                     query += "]-"
@@ -309,8 +309,6 @@ class UpdatePattern(Pattern):
 
 
 class CurrentPattern:
-    # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
-    # MATCH (n:Person {name:'A'}),(m:Person {name:'C'}) WITH n,m MATCH (n)-[r]->(m) DELETE r
     def __init__(self, schema: Schema):
         self.read_pattern = ReadPattern(schema)
         self.cur_update_pattern = UpdatePattern(schema)
@@ -330,7 +328,7 @@ class CurrentPattern:
 
     def get_update_pattern(self, pattern_idx=None):
         assert self.update_patterns != []
-        if pattern_idx == None:
+        if pattern_idx is None:
             return self.update_patterns[-1]
         self.update_patterns[pattern_idx - 1]
 
@@ -410,11 +408,11 @@ class CurrentPattern:
             self.__gen_matched_pattern_parts_label_lists()
         ):  # find if the matched_label_lists need to been changed
             if (
-                self.list_idx_to_rm != [] and query_list != None and query_list != []
+                self.list_idx_to_rm != [] and query_list is not None and query_list != []
             ):  # delete not match
                 return self.rm_query_by_index(self.list_idx_to_rm, query_list)
             if (
-                self.if_extend_list and query_list != None
+                self.if_extend_list and query_list is not None
             ):  # extend, if no match pattern or other situations
                 multiplier = len(self.__matched_label_lists) / len(query_list)
                 query_list = [element for _ in range(int(multiplier)) for element in query_list]
@@ -461,7 +459,6 @@ class CurrentPattern:
                     return True
                 return False
             elif len(self.cur_update_pattern.pattern_parts[0].chain_list) == 1:  # create a vertex
-                # MATCH (a {name:'Passerby A'}) CREATE (:Person {name:'Passerby E', birthyear:a.birthyear})
                 # todo: deal with the constraints, support the template above
                 if len(self.__matched_label_lists) < 10:
                     self.if_extend_list = True

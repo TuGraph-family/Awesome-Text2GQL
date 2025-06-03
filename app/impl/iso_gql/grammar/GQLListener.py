@@ -1,5 +1,5 @@
 # Generated from ./GQL.g4 by ANTLR 4.13.2
-from antlr4 import *
+from antlr4 import ParseTreeListener
 
 if "." in __name__:
     from .GQLParser import GQLParser

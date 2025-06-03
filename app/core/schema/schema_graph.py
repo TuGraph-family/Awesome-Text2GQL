@@ -68,7 +68,7 @@ class SchemaGraph:
             path_pattern_deque.append([node_label])
         while path_degree != 0:
             deque_len = len(path_pattern_deque)
-            for i in range(deque_len):
+            for _ in range(deque_len):
                 path = path_pattern_deque.popleft()
                 node_l = path[-1]
                 # match all edeges start from node_l

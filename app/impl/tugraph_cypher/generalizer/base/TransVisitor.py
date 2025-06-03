@@ -78,15 +78,11 @@ class TransVisitor(LcypherVisitor):
         return desc
 
     def visitOC_SinglePartQuery(self, ctx: LcypherParser.OC_SinglePartQueryContext):
-        # oC_SinglePartQuery : ( ( oC_ReadingClause SP? )* oC_Return )
-        #            | ( ( oC_ReadingClause SP? )* oC_UpdatingClause ( SP? oC_UpdatingClause )* ( SP? oC_Return )? )
         desc_list = []
         reading_desc = ""
         update_desc = ""
         return_desc = ""
         for child in ctx.getChildren():
-            # if isinstance(child, LcypherParser.OC_ReadingClauseContext): # LcypherParser is not defined???
-            #     return self.visit(ctx.oC_ReadingClause())
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
                 rule_name = self.cypher_base.get_rule_name(rule_index)
@@ -110,8 +106,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_MultiPartQuery.
     def visitOC_MultiPartQuery(self, ctx: LcypherParser.OC_MultiPartQueryContext):
-        # oC_MultiPartQuery : ( ( oC_ReadingClause SP? )* ( oC_UpdatingClause SP? )* oC_With SP? )+ oC_SinglePartQuery ;
-        # MATCH (n:Person {name:'A'}),(m:Person {name:'C'}) WITH n,m MATCH (n)-[r]->(m) DELETE r
         with_query = ""
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -140,7 +134,7 @@ class TransVisitor(LcypherVisitor):
         return self.visitChildren(ctx)
 
     def visit_GenOC_Where(where_tree):
-        if where_tree != None:
+        if where_tree is not None:
             pass
 
     def visitGenOC_Match(self, ctx: LcypherParser.OC_MatchContext, where_tree: ExprTree):
@@ -327,12 +321,12 @@ class TransVisitor(LcypherVisitor):
     def visitOC_Set(self, ctx: LcypherParser.OC_SetContext):
         # oC_Set : SET SP? oC_SetItem ( SP? ',' SP? oC_SetItem )* ;
         self.current_pattern.cur_parse_type = "set"
-        for idx, query in enumerate(self.gen_query_list):
+        for idx, _ in enumerate(self.gen_query_list):
             self.gen_query_list[idx] = self.gen_query_list[idx] + " SET"
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 self.visitOC_SetItem(child)
-        for idx, query in enumerate(self.gen_query_list):
+        for idx, _ in enumerate(self.gen_query_list):
             if self.gen_query_list[idx][-2:] == ", ":
                 self.gen_query_list[idx] = self.gen_query_list[idx][:-2]
             if self.gen_query_list[idx][-4:] == " SET":
@@ -341,10 +335,6 @@ class TransVisitor(LcypherVisitor):
         return ""
 
     def visitOC_SetItem(self, ctx: LcypherParser.OC_SetItemContext):
-        # oC_SetItem : ( oC_PropertyExpression SP? '=' SP? oC_Expression ) √
-        #            | ( oC_Variable SP? '=' SP? oC_Expression ) √ e.g.: SET r=NULL,SET n=m,SET m = {age: 33},SET m.age = id(n)
-        #            | ( oC_Variable SP? '+=' SP? oC_Expression ) e.g:  expression: n.tile
-        #            | ( oC_Variable SP? oC_NodeLabels ) e.g.: SET a :MyLabel
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
                 rule_index = child.getRuleIndex()
@@ -384,7 +374,7 @@ class TransVisitor(LcypherVisitor):
                 if rule_name == "oC_Variable":
                     variable = self.visitOC_Variable(child)
                 if rule_name == "oC_Expression":
-                    expr = self.visitOC_Expression(child)
+                    _ = self.visitOC_Expression(child)
                 if rule_name == "oC_NodeLables":
                     self.visitOC_NodeLabels(child)  # set node label , unnassary, do not supprt now
 
@@ -745,7 +735,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_NodePattern.
     def visitOC_NodePattern(self, ctx: LcypherParser.OC_NodePatternContext):
-        # oC_NodePattern : '(' SP? ( oC_Variable SP? )? ( oC_NodeLabels SP? )? ( oC_Properties SP? )? ')' ;
         node_instance = Node(self.cypher_base)
         n = ctx.getChildCount()
         for i in range(n):
@@ -782,10 +771,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipPattern.
     def visitOC_RelationshipPattern(self, ctx: LcypherParser.OC_RelationshipPatternContext):
-        # oC_RelationshipPattern : ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
-        #                        | ( oC_LeftArrowHead SP? oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash )
-        #                        | ( oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash SP? oC_RightArrowHead )
-        #                        | ( oC_Dash SP? oC_RelationshipDetail? SP? oC_Dash )
         edge = EdgeInstance()
         n = ctx.getChildCount()
         for i in range(n):
@@ -803,7 +788,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_RelationshipDetail.
     def visitOC_RelationshipDetail(self, ctx: LcypherParser.OC_RelationshipDetailContext):
-        # oC_RelationshipDetail : '[' SP? ( oC_Variable SP? )? ( oC_RelationshipTypes SP? )? oC_RangeLiteral? ( oC_Properties SP? )? ']' ;
         edge = EdgeInstance()
         n = ctx.getChildCount()
         for i in range(n):
@@ -858,7 +842,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_RangeLiteral.
     def visitOC_RangeLiteral(self, ctx: LcypherParser.OC_RangeLiteralContext):
-        # oC_RangeLiteral : '*' SP? ( oC_IntegerLiteral SP? )? ( '..' SP? ( oC_IntegerLiteral SP? )? )? ;
         text = ctx.getText()
         int_list = []
         str = text.replace("*", "").replace(" ", "")
@@ -954,7 +937,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_ComparisonExpression.
     def visitOC_ComparisonExpression(self, ctx: LcypherParser.OC_ComparisonExpressionContext):
-        # oC_ComparisonExpression : oC_AddOrSubtractExpression ( SP? oC_PartialComparisonExpression )* ;
         symbol = ""
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -1014,7 +996,6 @@ class TransVisitor(LcypherVisitor):
     def visitOC_PropertyOrLabelsExpression(
         self, ctx: LcypherParser.OC_PropertyOrLabelsExpressionContext
     ):
-        # oC_PropertyOrLabelsExpression : oC_Atom ( SP? oC_PropertyLookup )* ( SP? oC_NodeLabels )? ;
         property = ""
         for child in ctx.getChildren():
             if isinstance(child, ParserRuleContext):
@@ -1097,7 +1078,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionInvocation.
     def visitOC_FunctionInvocation(self, ctx: LcypherParser.OC_FunctionInvocationContext):
-        # oC_FunctionInvocation : oC_FunctionName SP? '(' SP? ( DISTINCT SP? )? ( oC_Expression SP? ( ',' SP? oC_Expression SP? )* )? ')' ;
         return self.visitChildren(ctx)
 
     # Visit a parse tree produced by LcypherParser#oC_FunctionName.
@@ -1158,7 +1138,6 @@ class TransVisitor(LcypherVisitor):
 
     # Visit a parse tree produced by LcypherParser#oC_MapLiteral.
     def visitOC_MapLiteral(self, ctx: LcypherParser.OC_MapLiteralContext):
-        # oC_MapLiteral : '{' SP? ( oC_PropertyKeyName SP? ':' SP? oC_Expression SP? ( ',' SP? oC_PropertyKeyName SP? ':' SP? oC_Expression SP? )* )? '}' ;
         n = ctx.getChildCount()
         properties = []
         text_properties = {}  # dict

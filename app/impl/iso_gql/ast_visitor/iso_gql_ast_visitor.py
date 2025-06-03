@@ -25,7 +25,7 @@ class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
         path_pattern, where_clause = self.visitGraphPatternBindingTable(
             ctx.graphPatternBindingTable()
         )
-        if where_clause != None:
+        if where_clause is not None:
             clause_list.append(where_clause)
         # add match clause
         clause_list.append("MATCH")
@@ -36,7 +36,7 @@ class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
         where_clause = None
 
         # add where clause
-        if ctx.graphPatternWhereClause() != None:
+        if ctx.graphPatternWhereClause() is not None:
             where_clause = self.visitGraphPatternWhereClause(ctx.graphPatternWhereClause())
         return path_pattern, where_clause
 
@@ -48,16 +48,8 @@ class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
 
     def aggregateResult(self, aggregate, nextResult):
         result = []
-        if aggregate != None:
+        if aggregate is not None:
             result += aggregate
-        if nextResult != None:
+        if nextResult is not None:
             result += nextResult
         return result
-
-
-if __name__ == "__main__":
-    query_visitor = IsoGqlAstVisitor()
-    # query = "MATCH (s:Supplier)-[:SUPPLIES]->(p:Product) WITH s, avg(p.unitPrice) AS avgUnitPrice ORDER BY avgUnitPrice DESC LIMIT 5 RETURN s.companyName AS Supplier, avgUnitPrice AS AverageUnitPrice"
-    query = "MATCH (n:Topic) WHERE n.label = 'P' RETURN DISTINCT n.label AS label, n.description AS description"
-    query_pattern = query_visitor.get_query_pattern(query)
-    print(query_pattern)

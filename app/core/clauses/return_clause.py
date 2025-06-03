@@ -37,7 +37,7 @@ class ReturnClause(Clause):
         return_string = "RETURN"
         # add return items
         for return_item in self.return_body.return_item_list:
-            item_string += f"{return_item.symbolic_name}"
+            item_string = f"{return_item.symbolic_name}"
             if return_item.property != "":
                 item_string += f".{return_item.property}"
             if return_item.function_name != "":
@@ -57,7 +57,7 @@ class ReturnClause(Clause):
                     item_string = f"{sort_item.function_name}({item_string})"
                 if sort_item.order != "":
                     item_string += f" {sort_item.order}"
-                retun_string += f" {item_string},"
+                return_string += f" {item_string},"
                 # if sort_item.property != "":
                 #     return_string += f".{sort_item.property}"
                 # if sort_item.order != "":

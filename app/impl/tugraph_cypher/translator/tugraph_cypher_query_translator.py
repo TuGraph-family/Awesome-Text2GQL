@@ -27,7 +27,7 @@ class TugraphCypherQueryTranslator(QueryTranslator):
             parser = LcypherParser(stream)
             parser.removeErrorListeners()
             parser.addErrorListener(error_listener)
-            tree = parser.oC_Cypher()
+            _ = parser.oC_Cypher()
         except Exception:
             return False
 

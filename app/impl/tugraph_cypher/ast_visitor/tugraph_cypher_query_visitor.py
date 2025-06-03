@@ -8,7 +8,6 @@ from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern,
 from app.core.clauses.return_clause import ReturnBody, ReturnClause, ReturnItem, SortItem
 from app.core.clauses.where_clause import CompareExpression, WhereClause
 from app.core.clauses.with_clause import WithClause
-from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
@@ -43,7 +42,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         for context in ctx.oC_ReadingClause():
             clause_list += self.visitOC_ReadingClause(context)
         # add with clause
-        if ctx.oC_With() != None:
+        if ctx.oC_With() is not None:
             clause_list.append(self.visitOC_With(ctx.oC_With(0)))
         # add clause list from single part query
         clause_list += self.visitOC_SinglePartQuery(ctx.oC_SinglePartQuery())
@@ -62,7 +61,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         # add match clause to clause list
         clause_list.append(match_clause)
         # add where clause to clause list
-        if ctx.oC_Where() != None:
+        if ctx.oC_Where() is not None:
             clause_list.append(self.visitOC_Where(ctx.oC_Where()))
         return clause_list
 
@@ -219,7 +218,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         limit = -1
 
         return_item_list = self.visitOC_ReturnItems(ctx.oC_ReturnItems())
-        if ctx.oC_Order() != None:
+        if ctx.oC_Order() is not None:
             sort_item_list = self.visitOC_Order(ctx.oC_Order())
         if ctx.oC_Skip():
             skip = int(ctx.oC_Skip().oC_Expression().getText())
@@ -287,53 +286,8 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
 
     def aggregateResult(self, aggregate, nextResult):
         result = []
-        if aggregate != None:
+        if aggregate is not None:
             result += aggregate
-        if nextResult != None:
+        if nextResult is not None:
             result += nextResult
         return result
-
-
-if __name__ == "__main__":
-    query_visitor = TugraphCypherAstVisitor()
-    # query = "MATCH (s:Supplier)-[:SUPPLIES]->(p:Product) WITH s, avg(p.unitPrice) AS avgUnitPrice ORDER BY avgUnitPrice DESC LIMIT 5 RETURN s.companyName AS Supplier, avgUnitPrice AS AverageUnitPrice"
-    # query = "MATCH (n:Topic) WHERE NOT n.label STARTS WITH 'P' RETURN DISTINCT n.label AS label, n.description AS description"
-    # query = "MATCH (o:Organization {name: 'Accenture'})<-[:HAS_SUBSIDIARY*1..3]-(parent:Organization) RETURN parent.name AS a ORDER BY a DESC LIMIT 3"
-    # query = "MATCH (r:Review) WITH r ORDER BY r.stars DESC, r.date ASC LIMIT 3 WHERE r.a = 100 RETURN r.reviewId, r.text, r.stars, r.date"
-    # query = """MATCH (l:List) WHERE l.Classroom = 'David' RETURN l.FirstName"""
-    # query = "MATCH (a:Topic{label:'Dynamical Systems_10'})-[r]->(n) RETURN properties(n), r"
-
-    # query = "MATCH (targetQuestion:Question {id: 62220505}) WITH targetQuestion.favorites AS targetFavorites MATCH (question:Question) WHERE question.favorites = targetFavorites RETURN question.id, question.text"
-    # query = MATCH (p:Person)-[:PRODUCED]->(m:Movie) WHERE m.tagline IS NOT NULL WITH p, count(DISTINCT m.tagline) AS distinctTaglines ORDER BY distinctTaglines DESC LIMIT 3 RETURN p.name, distinctTaglines
-
-    query = "MATCH (m:Movie) UNWIND m.countries AS country WITH country, COUNT(DISTINCT m) AS movieCount ORDER BY movieCount DESC RETURN country, movieCount LIMIT 1"
-    # print(f"CYPHER: {query.strip()}")
-    success, query_pattern = query_visitor.get_query_pattern(query.strip())
-    print(query_pattern)
-    # gql_query = ""
-    # for clause in query_pattern:
-    #     gql_query += clause.to_string_gql() + " "
-    gql_translator = IsoGqlQueryTranslator()
-    gql_query = gql_translator.translate(query_pattern)
-    print(f"GQL: {gql_query.strip()}")
-
-    # gql_translator = GraphQueryTranslator()
-    # f = open("/root/Code/DB-GPT-Hub/src/dbgpt-hub-gql/dbgpt_hub_gql/eval/evaluator/impl/tugraph-db/test_gql_error_cypher_correct.log")
-    # query_list = f.readlines()
-    # for query in query_list:
-    #     # print(f"CYPHER: {query.strip()}")
-    #     try:
-    #         query_pattern = query_visitor.get_query_pattern(query.strip())
-    #         gql_query = gql_translator.translate(query_pattern)
-    #         # gql_query = ""
-    #         # for clause in query_pattern:
-    #         #     gql_query += clause.to_string_gql() + " "
-    #         # print(f"CYPHER: {query.strip()}")
-    #         # print(f"GQL: {gql_query.strip()}")
-    #         print(gql_query.strip())
-    #         # print(f"-------------------")
-    #     except Exception as e:
-    #         continue
-    #         # print(f"CYPHER: {query.strip()}")
-    #         # print(e)
-    #         # print(f"-------------------")

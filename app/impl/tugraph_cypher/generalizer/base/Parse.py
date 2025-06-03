@@ -231,20 +231,23 @@ class PatternPart:
             ):
                 if (
                     self.chain_list[1].type == "edge"
-                    and self.chain_list[1].left_arrow == False
-                    and self.chain_list[1].right_arrow == False
+                    and not self.chain_list[1].left_arrow
+                    and not self.chain_list[1].right_arrow
                 ):
-                    # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
+                    # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e
+                    # 与面壁计划有关的人有哪些？
                     self.match_type = 2
-            elif self.chain_list[1].type == "edge" and self.chain_list[1].left_arrow == True:
-                # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
+            elif self.chain_list[1].type == "edge" and self.chain_list[1].left_arrow:
+                # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m
+                # 参演了Forrest Gump电影的演员有哪些？
                 self.match_type = 3
             elif (
                 len(self.chain_list[0].properties) != 0
-                and self.chain_list[1].right_arrow == True
+                and self.chain_list[1].right_arrow
                 and len(self.chain_list[2].labels) == 1
             ):
-                # # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars
+                # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie)
+                # WHERE r.stars < 3 RETURN m.title, r.stars
                 self.match_type = 4
         return self.match_type
 
@@ -277,7 +280,8 @@ class PatternPart:
                     + self.chain_list[2].variable
                 )
         elif match_type == 2:
-            # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e # 与面壁计划有关的人有哪些？
+            # MATCH (p:plan {name: "面壁计划"})-[e]-(neighbor:person) RETURN neighbor,p,e
+            # 与面壁计划有关的人有哪些？
             node_desc = self.chain_list[0].get_desc()
             self.desc = (
                 "与"
@@ -287,7 +291,8 @@ class PatternPart:
                 + "有哪些?"
             )
         elif match_type == 3:
-            # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m  # 参演了Forrest Gump电影的演员有哪些？
+            # MATCH (m:movie {title: 'Forrest Gump'})<-[:acted_in]-(a:person) RETURN a, m
+            # 参演了Forrest Gump电影的演员有哪些？
             node_desc = self.chain_list[0].get_desc()
             self.desc = (
                 self.cypher_base.get_schema_desc(self.chain_list[1].labels[0])
@@ -297,7 +302,8 @@ class PatternPart:
                 + "有哪些?"
             )
         elif match_type == 4:
-            # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie) WHERE r.stars < 3 RETURN m.title, r.stars
+            # MATCH (u:user {login: 'Michael'})-[r:rate]->(m:movie)
+            # WHERE r.stars < 3 RETURN m.title, r.stars
             node_desc = self.chain_list[0].get_desc()
             self.desc = (
                 node_desc
@@ -319,9 +325,6 @@ class PatternPart:
         if self.variable != "" and random.random() > 0.5:
             self.desc = self.desc + ",将匹配到的路径赋值给变量" + self.variable
         return self.desc
-        # MATCH (a:person {name: "叶文洁"})-[e1:person_person]->(n)<-[e2:person_person]-(b:person {name: "汪淼"}) RETURN a,b,n,e1,e2
-        # 查询叶文洁和汪淼这两个人之间的的共同关联的人物都有谁。
-        # 查询与叶文洁关联的人物有关的人物，返回子图。
 
     def gen_query(self, return_type: int = 0):
         query_list = []
@@ -407,7 +410,7 @@ class ReturnBody:
         merge_list = []
         assert len(self.return_items) != 0
         # self.returnDesc=self.patternMatch(matchPattern)
-        if self.pattern_match(pattern_parts) == False:
+        if not self.pattern_match(pattern_parts):
             return_desc_list = []
             self.return_desc = "返回"
             for item in self.return_items:
@@ -443,7 +446,7 @@ class ReturnBody:
         merge_list.append(self.return_desc)
 
         # orderby
-        if len(self.order_by) == 1 and self.DISTINCT == False:
+        if len(self.order_by) == 1 and not self.DISTINCT:
             if self.random_numbers.pop() < 5:
                 self.order_desc = (
                     "同时按照"
@@ -464,7 +467,7 @@ class ReturnBody:
                     + self.cypher_base.get_token_desc(self.order_by[0][2])
                     + "排列返回的结果"
                 )
-        elif len(self.order_by) == 2 and self.DISTINCT == False:
+        elif len(self.order_by) == 2 and not self.DISTINCT:
             #  ORDER BY n.property1 DESC, n.property2 ASC
             self.order_desc = (
                 "返回结果首先按照"
@@ -508,7 +511,7 @@ class ReturnBody:
                 merge_list.append(self.limit_desc)
 
         self.desc = self.cypher_base.merge_desc(merge_list)
-        if self.DISTINCT == True:
+        if self.DISTINCT:
             self.desc = self.desc + "," + self.cypher_base.get_token_desc("DISTINCT")
         return self.desc
 

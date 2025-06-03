@@ -70,7 +70,7 @@ class MatchClause(Clause):
                     egde_string += f"*{hop_range[0]}.."
                 else:
                     egde_string += f"*{hop_range[0]}..{hop_range[1]}"
-            egde_string = "-[" + egde_string + "]-"
+            edge_string = "-[" + egde_string + "]-"
             if edge_pattern.direction == "right":
                 edge_string += ">"
             elif edge_pattern.direction == "left":

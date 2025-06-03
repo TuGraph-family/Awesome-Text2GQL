@@ -59,7 +59,7 @@ class Schema:
                 for property in item["properties"]:
                     vertex.property_type[property["name"]] = str(property["type"])
                     if "optional" in property:
-                        if bool(property["optional"]) == False:
+                        if not bool(property["optional"]):
                             vertex.required.append(property["name"])
                     else:
                         vertex.required.append(property["name"])
@@ -71,7 +71,7 @@ class Schema:
                     for property in item["properties"]:
                         edge.property_type[property["name"]] = str(property["type"])
                     if "optional" in property:
-                        if bool(property["optional"]) == False:
+                        if not bool(property["optional"]):
                             edge.required.append(property["name"])
                     else:
                         edge.required.append(property["name"])
@@ -184,7 +184,6 @@ class Schema:
                         print("[ERROR] Labellist is not right!")
                 continue
             if instance_of_pattern_match_lists == []:
-                # print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
                 pass
             # other edges
             temp_instances = []
@@ -236,7 +235,7 @@ class Schema:
         instance_of_pattern_match_list = []
         if len(label_list) == 1:
             instance = self.__get_instance_by_label(label_list[0], 1)[0]
-            if instance != None:
+            if instance is not None:
                 instance_of_pattern_match_list.append(instance)
         for i in range(1, len(label_list), 2):
             label = label_list[i]
@@ -271,7 +270,7 @@ class Schema:
     def rm_long_property_of_instance(self, node_instance):
         rm_key_list = []
         for key, value in node_instance.items():
-            if type(value) == str and len(value) > 20:
+            if type(value) is str and len(value) > 20:
                 rm_key_list.append(key)
         for key in rm_key_list:
             node_instance.pop(key)
@@ -386,13 +385,10 @@ class Schema:
 
     def __get_instance_by_label(self, vertex_or_edge_label, count):
         # instance includes 'SRC_ID' and 'DST_ID'
-        type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
-            type = "vertex"
         elif vertex_or_edge_label in self.edge_dict:
             node = self.edge_dict[vertex_or_edge_label]
-            type = "edge"
         else:
             print("[ERROR]: vertex or edge is not exist")
             return
@@ -428,13 +424,10 @@ class Schema:
 
     def get_instance_by_label(self, vertex_or_edge_label, count):
         # instance excludes 'SRC_ID' and 'DST_ID'
-        type = ""
         if vertex_or_edge_label in self.vertex_dict:
             node = self.vertex_dict[vertex_or_edge_label]
-            type = "vertex"
         elif vertex_or_edge_label in self.edge_dict:
             node = self.edge_dict[vertex_or_edge_label]
-            type = "edge"
         else:
             print("[ERROR]: vertex or edge is not exist")
             return
@@ -467,10 +460,10 @@ class Schema:
         return vertex_or_edge_instance_list
 
     def get_properties_by_lable(self, label: str):
-        for key, value in self.vertex_dict.items():
+        for key, _ in self.vertex_dict.items():
             if key == label:
                 return list(self.vertex_dict[key].property_type.keys())
-        for key, value in self.edge_dict.items():
+        for key, _ in self.edge_dict.items():
             if key == label:
                 return list(self.edge_dict[key].property_type.keys())
 
@@ -480,26 +473,20 @@ class Schema:
             return self.get_matched_pattern_list_three_nodes(pattern_part)  # three nodes
         all_label_lists = []
         edge_count = int(len(chain_list) / 2)
-        for first_node_label, first_node in self.vertex_dict.items():
+        for first_node_label, _ in self.vertex_dict.items():
             all_label_lists.append([first_node_label])
         for i in range(edge_count):
             temp_label_lists = []
             for label_list in all_label_lists:
                 left_node_label = label_list[-1]
                 edge_index = 2 * i + 1
-                if (
-                    chain_list[edge_index].left_arrow == True
-                    and chain_list[edge_index].right_arrow == False
-                ):
+                if chain_list[edge_index].left_arrow and not chain_list[edge_index].right_arrow:
                     for edge in self.vertex_dict[left_node_label].dst_edge:
                         temp_label_list = copy.deepcopy(label_list)
                         right_node_label = self.edge_dict[edge].src
                         temp_label_list.extend([edge, right_node_label])
                         temp_label_lists.append(temp_label_list)
-                elif (
-                    chain_list[edge_index].left_arrow == False
-                    and chain_list[edge_index].right_arrow == True
-                ):
+                elif not chain_list[edge_index].left_arrow and chain_list[edge_index].right_arrow:
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         temp_label_list = copy.deepcopy(label_list)
                         right_node_label = self.edge_dict[edge].dst
@@ -524,22 +511,18 @@ class Schema:
         all_label_list = []
         edge_count = int(len(chain_list) / 2)
         if edge_count == 0:
-            for left_node_label, left_node in self.vertex_dict.items():
+            for left_node_label, _ in self.vertex_dict.items():
                 all_label_list.append([left_node_label])
         if edge_count == 1:
             for i in range(edge_count):
                 edge_index = 2 * i + 1
                 for left_node_label, left_node in self.vertex_dict.items():
-                    if (
-                        chain_list[edge_index].left_arrow == True
-                        and chain_list[edge_index].right_arrow == False
-                    ):
+                    if chain_list[edge_index].left_arrow and not chain_list[edge_index].right_arrow:
                         for edge in left_node.dst_edge:
                             right_node_label = self.edge_dict[edge].src
                             all_label_list.append([left_node_label, edge, right_node_label])
                     elif (
-                        chain_list[edge_index].left_arrow == False
-                        and chain_list[edge_index].right_arrow == True
+                        not chain_list[edge_index].left_arrow and chain_list[edge_index].right_arrow
                     ):
                         for edge in self.vertex_dict[left_node_label].src_edge:
                             right_node_label = self.edge_dict[edge].dst
@@ -562,18 +545,12 @@ class Schema:
         edge_index = 1
         for left_node_label, left_node in self.vertex_dict.items():
             if left_node_label == left_label or left_label == "":
-                if (
-                    chain_list[edge_index].left_arrow == True
-                    and chain_list[edge_index].right_arrow == False
-                ):
+                if chain_list[edge_index].left_arrow and not chain_list[edge_index].right_arrow:
                     for edge in left_node.dst_edge:
                         right_node_label = self.edge_dict[edge].src
                         if right_node_label == right_label:
                             all_label_list.append([left_node_label, edge, right_node_label])
-                elif (
-                    chain_list[edge_index].left_arrow == False
-                    and chain_list[edge_index].right_arrow == True
-                ):
+                elif not chain_list[edge_index].left_arrow and chain_list[edge_index].right_arrow:
                     for edge in self.vertex_dict[left_node_label].src_edge:
                         right_node_label = self.edge_dict[edge].dst
                         if right_node_label == right_label or right_label == "":

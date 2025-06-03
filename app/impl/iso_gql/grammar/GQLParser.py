@@ -1,7 +1,22 @@
 # Generated from ./GQL.g4 by ANTLR 4.13.2
 import sys
 
-from antlr4 import *
+from antlr4 import (
+    ATN,
+    DFA,
+    ATNDeserializer,
+    NoViableAltException,
+    Parser,
+    ParserATNSimulator,
+    ParserRuleContext,
+    ParseTreeListener,
+    ParseTreeVisitor,
+    PredictionContextCache,
+    RecognitionException,
+    RuleContext,
+    Token,
+    TokenStream,
+)
 
 if sys.version_info[1] > 5:
     from typing import TextIO
@@ -80256,8 +80271,8 @@ class GQLParser(Parser):
         return localctx
 
     def sempred(self, localctx: RuleContext, ruleIndex: int, predIndex: int):
-        if self._predicates == None:
-            self._predicates = dict()
+        if self._predicates is None:
+            self._predicates = {}
         self._predicates[92] = self.compositeQueryExpression_sempred
         self._predicates[214] = self.labelExpression_sempred
         self._predicates[233] = self.simplifiedTerm_sempred
