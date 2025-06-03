@@ -3,7 +3,6 @@ from app.core.generalizer.query_generalizer import QueryGeneralizer
 from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
 from app.core.translator.question_translator import QuestionTranslator
-from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
 from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
 from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import TugraphCypherQueryTranslator as CypherTranslator
 
@@ -29,11 +28,10 @@ instruction = INSTRUCTION_TEMPLATE.format(schema_description=schema_description)
 
 # generalize query
 query_visitor = TugraphCypherAstVisitor()
-gql_translator = GQLTranslator()
 query_list = query_generalizer.generalize_from_cypher(query_template=query_template)
 
 # translate query into question
-question_translator = QuestionTranslator(llm_client, 5)
+question_translator = QuestionTranslator(llm_client=llm_client, chunk_size=5)
 question_list = question_translator.translate(
     query_template=query_template,
     question_template=question_template,
@@ -44,7 +42,6 @@ question_list = question_translator.translate(
 corpus_pair_list = []
 for i in range(len(query_list)):
     corpus_pair_list.append((query_list[i], question_list[i]))
-corpus_pair_list.append((query_template, question_template))
 
 # generalize question
 generalized_corpus_pair_list = []

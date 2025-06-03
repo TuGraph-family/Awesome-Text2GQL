@@ -39,7 +39,7 @@ if success:
         query_list.append(query)
 
 # translate query into question
-question_translator = QuestionTranslator(llm_client, 5)
+question_translator = QuestionTranslator(llm_client=llm_client, chunk_size=5)
 question_list = question_translator.translate(
     query_template=query_template,
     question_template=question_template,
@@ -50,7 +50,6 @@ question_list = question_translator.translate(
 corpus_pair_list = []
 for i in range(len(query_list)):
     corpus_pair_list.append((query_list[i], question_list[i]))
-corpus_pair_list.append((query_template, question_template))
 
 # generalize question
 generalized_corpus_pair_list = []

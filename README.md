@@ -77,17 +77,47 @@ Translator supports multilingual tranlsation for question translation and multi-
 
 #### Question Translator
 
-Coming soon.
+Question translator currently has the ability to translate a query into a natural language question(English) with a similar query template and corresponding question template. In the future, we will support multilingual translation of natural language question.
+
+``` python
+from app.core.llm.llm_client import LlmClient
+from app.core.translator.question_translator import QuestionTranslator
+
+llm_client = LlmClient(model="qwen-plus-0723")
+query_template="MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
+question_template="Who are Roy Redgrave's second generations?"
+query_list = [
+    "MATCH (n1:person)-[e1:acted_in]->{1,1}(n2:movie) WHERE n1.id = 'Neo' RETURN n2.`duration` AS `DURATION`",
+    "MATCH (n1:person)-[e1:directed]->{1,1}(n2:movie) WHERE n1.name = 'MacQUeen' RETURN n2.id AS ID",
+    "MATCH (n1:person)-[e1:produce]->{1,1}(n2:movie) WHERE n1.name = 'Hans' RETURN n2.rated AS RATED"
+    ]
+
+# translate query into question
+question_translator = QuestionTranslator(llm_client=llm_client, chunk_size=5)
+question_list = question_translator.translate(
+    query_template=query_template,
+    question_template=question_template,
+    query_list = query_list
+)
+```
 
 #### Query Translator
 
 Query translator has the ability to translate queries in one query language into another, like cypher to gql. To achieve this, Awesome-Text2GQL designed and implemented a set of intermediate expression for commonly used graph query languages(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) and their dialects. With ast vistitor's implementations, different graph query language can be translated into the intermediate expression. With the query translator's implementations, intermediate expression can be translated into different graph query language.
 
-<!-- 添加示例代码 -->
+``` python
+from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
 
-Query translator also has the ability to translate a query into a natural language question with a similar query template and corresponding question template.
+query_visitor = TugraphCypherAstVisitor()
+gql_translator = GQLTranslator()
+cypher = "MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
 
-<!-- 添加示例代码 -->
+# translate cypher to gql
+success, query_pattern = query_visitor.get_query_pattern(cypher)
+if success:
+    gql = gql_translator.translate(query_pattern)
+```
 
 ### Generalizer
 
@@ -97,13 +127,72 @@ Generalizer supports the corpus generalization based on the given query template
 
 Question generalizer has the ability to generalize the given natural language question into similar questions with different language styles, and the symantic similarity is ensured with the given corresponding query. This generalization aims to increase the linguistic diversity of corpus to simulate the real world Text2GQL scenario.
 
-<!-- 添加示例代码 -->
+``` python
+from app.core.generalizer.question_generalizer import QuestionGeneralizer
+from app.core.llm.llm_client import LlmClient
+
+llm_client = LlmClient(model="qwen-plus-0723")
+question_generalizer = QuestionGeneralizer(llm_client)
+corpus_pair_list = [
+    [
+        "MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n",
+        "Who are Roy Redgrave's second generations?"
+    ]
+]
+
+# generalize question
+generalized_corpus_pair_list = []
+for corpus_pair in corpus_pair_list:
+    query = corpus_pair[0]
+    question = corpus_pair[1]
+    generalized_question_list = question_generalizer.generalize(
+        query=query,
+        question=question
+    )
+    for generalized_question in generalized_question_list:
+        generalized_corpus_pair_list.append((query, generalized_question))
+    generalized_corpus_pair_list.append((query, question))
+```
 
 #### Query Generalizer
 
 Query generalizer has the ability to generalize the given query into queries with similar query pattern on the given schema. With the intermediate expression for graph query languages, Awesome-Text2GQL can translate a query into intermediate query pattern, and the similar query pattern can be constructed with different variables on different schema. This generalization aims to migrate existing query patterns onto new database instance efficiently.
 
-<!-- 添加示例代码 -->
+``` python
+from app.core.generalizer.query_generalizer import QueryGeneralizer
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+
+db_id = "movie"
+instance_path = "../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
+query_visitor = TugraphCypherAstVisitor()
+query_generalizer = QueryGeneralizer(db_id, instance_path)
+query_template="MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born"
+
+# generalize cypher query
+query_list = query_generalizer.generalize_from_cypher(query_template=query_template)
+```
+
+``` python
+from app.core.generalizer.query_generalizer import QueryGeneralizer
+from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+
+db_id = "movie"
+instance_path = "../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
+query_generalizer = QueryGeneralizer(db_id, instance_path)
+query_visitor = TugraphCypherAstVisitor()
+gql_translator = GQLTranslator()
+query_template="MATCH (n:Person)-[:HAS_CHILD*1]->(n) WHERE n.name = 'Vanessa Redgrave' RETURN n"
+
+# generalize gql query
+query_list = []
+success, query_pattern = query_visitor.get_query_pattern(query_template)
+if success:
+    query_pattern_list = query_generalizer.generalize(query_pattern=query_pattern)
+    for query_pattern in query_pattern_list:
+        query = gql_translator.translate(query_pattern)
+        query_list.append(query)
+```
 
 ## Development Guide
 
