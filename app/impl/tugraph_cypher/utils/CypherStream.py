@@ -1,5 +1,6 @@
-from antlr4.InputStream import InputStream
 import codecs
+
+from antlr4.InputStream import InputStream
 
 
 class CypherStream(InputStream):

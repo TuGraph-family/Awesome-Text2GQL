@@ -1,4 +1,5 @@
 from typing import List, Tuple
+
 from app.core.llm.llm_client import LlmClient
 
 CONTENT_TEMPLATE = """

@@ -1,21 +1,23 @@
+import copy
+import random
+
 from antlr4 import ParserRuleContext
-from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
-from app.impl.tugraph_cypher.generalizer.base.Parse import (
-    Node,
-    ReturnBody,
-    PatternPart,
-    EdgeInstance,
-)
+
+from app.impl.tugraph_cypher.generalizer.base import Config
 from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
-from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
+from app.impl.tugraph_cypher.generalizer.base.Expr import ExprLeaf, ExprTree
+from app.impl.tugraph_cypher.generalizer.base.Parse import (
+    EdgeInstance,
+    Node,
+    PatternPart,
+    ReturnBody,
+)
 from app.impl.tugraph_cypher.generalizer.base.Pattern import (
     CurrentPattern,
 )
-from app.impl.tugraph_cypher.generalizer.base.Expr import ExprTree, ExprLeaf
-from app.impl.tugraph_cypher.generalizer.base import Config
-import copy
-import random
+from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
+from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
+from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 
 
 class TransVisitor(LcypherVisitor):

@@ -1,5 +1,6 @@
-from typing import Dict, List, Tuple
 from dataclasses import dataclass
+from typing import List, Tuple
+
 from app.core.clauses.clause import Clause
 
 
@@ -101,7 +102,7 @@ class MatchClause(Clause):
             if node_pattern.label != "":
                 match_string += f"(:{node_pattern.label})"
             else:
-                match_string += f"()"
+                match_string += "()"
         for i in range(path_degree):
             # add edge
             edge_pattern = self.path_pattern.edge_pattern_list[i]
@@ -154,5 +155,5 @@ class MatchClause(Clause):
                 if node_pattern.label != "":
                     match_string += f"(:{node_pattern.label})"
                 else:
-                    match_string += f"()"
+                    match_string += "()"
         return match_string

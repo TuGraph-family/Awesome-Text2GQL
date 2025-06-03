@@ -172,7 +172,7 @@ class CypherBase:
 
     def load_dict_from_file(self, file_paths):
         for file_path in file_paths:
-            with open(file_path, "r") as file:
+            with open(file_path) as file:
                 lines = file.readlines()
             for line in lines:
                 elements = line.strip().split()

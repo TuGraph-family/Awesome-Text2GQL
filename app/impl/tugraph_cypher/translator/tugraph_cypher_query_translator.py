@@ -1,10 +1,11 @@
 from functools import singledispatchmethod
 from typing import List
+
 from antlr4 import CommonTokenStream, InputStream
-from app.core.clauses.clause import Clause
-from app.core.translator.query_translator import QueryTranslator
 from antlr4.error.ErrorListener import ErrorListener
 
+from app.core.clauses.clause import Clause
+from app.core.translator.query_translator import QueryTranslator
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 
@@ -27,7 +28,7 @@ class TugraphCypherQueryTranslator(QueryTranslator):
             parser.removeErrorListeners()
             parser.addErrorListener(error_listener)
             tree = parser.oC_Cypher()
-        except Exception as e:
+        except Exception:
             return False
 
         return True

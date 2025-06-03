@@ -1,4 +1,5 @@
-from antlr4 import InputStream, CommonTokenStream
+from antlr4 import CommonTokenStream, InputStream
+
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 

@@ -1,10 +1,11 @@
 from typing import List
-from app.impl.iso_gql.grammar.GQLVisitor import GQLVisitor
-from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
-from app.impl.iso_gql.grammar.GQLParser import GQLParser
-from antlr4 import InputStream, CommonTokenStream
+
+from antlr4 import CommonTokenStream, InputStream
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
+from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
+from app.impl.iso_gql.grammar.GQLParser import GQLParser
+from app.impl.iso_gql.grammar.GQLVisitor import GQLVisitor
 
 
 class IsoGqlAstVisitor(GQLVisitor, AstVisitor):

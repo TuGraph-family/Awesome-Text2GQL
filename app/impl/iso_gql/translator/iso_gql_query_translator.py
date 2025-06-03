@@ -1,17 +1,17 @@
-from typing import List, overload
 from functools import singledispatchmethod
+from typing import List
+
 from antlr4 import CommonTokenStream, InputStream
-from multipledispatch import dispatch
+from antlr4.error.ErrorListener import ErrorListener
+
 from app.core.clauses.clause import Clause
 from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern, PathPattern
 from app.core.clauses.return_clause import ReturnBody, ReturnClause, ReturnItem, SortItem
 from app.core.clauses.where_clause import CompareExpression, WhereClause
 from app.core.clauses.with_clause import WithClause
 from app.core.translator.query_translator import QueryTranslator
-from antlr4.error.ErrorListener import ErrorListener
-
-from app.impl.iso_gql.grammar.GQLParser import GQLParser
 from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
+from app.impl.iso_gql.grammar.GQLParser import GQLParser
 
 
 class MyErrorListener(ErrorListener):
@@ -301,7 +301,7 @@ class IsoGqlQueryTranslator(QueryTranslator):
             parser.removeErrorListeners()
             parser.addErrorListener(error_listener)
             tree = parser.gqlProgram()
-        except Exception as e:
+        except Exception:
             return False
 
         return True
@@ -498,17 +498,17 @@ class IsoGqlQueryTranslator(QueryTranslator):
         if compare_expression.property:
             compare_expression_str += f".{compare_expression.property}"
         if compare_expression.comparison_type == "equal":
-            compare_expression_str += f" = "
+            compare_expression_str += " = "
         elif compare_expression.comparison_type == "neq":
-            compare_expression_str += f" <> "
+            compare_expression_str += " <> "
         elif compare_expression.comparison_type == "less":
-            compare_expression_str += f" < "
+            compare_expression_str += " < "
         elif compare_expression.comparison_type == "greater":
-            compare_expression_str += f" > "
+            compare_expression_str += " > "
         elif compare_expression.comparison_type == "leq":
-            compare_expression_str += f" <= "
+            compare_expression_str += " <= "
         elif compare_expression.comparison_type == "geq":
-            compare_expression_str += f" >= "
+            compare_expression_str += " >= "
         compare_expression_str += f"{compare_expression.comparison_value}"
 
         return compare_expression_str

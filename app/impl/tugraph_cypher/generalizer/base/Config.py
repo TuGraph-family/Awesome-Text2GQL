@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 
 
 class Config:
@@ -14,7 +13,7 @@ class Config:
         self.instance_path = self.config_data.get("db_instance_path")
 
     def load_config(self):
-        with open(self.file_path, "r") as file:
+        with open(self.file_path) as file:
             return json.load(file)
 
     def get_input_query_path(self):

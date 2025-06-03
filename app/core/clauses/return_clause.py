@@ -1,5 +1,6 @@
-from typing import List
 from dataclasses import dataclass
+from typing import List
+
 from app.core.clauses.clause import Clause
 
 
@@ -33,7 +34,7 @@ class ReturnClause(Clause):
         self.distinct = distinct
 
     def to_string(self) -> str:
-        return_string = f"RETURN"
+        return_string = "RETURN"
         # add return items
         for return_item in self.return_body.return_item_list:
             item_string += f"{return_item.symbolic_name}"
@@ -73,7 +74,7 @@ class ReturnClause(Clause):
         return return_string
 
     def to_string_gql(self) -> str:
-        return_string = f"RETURN"
+        return_string = "RETURN"
         if self.distinct:
             return_string += " DISTINCT"
         # add return items

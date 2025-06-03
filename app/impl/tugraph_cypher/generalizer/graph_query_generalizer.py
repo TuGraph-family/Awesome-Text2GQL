@@ -2,6 +2,7 @@ import os
 from typing import List
 
 from antlr4 import CommonTokenStream, InputStream
+
 from app.impl.tugraph_cypher.generalizer.base.Config import Config
 from app.impl.tugraph_cypher.generalizer.base.TransVisitor import TransVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer

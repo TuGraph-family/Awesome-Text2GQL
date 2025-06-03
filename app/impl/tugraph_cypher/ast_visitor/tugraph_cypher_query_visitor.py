@@ -1,16 +1,17 @@
 from typing import List, Tuple
-from app.core.clauses.return_clause import ReturnClause, ReturnBody, ReturnItem, SortItem
+
+from antlr4 import CommonTokenStream, InputStream
+
+from app.core.ast_visitor.ast_visitor import AstVisitor
 from app.core.clauses.clause import Clause
 from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern, PathPattern
+from app.core.clauses.return_clause import ReturnBody, ReturnClause, ReturnItem, SortItem
 from app.core.clauses.where_clause import CompareExpression, WhereClause
 from app.core.clauses.with_clause import WithClause
 from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator
-from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from antlr4 import InputStream, CommonTokenStream
-
-from app.core.ast_visitor.ast_visitor import AstVisitor
+from app.impl.tugraph_cypher.grammar.LcypherVisitor import LcypherVisitor
 
 
 class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
@@ -23,7 +24,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         try:
             querry_pattern = self.visit(tree)
             return True, querry_pattern
-        except Exception as e:
+        except Exception:
             return False, []
 
     def visitOC_SinglePartQuery(self, ctx: LcypherParser.OC_SinglePartQueryContext):

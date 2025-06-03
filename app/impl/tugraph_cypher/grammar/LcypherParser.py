@@ -1,20 +1,21 @@
 # Generated from /root/work_repo/antlr_python/cypher/Lcypher.g4 by ANTLR 4.13.1
+import sys
+
 from antlr4 import (
-    ParseTreeListener,
-    ParseTreeVisitor,
-    RecognitionException,
-    ParserRuleContext,
-    NoViableAltException,
     ATN,
     DFA,
-    ParserATNSimulator,
-    TokenStream,
-    Token,
-    PredictionContextCache,
     ATNDeserializer,
+    NoViableAltException,
     Parser,
+    ParserATNSimulator,
+    ParserRuleContext,
+    ParseTreeListener,
+    ParseTreeVisitor,
+    PredictionContextCache,
+    RecognitionException,
+    Token,
+    TokenStream,
 )
-import sys
 
 if sys.version_info[1] > 5:
     from typing import TextIO

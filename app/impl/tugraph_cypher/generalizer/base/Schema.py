@@ -1,10 +1,11 @@
+import copy
+import csv
 import json
 import os
-import csv
 import random
-from app.impl.tugraph_cypher.generalizer.base.Parse import PatternPart, EdgeInstance, Node
+
 from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
-import copy
+from app.impl.tugraph_cypher.generalizer.base.Parse import PatternPart
 
 
 class Vertex:
@@ -43,7 +44,7 @@ class Schema:
 
     def parse_schema(self):
         try:
-            with open(self.schema_path, "r") as file:
+            with open(self.schema_path) as file:
                 data = json.load(file)
                 self.parse_schema_impl(data)
         except FileNotFoundError:
@@ -180,7 +181,7 @@ class Schema:
                             instance.append(src_vertex_instance)
                             instance_of_pattern_match_lists.append(copy.deepcopy(instance))
                     else:
-                        print(f"[ERROR] Labellist is not right!")
+                        print("[ERROR] Labellist is not right!")
                 continue
             if instance_of_pattern_match_lists == []:
                 # print(f"[WARNING] no matched data when finding the instance of {edge.src}-{edge_label}-{edge.dst}")
@@ -220,7 +221,7 @@ class Schema:
                         if i == edge_count - 1:
                             break
                 else:
-                    print(f"[ERROR] Labellist is not right!")
+                    print("[ERROR] Labellist is not right!")
             if temp_instances == []:
                 # print(f"[WARNING] no matched data when finding the instance of {label_list}")
                 pass
@@ -264,7 +265,7 @@ class Schema:
                 instance_of_pattern_match_list.append(edge_instance)
                 instance_of_pattern_match_list.append(src_vertex_instance)
             else:
-                print(f"[ERROR] no matched data")
+                print("[ERROR] no matched data")
         return instance_of_pattern_match_list
 
     def rm_long_property_of_instance(self, node_instance):

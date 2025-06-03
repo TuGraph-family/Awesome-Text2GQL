@@ -1,7 +1,8 @@
-import random
-from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
-from app.impl.tugraph_cypher.generalizer.base.Parse import PatternPart
 import copy
+import random
+
+from app.impl.tugraph_cypher.generalizer.base.Parse import PatternPart
+from app.impl.tugraph_cypher.generalizer.base.Schema import Schema
 
 
 class Pattern:
@@ -57,7 +58,7 @@ class Pattern:
 
     def if_label_list_same(self, label_list_flag, label_list, omit_index_list):
         differing_indices = []
-        for index, (item1, item2) in enumerate(zip(label_list_flag, label_list)):
+        for index, (item1, item2) in enumerate(zip(label_list_flag, label_list, strict=False)):
             if item1 != item2:
                 differing_indices.append(index)
         return differing_indices == omit_index_list

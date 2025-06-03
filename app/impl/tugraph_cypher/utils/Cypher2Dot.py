@@ -1,19 +1,20 @@
 # generate .dot file for visulization.
 
-from antlr4.Token import Token
-from antlr4.Utils import escapeWhitespace
-from antlr4.tree.Tree import RuleNode, ErrorNode, TerminalNode, Tree
 from antlr4 import CommonTokenStream
+from antlr4.Token import Token
+from antlr4.tree.Tree import ErrorNode, RuleNode, TerminalNode, Tree
+from antlr4.Utils import escapeWhitespace
+from graphviz import Digraph
+from utils.CypherStream import CypherStream
+
 from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
-from utils.CypherStream import CypherStream
-from graphviz import Digraph
 
 # need forward declaration
 Parser = None
 
 
-class Cypher2Dot(object):
+class Cypher2Dot:
     def __init__(cls):
         cls.node_cnt = 0
         cls.root_list = []

@@ -1,6 +1,7 @@
 import random
-from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
+
 from app.impl.tugraph_cypher.generalizer.base.Config import Config
+from app.impl.tugraph_cypher.generalizer.base.CypherBase import CypherBase
 
 
 class Node:

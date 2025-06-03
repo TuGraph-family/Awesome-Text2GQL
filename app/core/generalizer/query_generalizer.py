@@ -1,11 +1,12 @@
 from typing import List
+
 from app.core.clauses.clause import Clause
+from app.core.clauses.match_clause import EdgePattern, MatchClause, NodePattern, PathPattern
+from app.core.clauses.return_clause import ReturnBody, ReturnClause
 from app.core.clauses.where_clause import CompareExpression, WhereClause
-from app.impl.tugraph_cypher.schema.schema_parser import TuGraphSchemaParser
-from app.core.schema.schema_parser import SchemaParser
 from app.core.schema.schema_graph import SchemaGraph
-from app.core.clauses.match_clause import PathPattern, NodePattern, EdgePattern, MatchClause
-from app.core.clauses.return_clause import ReturnClause, ReturnBody
+from app.core.schema.schema_parser import SchemaParser
+from app.impl.tugraph_cypher.schema.schema_parser import TuGraphSchemaParser
 
 
 class QueryGeneralizer:

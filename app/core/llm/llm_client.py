@@ -1,8 +1,9 @@
-import random
-import torch
 from http import HTTPStatus
+import random
+
 from dashscope import Generation
-from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class LlmClient:

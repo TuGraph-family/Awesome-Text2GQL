@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 from app.core.llm.llm_client import LlmClient
 

@@ -1,9 +1,10 @@
+import csv
 import json
 import os
-import csv
 import random
-from app.core.schema.node import Node
+
 from app.core.schema.edge import Edge
+from app.core.schema.node import Node
 from app.core.schema.schema_graph import SchemaGraph
 from app.core.schema.schema_parser import SchemaParser
 

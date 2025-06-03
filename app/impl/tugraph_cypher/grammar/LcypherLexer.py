@@ -1,6 +1,7 @@
 # Generated from /root/work_repo/antlr_python/cypher/Lcypher.g4 by ANTLR 4.13.1
-from antlr4 import PredictionContextCache, LexerATNSimulator, DFA, Lexer, ATNDeserializer
 import sys
+
+from antlr4 import DFA, ATNDeserializer, Lexer, LexerATNSimulator, PredictionContextCache
 
 if sys.version_info[1] > 5:
     from typing import TextIO

@@ -1,14 +1,13 @@
-import os
-import string
-from typing import Dict, List, Tuple, Union
 from collections import deque
 import random
+import string
+from typing import Dict, List, Tuple
 
-from app.core.schema.node import Node
-from app.core.schema.edge import Edge
-from app.core.clauses.match_clause import PathPattern, NodePattern, EdgePattern
-from app.core.clauses.where_clause import CompareExpression
+from app.core.clauses.match_clause import EdgePattern, NodePattern, PathPattern
 from app.core.clauses.return_clause import ReturnBody, ReturnItem
+from app.core.clauses.where_clause import CompareExpression
+from app.core.schema.edge import Edge
+from app.core.schema.node import Node
 
 
 class SchemaGraph:
