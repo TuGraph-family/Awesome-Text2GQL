@@ -2,35 +2,36 @@ from typing import List
 from dataclasses import dataclass
 from app.core.clauses.clause import Clause
 
+
 @dataclass
 class ReturnItem:
-
     symbolic_name: str
     property: str
     alias: str
     function_name: str = ""
 
+
 @dataclass
 class SortItem:
-
     symbolic_name: str
     property: str
     order: str
     function_name: str = ""
 
+
 @dataclass
 class ReturnBody:
-
     return_item_list: List[ReturnItem]
     sort_item_list: List[SortItem]
     skip: int = -1
     limit: int = -1
 
+
 class ReturnClause(Clause):
     def __init__(self, return_body: ReturnBody, distinct: bool = False):
         self.return_body: ReturnBody = return_body
         self.distinct = distinct
-    
+
     def to_string(self) -> str:
         return_string = f"RETURN"
         # add return items
@@ -46,7 +47,7 @@ class ReturnClause(Clause):
         return_string = return_string.strip(",")
         # add order list
         if len(self.return_body.sort_item_list) != 0:
-            return_string += " ORDER BY" 
+            return_string += " ORDER BY"
             for sort_item in self.return_body.sort_item_list:
                 item_string += f"{sort_item.symbolic_name}"
                 if sort_item.property != "":
@@ -88,7 +89,7 @@ class ReturnClause(Clause):
         return_string = return_string.strip(",")
         # add order list
         if len(self.return_body.sort_item_list) != 0:
-            return_string += " ORDER BY" 
+            return_string += " ORDER BY"
             for sort_item in self.return_body.sort_item_list:
                 item_string = f"{sort_item.symbolic_name}"
                 if sort_item.property != "":

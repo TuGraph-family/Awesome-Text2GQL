@@ -1,5 +1,3 @@
-
-
 from typing import List, Tuple
 from app.core.llm.llm_client import LlmClient
 
@@ -37,6 +35,7 @@ Now, translate each of the following queries one by one. Do not indicate which q
 Separate results with newline characters and ensure sentences include proper punctuation marks.
 """
 
+
 class QuestionTranslator:
     def __init__(self, llm_client: LlmClient, chunk_size):
         self.llm_client = llm_client
@@ -49,11 +48,15 @@ class QuestionTranslator:
             "`",
             ". ",
         ]
-    
-    def translate(self, query_template: str, question_template: str, query_list: List[str]) -> List[Tuple[str, str]]:
+
+    def translate(
+        self, query_template: str, question_template: str, query_list: List[str]
+    ) -> List[Tuple[str, str]]:
         question_list = []
         chunk_size = self.chunk_size
-        query_chunk_list = [query_list[i:i+chunk_size] for i in range(0, len(query_list), chunk_size)]
+        query_chunk_list = [
+            query_list[i : i + chunk_size] for i in range(0, len(query_list), chunk_size)
+        ]
         for query_chunk in query_chunk_list:
             query_chunk_str = ""
             for query in query_chunk:
@@ -61,7 +64,7 @@ class QuestionTranslator:
             content = CONTENT_TEMPLATE.format(
                 query_template=query_template,
                 question_template=question_template,
-                query_chunk_str=query_chunk_str
+                query_chunk_str=query_chunk_str,
             )
 
             messages = [
@@ -71,32 +74,34 @@ class QuestionTranslator:
                 },
                 {"role": "user", "content": content},
             ]
-            
+
             # 3. get response
             response = self.llm_client.call_with_messages(messages)
 
             # 4. postprocess and save
             if response != "":
                 translated_question_list = self.post_process(response)
-                
-                #deal with unexpected questions length
+
+                # deal with unexpected questions length
                 chunk_size = len(query_chunk)
                 questions_size = len(translated_question_list)
-                
+
                 if questions_size > chunk_size:
                     translated_question_list = translated_question_list[0:chunk_size]
                 elif questions_size < chunk_size:
-                    filled_questions = ['Question translation failed.'] * (chunk_size - questions_size)
+                    filled_questions = ["Question translation failed."] * (
+                        chunk_size - questions_size
+                    )
                     translated_question_list = translated_question_list + filled_questions
                 else:
                     pass
             else:
-                translated_question_list = ['Question translation failed.'] * (chunk_size)
-            
+                translated_question_list = ["Question translation failed."] * (chunk_size)
+
             question_list += translated_question_list
-        
+
         return question_list
-    
+
     def post_process(self, response):
         lines = response.split("\n")
         generalized_question_list = []
@@ -115,12 +120,19 @@ class QuestionTranslator:
                 generalized_question_list.append(line)
         return generalized_question_list
 
+
 if __name__ == "__main__":
     llm_client = LlmClient(model="qwen-plus-0723")
     question_translator = QuestionTranslator(llm_client, 5)
     translated_question_list = question_translator.translate(
         query_template="MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
         question_template="Find the birth year of Carrie-Anne Moss.",
-        query_list = ['MATCH (n{born: 1965}) RETURN n.id AS id', 'MATCH (n{id: 526}) RETURN n.name AS name', 'MATCH (n{name: "hand to hand combat"}) RETURN n.name AS name', 'MATCH (n{summary: "placeholder text"}) RETURN n.title AS title', 'MATCH (n{login: "Matthew"}) RETURN n.login AS login']
+        query_list=[
+            "MATCH (n{born: 1965}) RETURN n.id AS id",
+            "MATCH (n{id: 526}) RETURN n.name AS name",
+            'MATCH (n{name: "hand to hand combat"}) RETURN n.name AS name',
+            'MATCH (n{summary: "placeholder text"}) RETURN n.title AS title',
+            'MATCH (n{login: "Matthew"}) RETURN n.login AS login',
+        ],
     )
     print(translated_question_list)

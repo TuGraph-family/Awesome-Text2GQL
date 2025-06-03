@@ -4,13 +4,15 @@ from app.core.clauses.clause import Clause
 from app.core.clauses.return_clause import ReturnBody
 from app.core.clauses.where_clause import CompareExpression
 
-class WithClause(Clause):
 
-    def __init__(self, return_body: ReturnBody, where_expression: CompareExpression, distinct: bool):
+class WithClause(Clause):
+    def __init__(
+        self, return_body: ReturnBody, where_expression: CompareExpression, distinct: bool
+    ):
         self.return_body: ReturnBody = return_body
         self.where_expression = where_expression
         self.distinct = distinct
-    
+
     def to_string(self) -> str:
         with_string = "WITH "
         for return_item in self.return_body.return_item_list:
@@ -18,7 +20,7 @@ class WithClause(Clause):
             if return_item.alias != "":
                 with_string += f" AS {return_item.alias}"
             with_string += ","
-        
+
         return with_string.strip(",")
 
     def to_string_cypher(self) -> str:
@@ -28,7 +30,7 @@ class WithClause(Clause):
             if return_item.alias != "":
                 with_string += f" AS {return_item.alias}"
             with_string += ","
-        
+
         return with_string.strip(",")
 
     def to_string_gql(self) -> str:
@@ -48,7 +50,7 @@ class WithClause(Clause):
         with_string = with_string.strip(",")
         # add order list
         if len(self.return_body.sort_item_list) != 0:
-            with_string += " ORDER BY" 
+            with_string += " ORDER BY"
             for sort_item in self.return_body.sort_item_list:
                 item_string = f"{sort_item.symbolic_name}"
                 if sort_item.property != "":
@@ -66,5 +68,5 @@ class WithClause(Clause):
         if self.return_body.limit != -1:
             with_string += f" LIMIT {self.return_body.limit}"
         with_string += " NEXT"
-        
+
         return with_string

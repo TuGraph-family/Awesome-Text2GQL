@@ -1,5 +1,3 @@
-
-
 from typing import List, Tuple
 
 from app.core.llm.llm_client import LlmClient
@@ -36,12 +34,9 @@ class QuestionGeneralizer:
             "`",
             ". ",
         ]
-    
+
     def generalize(self, query: str, question: str) -> List[str]:
-        content = CONTENT_TEMPLATE.format(
-            query=query,
-            question=question
-        )
+        content = CONTENT_TEMPLATE.format(query=query, question=question)
         # 2. gen massages
         messages = [
             {
@@ -59,7 +54,7 @@ class QuestionGeneralizer:
             return generalized_question_list
         else:
             return []
-    
+
     def post_process(self, response):
         lines = response.split("\n")
         generalized_question_list = []
@@ -77,12 +72,13 @@ class QuestionGeneralizer:
             if line:
                 generalized_question_list.append(line)
         return generalized_question_list
-    
+
+
 if __name__ == "__main__":
     llm_client = LlmClient(model="qwen-plus-0723")
     question_generalizer = QuestionGeneralizer(llm_client)
     generalized_question_list = question_generalizer.generalize(
         query="MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
-        question="Find the birth year of Carrie-Anne Moss."
+        question="Find the birth year of Carrie-Anne Moss.",
     )
     print(generalized_question_list)

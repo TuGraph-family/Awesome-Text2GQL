@@ -4,7 +4,8 @@ from http import HTTPStatus
 from dashscope import Generation
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-class LlmClient:   
+
+class LlmClient:
     def __init__(self, model="", model_path=""):
         self.model = model
         self.model_path = model_path
@@ -12,19 +13,21 @@ class LlmClient:
         self.tokenizer = None
         if model_path != "":
             # check current device
-            self.current_device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-            #load tokenizer
+            self.current_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            # load tokenizer
             self.tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
-            #load model
-            self.model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16).to(current_device) 
-    
+            # load model
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_path, torch_dtype=torch.float16
+            ).to(current_device)
+
     def call_with_messages(self, messages):
         if self.model_path == "":
             output = self.call_with_messages_online(messages)
         else:
             output = self.call_with_messages_local(messages)
         return output
-    
+
     def call_with_messages_online(self, messages):
         response = Generation.call(
             model=self.model,
@@ -55,10 +58,12 @@ class LlmClient:
                 return ""
 
     def call_with_messages_local(self, messages):
-        #generate content
-        inputs = self.tokenizer.apply_chat_template(messages, tokenize=True, return_dict=True, return_tensors="pt").to(self.current_device)
-        
-        #add more args
+        # generate content
+        inputs = self.tokenizer.apply_chat_template(
+            messages, tokenize=True, return_dict=True, return_tensors="pt"
+        ).to(self.current_device)
+
+        # add more args
         output = self.model.generate(
             **inputs,
             do_sample=True,
@@ -67,13 +72,16 @@ class LlmClient:
             top_k=50,
             pad_token_id=self.tokenizer.eos_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
-            max_new_tokens = 2048
+            max_new_tokens=2048,
         )
-        
-        #deal with output and return
-        output = self.tokenizer.decode(output[0][inputs['input_ids'].shape[1]:], skip_special_tokens=True)
-        
+
+        # deal with output and return
+        output = self.tokenizer.decode(
+            output[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True
+        )
+
         return output
+
 
 if __name__ == "__main__":
     llm_client = LlmClient(model="qwen-plus-0723")
