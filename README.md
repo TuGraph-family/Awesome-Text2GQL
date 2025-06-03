@@ -63,9 +63,21 @@ To run generating questions and generalization functions based on LLMs, use mode
 
 #### Cypher2GQL
 
+`python ./examples/cypher2gql.py`
+
+This example shows how to use AwesomeText2GQL Framework to translate neo4j's Text2Cypher corpus into Text2GQL corpus with queries aligned to ISO-GQL grammar.
+
 #### Generalize Cypher Corpus
 
+`python ./examples/generalize_corpus_cypher.py`
+
+This example shows how to use AwesomeText2GQL Framework to generalize from one cypher corpus pair to construct a Text2GQL corpus dataset.
+
 #### Generalize GQL Corpus
+
+`python ./examples/generalize_corpus_gql.py`
+
+This example shows how to use AwesomeText2GQL Framework to generalize from one ISO-GQL corpus pair to construct a Text2GQL corpus dataset.
 
 ## Modules
 
