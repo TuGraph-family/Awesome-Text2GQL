@@ -40,7 +40,7 @@ To run generating questions and generalization functions based on LLMs，apply A
 
 1. Apply API-KEY
 
-We build the corpus generalization module based on the Qwen Inference Service served by Aliyvn, you can refer to [Aliyvn](https://help.aliyun.com/zh/dashscope/developer-reference/acquisition-and-configuration-of-api-key?spm=a2c4g.11186623.0.0.4e202a9dXlz5vH#1e6311202fthe) to apply the API-KEY.
+We build the corpus generalization module based on the Qwen Inference Service served by Aliyvn, you can refer to [Aliyun](https://help.aliyun.com/zh/dashscope/developer-reference/acquisition-and-configuration-of-api-key?spm=a2c4g.11186623.0.0.4e202a9dXlz5vH#1e6311202fthe) to apply the API-KEY.
 
 2. Set API-KEY via environment variables (recommended)
 
