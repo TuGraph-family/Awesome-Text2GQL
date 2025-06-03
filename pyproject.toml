@@ -42,7 +42,6 @@ pytest-mock = "^3.14.0"
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-extend-select = ["I"]
 
 [tool.ruff.lint]
 select = [
@@ -59,6 +58,7 @@ ignore = [
     "UP035",
     "UP007",
 ]
+extend-select = ["I"]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

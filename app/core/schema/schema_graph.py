@@ -127,14 +127,15 @@ class SchemaGraph:
         # randomly generate comparison value
         # TODO: support value selection from given file
         if type == "STRING":
-            comparison_value = f"'{''.join(random.choice(string.ascii_letters) for _ in range(random.randint(0, 20)))}'"
+            str_len = random.randint(0, 20)
+            cmp_value = f"{''.join(random.choice(string.ascii_letters) for _ in range(str_len))}'"
         else:
-            comparison_value = random.randint(0, 10000)
+            cmp_value = random.randint(0, 10000)
         return CompareExpression(
             symbolic_name=symbolic_name,
             property=property,
             comparison_type=comparison_type,
-            comparison_value=comparison_value,
+            comparison_value=cmp_value,
         )
 
     def match_return_body(self, item_list: list[tuple[str, str]]) -> ReturnBody:

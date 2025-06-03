@@ -47,7 +47,8 @@ class LlmClient:
                 self.call_with_messages_online(messages)
             else:
                 print(
-                    f"Request id: {response.request_id}, Status code: {response.status_code}, error code: {response.code}, error message: {response.message}"
+                    f"Request id: {response.request_id}, Status code: {response.status_code}"
+                    + f", error code: {response.code}, error message: {response.message}"
                 )
                 print("Failed!", messages[1]["content"])
                 return ""

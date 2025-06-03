@@ -17,7 +17,10 @@ class WhereClause(Clause):
         self.compare_expression = compare_expression
 
     def to_string(self) -> str:
-        where_string = f"WHERE {self.compare_expression.symbolic_name}.{self.compare_expression.property['name']}"
+        where_string = (
+            f"WHERE {self.compare_expression.symbolic_name}"
+            + f".{self.compare_expression.property['name']}"
+        )
         if self.compare_expression.comparison_type == "equal":
             where_string += " = "
         elif self.compare_expression.comparison_type == "neq":
