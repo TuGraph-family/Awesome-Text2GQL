@@ -16,20 +16,18 @@ Refer to [demo](./chatbot_demo/README.md) for more information.
 
 ### Environment Preparation
 
-For Linux, it is recommended to use miniconda to manage your python environment while other tools may also work.
+It is recommended to use poetry to manage your python environment while other tools may also work.
 
 ```
-conda create --name text2gql python=3.10 
-conda activate text2gql
-git clone https://github.com/TuGraph-family/Awesome-Text2GQL.git
-cd Awesome-Text2GQL
-mkdir output
-```
+# install poetry and poetry shell
+pip install poetry
+pip install poetry-plugin-shell
 
-Install related python dependency packages
+# install environment
+poetry install
 
-```
-pip install .
+# activate virtual environment
+poetry shell
 ```
 
 ### LLM Setup
@@ -49,7 +47,6 @@ We build the corpus generalization module based on the Qwen Inference Service se
 echo "export DASHSCOPE_API_KEY='YOUR_DASHSCOPE_API_KEY'" >> ~/.bashrc
 source ~/.bashrc
 echo $DASHSCOPE_API_KEY
-conda activate text2gql
 ```
 
 #### Setup for Local LLMs
