@@ -1,0 +1,370 @@
+{
+    "schema": [
+      {
+        "label": "person",
+        "type": "VERTEX",
+        "primary": "id",
+        "properties": [
+          {
+            "name": "id",
+            "type": "INT32"
+          },
+          {
+            "name": "name",
+            "type": "STRING",
+            "optional": true
+          },
+          {
+            "name": "born",
+            "type": "INT32",
+            "optional": true
+          },
+          {
+            "name": "poster_image",
+            "type": "STRING",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "label": "genre",
+        "type": "VERTEX",
+        "primary": "id",
+        "properties": [
+          {
+            "name": "id",
+            "type": "INT32"
+          },
+          {
+            "name": "name",
+            "type": "STRING",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "label": "keyword",
+        "primary": "id",
+        "type": "VERTEX",
+        "properties": [
+          {
+            "name": "id",
+            "type": "INT32"
+          },
+          {
+            "name": "name",
+            "type": "STRING",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "label": "movie",
+        "primary": "id",
+        "type": "VERTEX",
+        "properties": [
+          {
+            "name": "id",
+            "type": "INT32"
+          },
+          {
+            "name": "title",
+            "type": "STRING",
+            "optional": true,
+            "index": true
+          },
+          {
+            "name": "tagline",
+            "type": "STRING",
+            "optional": true
+          },
+          {
+            "name": "summary",
+            "type": "STRING",
+            "optional": true
+          },
+          {
+            "name": "poster_image",
+            "type": "STRING",
+            "optional": true
+          },
+          {
+            "name": "duration",
+            "type": "INT32",
+            "optional": true
+          },
+          {
+            "name": "rated",
+            "type": "STRING",
+            "optional": true
+          }
+        ]
+      },
+      {
+        "label": "user",
+        "primary": "id",
+        "type": "VERTEX",
+        "properties": [
+          {
+            "name": "id",
+            "type": "INT32"
+          },
+          {
+            "name": "login",
+            "type": "STRING",
+            "optional": true,
+            "index": true
+          }
+        ]
+      },
+      {
+        "label": "acted_in",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "person",
+            "movie"
+          ]
+        ],
+        "properties": [
+          {
+            "name": "role",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "label": "rate",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "user",
+            "movie"
+          ]
+        ],
+        "properties": [
+          {
+            "name": "stars",
+            "type": "INT8"
+          }
+        ]
+      },
+      {
+        "label": "directed",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "person",
+            "movie"
+          ]
+        ]
+      },
+      {
+        "label": "is_friend",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "user",
+            "user"
+          ]
+        ]
+      },
+      {
+        "label": "has_genre",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "movie",
+            "genre"
+          ]
+        ]
+      },
+      {
+        "label": "has_keyword",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "movie",
+            "keyword"
+          ]
+        ]
+      },
+      {
+        "label": "produce",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "person",
+            "movie"
+          ]
+        ]
+      },
+      {
+        "label": "write",
+        "type": "EDGE",
+        "constraints": [
+          [
+            "person",
+            "movie"
+          ]
+        ]
+      }
+    ],
+    "files": [
+      {
+        "path": "raw_data/vertex_person.csv",
+        "format": "CSV",
+        "label": "person",
+        "header": 0,
+        "columns": [
+          "id",
+          "name",
+          "born",
+          "poster_image"
+        ]
+      },
+      {
+        "path": "raw_data/vertex_genre.csv",
+        "format": "CSV",
+        "label": "genre",
+        "header": 0,
+        "columns": [
+          "id",
+          "name"
+        ]
+      },
+      {
+        "path": "raw_data/vertex_keyword.csv",
+        "format": "CSV",
+        "label": "keyword",
+        "header": 0,
+        "columns": [
+          "id",
+          "name"
+        ]
+      },
+      {
+        "path": "raw_data/vertex_movie.csv",
+        "format": "CSV",
+        "label": "movie",
+        "header": 0,
+        "columns": [
+          "id",
+          "title",
+          "tagline",
+          "summary",
+          "poster_image",
+          "duration",
+          "rated"
+        ]
+      },
+      {
+        "path": "raw_data/vertex_user.csv",
+        "format": "CSV",
+        "label": "user",
+        "header": 0,
+        "columns": [
+          "id",
+          "login"
+        ]
+      },
+      {
+        "path": "raw_data/edge_acted_in.csv",
+        "format": "CSV",
+        "label": "acted_in",
+        "header": 0,
+        "SRC_ID": "person",
+        "DST_ID": "movie",
+        "columns": [
+          "SRC_ID",
+          "DST_ID",
+          "role"
+        ]
+      },
+      {
+        "path": "raw_data/edge_rate.csv",
+        "format": "CSV",
+        "label": "rate",
+        "header": 0,
+        "SRC_ID": "user",
+        "DST_ID": "movie",
+        "columns": [
+          "SRC_ID",
+          "DST_ID",
+          "stars"
+        ]
+      },
+      {
+        "path": "raw_data/edge_directed.csv",
+        "format": "CSV",
+        "label": "directed",
+        "header": 0,
+        "SRC_ID": "person",
+        "DST_ID": "movie",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      },
+      {
+        "path": "raw_data/edge_is_friend.csv",
+        "format": "CSV",
+        "label": "is_friend",
+        "header": 0,
+        "SRC_ID": "user",
+        "DST_ID": "user",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      },
+      {
+        "path": "raw_data/edge_has_genre.csv",
+        "format": "CSV",
+        "label": "has_genre",
+        "header": 0,
+        "SRC_ID": "movie",
+        "DST_ID": "genre",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      },
+      {
+        "path": "raw_data/edge_has_keyword.csv",
+        "format": "CSV",
+        "label": "has_keyword",
+        "header": 0,
+        "SRC_ID": "movie",
+        "DST_ID": "keyword",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      },
+      {
+        "path": "raw_data/edge_produce.csv",
+        "format": "CSV",
+        "label": "produce",
+        "header": 0,
+        "SRC_ID": "person",
+        "DST_ID": "movie",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      },
+      {
+        "path": "raw_data/edge_write.csv",
+        "format": "CSV",
+        "label": "write",
+        "header": 0,
+        "SRC_ID": "person",
+        "DST_ID": "movie",
+        "columns": [
+          "SRC_ID",
+          "DST_ID"
+        ]
+      }
+    ]
+  }

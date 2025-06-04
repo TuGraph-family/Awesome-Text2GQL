@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "Awesome-Text2GQL"
+version = "2.0"
+description = "Awesome-Text2GQL: An AI-assisted Framework for Text2GQL Dataset Construction."
+authors = ["Berry <panghy1106@163.com>", "Lyu Songlin <lyusonglin990625@gmail.com>"]
+packages = [
+    { include = "app" }
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+antlr4-python3-runtime = "4.13.2"
+graphviz = "0.20.1"
+tqdm = "4.66.5"
+torch = "2.6.0"
+transformers = "4.51.3"
+pandas = "2.2.3"
+pyarrow = "^20.0.0"
+dashscope = "^1.23.4"
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[[tool.poetry.source]]
+name = "aliyun"
+priority = "supplemental"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+ruff = "*"
+mypy = "*"
+
+[tool.poetry.group.test.dependencies]
+pytest = "*"
+pytest-cov = "*"
+pytest-mock = "^3.14.0"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle error
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "EXE",
+]
+ignore = [
+    "UP006",    # use List not list
+    "UP035",
+    "UP007",
+]
+extend-select = ["I"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+force-sort-within-sections = true
+known-first-party = ["app"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+python_files = ["test_*.py"]
+addopts = "-v"
+asyncio_mode = "auto"  # Enable asyncio mode
+markers = [
+    "asyncio: mark test as async"
+]
