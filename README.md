@@ -1,5 +1,12 @@
 # Awesome-Text2GQL
 
+[![Star](https://shields.io/github/stars/tugraph-family/Awesome-Text2GQL?logo=startrek&label=Star&color=yellow)](https://github.com/TuGraph-family/Awesome-Text2GQL/stargazers)
+[![Fork](https://shields.io/github/forks/tugraph-family/Awesome-Text2GQL?logo=forgejo&label=Fork&color=orange)](https://github.com/TuGraph-family/Awesome-Text2GQL/forks)
+[![Contributor](https://shields.io/github/contributors/tugraph-family/Awesome-Text2GQL?logo=actigraph&label=Contributor&color=abcdef)](https://github.com/TuGraph-family/Awesome-Text2GQL/contributors)
+[![Commit](https://badgen.net/github/last-commit/tugraph-family/Awesome-Text2GQL/master?icon=git&label=Commit)](https://github.com/TuGraph-family/Awesome-Text2GQL/commits/master)
+[![License](https://shields.io/github/license/tugraph-family/Awesome-Text2GQL?logo=apache&label=License&color=blue)](https://www.apache.org/licenses/LICENSE-2.0.html)
+[![Release](https://shields.io/github/v/release/tugraph-family/Awesome-Text2GQL.svg?logo=stackblitz&label=Version&color=red)](https://github.com/TuGraph-family/Awesome-Text2GQL/releases)
+
 ## Introduction
 
 Awesome-Text2GQL is an AI-assisted framework for Text2GQL dataset construction. The framework supports translation, generalization and generation of Text2GQL corpus and corresponding database instance. With the assistance of this framework, users are able to construct a high quality Text2GQL dataset on any graph query language(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) with a significantly lower cost than pure human labor annotation.
@@ -12,7 +19,7 @@ Awesome-Text2GQL is an AI-assisted framework for Text2GQL dataset construction. 
 
     + [x] **Question translation** from graph query languages to questions in different natural languages to accelerate question annotation.
 
-    + [x] **Query translation**between different graph query languages to gather corpus from all existing graph query languages.
+    + [x] **Query translation** between different graph query languages to gather corpus from all existing graph query languages.
 
 + **Generalization**
 
