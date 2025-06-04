@@ -1,15 +1,15 @@
-import json
 import os
-import sys
-import liblgraph_client_python
 import re
+import sys
+
+import liblgraph_client_python
 
 ROOT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(ROOT_PATH)
 
-from typing import Any, Dict, Optional
-from dbgpt_hub_gql.llm_base.chat_model import ChatModel
 import logging
+
+from dbgpt_hub_gql.llm_base.chat_model import ChatModel
 
 
 def logger():

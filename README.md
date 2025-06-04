@@ -251,6 +251,24 @@ Question generator aims to generate natural language questions on given database
 
 Query generator aims to generate the actual query of a corresponding natural language question with the current Text2GQL ability of LLM. The generated question may not be executable or grammarly correct, but can be use as a reference for further annotation.
 
+## Contribution
+
+Before submitting your code, do the following steps to format your code
+
+format code
+
+```
+poetry run ruff format .
+```
+
+check the code
+
+```
+poetry run ruff check ./app ./examples --fix
+```
+
+if all check passed, you can submit your code.
+
 ## Attention
 
 This project is still under development, suggestions, issues or pull requests are welcome.

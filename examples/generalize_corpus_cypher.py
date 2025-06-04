@@ -1,5 +1,6 @@
 import json
 import os
+
 from app.core.generalizer.query_generalizer import QueryGeneralizer
 from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
@@ -18,7 +19,10 @@ query_template = "MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born"
 question_template = "Find the birth year of Carrie-Anne Moss."
 
 db_id = "movie"
-instance_path = f"{os.path.dirname(__file__)}/../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
+instance_path = (
+    f"{os.path.dirname(__file__)}"
+    + "/../app/impl/tugraph_cypher/generalizer/base/db_instance/movie"
+)
 output_path = "./example_dataset.json"
 llm_client = LlmClient(model="qwen-plus-0723")
 

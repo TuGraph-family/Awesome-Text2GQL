@@ -1,4 +1,5 @@
 import pandas as pd
+
 from app.impl.iso_gql.translator.iso_gql_query_translator import (
     IsoGqlQueryTranslator as GQLTranslator,
 )
@@ -17,7 +18,7 @@ new_df = pd.DataFrame(columns=cols)
 query_visitor = TugraphCypherAstVisitor()
 gql_translator = GQLTranslator()
 cypher_translator = CypherTranslator()
-for index, row in df.iterrows():
+for _, row in df.iterrows():
     query = row["cypher"]
     if cypher_translator.grammar_check(query):
         if not gql_translator.grammar_check(query):
