@@ -3,7 +3,7 @@ import pandas as pd
 from app.impl.iso_gql.translator.iso_gql_query_translator import (
     IsoGqlQueryTranslator as GQLTranslator,
 )
-from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_ast_visitor import TugraphCypherAstVisitor
 from app.impl.tugraph_cypher.translator.tugraph_cypher_query_translator import (
     TugraphCypherQueryTranslator as CypherTranslator,
 )

@@ -8,7 +8,7 @@ from app.core.translator.question_translator import QuestionTranslator
 from app.impl.iso_gql.translator.iso_gql_query_translator import (
     IsoGqlQueryTranslator as GQLTranslator,
 )
-from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_ast_visitor import TugraphCypherAstVisitor
 
 INSTRUCTION_TEMPLATE = """
 I want you to work like a Graph database expert,

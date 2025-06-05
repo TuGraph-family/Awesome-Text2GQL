@@ -141,7 +141,7 @@ question_list = question_translator.translate(
 
 ![query_translator](./images/query_translator.png)
 
-Query translator has the ability to translate queries in one query language into another, like cypher to gql. To achieve this, Awesome-Text2GQL designed and implemented a set of intermediate expression for commonly used graph query languages(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) and their dialects. With ast vistitor's implementations, different graph query language can be translated into the intermediate expression. With the query translator's implementations, intermediate expression can be translated into different graph query language.
+Query translator has the ability to translate queries in one query language into another, like cypher to gql. To achieve this, Awesome-Text2GQL designed and implemented a set of intermediate representation for commonly used graph query languages(ISO-GQL, Cypher, Gremlin, SQL/PGQ, etc.) and their dialects. With ast vistitor's implementations, different graph query language can be translated into the intermediate representation. With the query translator's implementations, intermediate representation can be translated into different graph query language.
 
 ``` python
 from app.impl.iso_gql.translator.iso_gql_query_translator import IsoGqlQueryTranslator as GQLTranslator
@@ -196,7 +196,7 @@ for corpus_pair in corpus_pair_list:
 
 ![query_generalizer](./images/query_generalizer.png)
 
-Query generalizer has the ability to generalize the given query into queries with similar query pattern on the given schema. With the intermediate expression for graph query languages, Awesome-Text2GQL can translate a query into intermediate query pattern, and the similar query pattern can be constructed with different variables on different schema. This generalization aims to migrate existing query patterns onto new database instance efficiently.
+Query generalizer has the ability to generalize the given query into queries with similar query pattern on the given schema. With the intermediate representation for graph query languages, Awesome-Text2GQL can translate a query into intermediate query pattern, and the similar query pattern can be constructed with different variables on different schema. This generalization aims to migrate existing query patterns onto new database instance efficiently.
 
 ``` python
 from app.core.generalizer.query_generalizer import QueryGeneralizer
@@ -252,27 +252,33 @@ Query generator aims to generate the actual query of a corresponding natural lan
 
 ## Development Guide
 
-To make Awesome-Text2GQL supports the corpus construction of more types of graph query languages, we welcome contribution to the compatibility of itermediate expression, and the implementation of ast visitor and schema parser of new graph query languages.
+To make Awesome-Text2GQL supports the corpus construction of more types of graph query languages, we welcome contribution to the implementation of ast visitor, query translator, and schema parser of new graph query languages. If you find the compatibility of current intermediate representation is not enough for the new graph query language, we also welcome contribution to the intermediate representation.
 
-### Clause
+### Introduction to Intermediate Representation
 
-The clause class is the core of Awesome-Text2GQL's itermediate expression for graph query languages. Currently clause class has match clause, return clause, where clause and with clause as subclasses. The design of subclasses might be updated in the future for the compatibility of more graph query languages
+The clause class is the core of Awesome-Text2GQL's intermediate representation for graph query languages. Currently clause class has match clause, return clause, where clause and with clause as subclasses. The design of subclasses might be updated in the future for the compatibility of more graph query languages
 
-+ Match Clause: the itermediate representation for pattern match
++ Match Clause: the intermediate representation for pattern match
 
-+ Return Clause: the itermediate representation for item return.
++ Return Clause: the intermediate representation for item return.
 
-+ Where Clause: the itermediate representation for condition expression.
++ Where Clause: the intermediate representation for condition expression.
 
-+ With Clause: the itermediate representation for variable control.
++ With Clause: the intermediate representation for variable control.
 
-### AST Visitor
+### Graph Query Language Implementation Guideline
 
-The ast visitor class is a virtual class and should be implemented for different graph query language, like cypher ast visitor or gql ast visitor. Implementation on each graph query language should be able to parse the given query, visit the abstarct syntax tree, then return the graph pattern(a list of clauses) of the given query as the intermediate representation for further translation or generalization.
+#### Implement AST Visitor
 
-### Schema Parser
+The ast visitor class is a virtual class and should be implemented for different graph query language, like cypher ast visitor or gql ast visitor. Implementation on each graph query language should be able to parse the given query, visit the abstarct syntax tree, then return the graph pattern(a list of clauses) of the given query as the intermediate representation for further translation or generalization. See `app/impl/tugraph_cypher/ast_visitor/tugraph_cypher_ast_visitor.py` as an example.
 
-The schema parser class is a virtual class and should be implemented for different DBMS, like neo4j schema parser or tugraph schema parser. Implementation on each DBMS should be able to parse the correspongding schema file, whether it's a set of queries or a json file, then return a in memory schema graph for query generalization.
+#### Implement Query Translator
+
+The query translator class is a virtual class and should be implemented for different graph query language, like cypher query translator or gql query translator. Implementation on each graph query language should implement the translate function to turn a list of clauses(the intermediate representation) into an actual query aligned to the grammar of corresponding language, and implement the grammar check function to check if a query is grammatically correct. See `app/impl/iso_gql/translator/iso_gql_query_translator.py` as an example.
+
+#### Implement Schema Parser
+
+The schema parser class is a virtual class and should be implemented for different DBMS, like neo4j schema parser or tugraph schema parser. Implementation on each DBMS should be able to parse the correspongding schema file, whether it's a set of queries or a json file, then return a in memory schema graph for query generalization. See `app/impl/tugraph_cypher/schema/schema_parser.py` as an example.
 
 ## Future Plan
 
@@ -298,7 +304,7 @@ if all check passed, you can submit your code.
 
 ### Submitting Code
 
-
+create a pull request, link it to a related issue, then wait for the project maintainer to review your changes and provide feedback. If your pull request is finally approved by our maintainer, we will merge it. Other details can reference to our [contributing document](https://github.com/TuGraph-family/community/blob/master/docs/CONTRIBUTING.md).
 
 ## Attention
 

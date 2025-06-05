@@ -1,23 +1,26 @@
-from typing import List
+from typing import List, Tuple
 
 from antlr4 import CommonTokenStream, InputStream
 
 from app.core.ast_visitor.ast_visitor import AstVisitor
+from app.core.clauses.clause import Clause
 from app.impl.iso_gql.grammar.GQLLexer import GQLLexer
 from app.impl.iso_gql.grammar.GQLParser import GQLParser
 from app.impl.iso_gql.grammar.GQLVisitor import GQLVisitor
 
 
 class IsoGqlAstVisitor(GQLVisitor, AstVisitor):
-    def get_query_pattern(self, query: str) -> List:
+    def get_query_pattern(self, query: str) -> Tuple[bool, List[Clause]]:
         input_stream = InputStream(query)
         lexer = GQLLexer(input_stream)
         token_stream = CommonTokenStream(lexer)
         parser = GQLParser(token_stream)
         tree = parser.gqlProgram()
-        print(tree.toStringTree(recog=parser))
-        querry_pattern = self.visit(tree)
-        return querry_pattern
+        try:
+            querry_pattern = self.visit(tree)
+            return True, querry_pattern
+        except Exception:
+            return False, []
 
     def visitSimpleMatchStatement(self, ctx: GQLParser.SimpleMatchStatementContext):
         clause_list = []
