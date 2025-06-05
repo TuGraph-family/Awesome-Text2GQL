@@ -5,7 +5,7 @@ from app.core.generalizer.query_generalizer import QueryGeneralizer
 from app.core.generalizer.question_generalizer import QuestionGeneralizer
 from app.core.llm.llm_client import LlmClient
 from app.core.translator.question_translator import QuestionTranslator
-from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_query_visitor import TugraphCypherAstVisitor
+from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_ast_visitor import TugraphCypherAstVisitor
 
 INSTRUCTION_TEMPLATE = """
 I want you to work like a Graph database expert,
