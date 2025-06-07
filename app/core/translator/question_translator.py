@@ -1,5 +1,7 @@
 from typing import List, Tuple
 
+from tqdm import tqdm
+
 from app.core.llm.llm_client import LlmClient
 
 CONTENT_TEMPLATE = """
@@ -41,7 +43,7 @@ Source Language: [{source_language}]
 Target Language: [{target_language}]
 
 Questions to translate:
-{question_chunk_str}
+{corpus_pair_chunk_str}
 """
 
 PROMPT_MULTILINGUAL = """
@@ -72,6 +74,7 @@ You should respond with:
 Now, translate each of the following questions one by one. Do not indicate which question you're translating from.
 Separate results with newline characters and ensure sentences include proper punctuation marks.
 """  # noqa: E501
+
 
 class QuestionTranslator:
     def __init__(self, llm_client: LlmClient, chunk_size):
@@ -139,18 +142,30 @@ class QuestionTranslator:
 
         return question_list
 
-    def translate_multilingual(self, source_language: str, target_language: str, question_list: List[str], query_list: List[str]
+    def translate_multilingual(
+        self,
+        source_language: str,
+        target_language: str,
+        question_list: List[str],
+        query_list: List[str],
     ) -> List[Tuple[str, str]]:
         target_language_question_list = []
-        corpus_pair_list = [(question_list[i], query_list[i]) for i in range((len(question_list)))]
+        corpus_pair_list = [(question_list[i], query_list[i]) for i in range(len(question_list))]
         chunk_size = self.chunk_size
         corpus_pair_chunk_list = [
-            corpus_pair_list[i : i + chunk_size] for i in range(0, len(corpus_pair_list), chunk_size)
+            corpus_pair_list[i : i + chunk_size]
+            for i in range(0, len(corpus_pair_list), chunk_size)
         ]
-        for corpus_pair_chunk in corpus_pair_chunk_list:
+        for i in tqdm(
+            range(len(corpus_pair_chunk_list)),
+            desc=f"Translating {source_language} into {target_language}",
+        ):
+            corpus_pair_chunk = corpus_pair_chunk_list[i]
             corpus_pair_chunk_str = ""
             for corpus_pair in corpus_pair_chunk:
-                corpus_pair_chunk_str += f"[Original Question]:{corpus_pair[0]} [Corresponding Query]:{corpus_pair[1]}\n"
+                corpus_pair_chunk_str += (
+                    f"[Original Question]:{corpus_pair[0]} [Corresponding Query]:{corpus_pair[1]}\n"
+                )
             content = CONTENT_TEMPLATE_MULTILINGUAL.format(
                 source_language=source_language,
                 target_language=target_language,
@@ -194,7 +209,7 @@ class QuestionTranslator:
 
     def post_process(self, response):
         lines = response.split("\n")
-        generalized_question_list = []
+        translated_question_list = []
         for line in lines:
             # remove keywords
             for keyword in self.keywords_to_remove:
@@ -207,21 +222,5 @@ class QuestionTranslator:
             # remove white space
             line = line.strip()
             if line:
-                generalized_question_list.append(line)
-        return generalized_question_list
-
-if __name__ == "__main__":
-    llm_client = LlmClient(model="qwen-plus-0723")
-    question_translator = QuestionTranslator(llm_client, 5)
-    translated_question_list = question_translator.translate(
-        query_template="MATCH (n {name: 'Carrie-Anne Moss'}) RETURN n.born AS born",
-        question_template="Find the birth year of Carrie-Anne Moss.",
-        query_list=[
-            "MATCH (n{born: 1965}) RETURN n.id AS id",
-            "MATCH (n{id: 526}) RETURN n.name AS name",
-            'MATCH (n{name: "hand to hand combat"}) RETURN n.name AS name',
-            'MATCH (n{summary: "placeholder text"}) RETURN n.title AS title',
-            'MATCH (n{login: "Matthew"}) RETURN n.login AS login',
-        ],
-    )
-    print(translated_question_list)
+                translated_question_list.append(line)
+        return translated_question_list
