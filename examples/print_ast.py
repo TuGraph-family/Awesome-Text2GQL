@@ -6,7 +6,7 @@ from app.impl.tugraph_cypher.grammar.LcypherLexer import LcypherLexer
 from app.impl.tugraph_cypher.grammar.LcypherParser import LcypherParser
 
 # print a cypher AST
-query_cypher = "MATCH (n) RETURN n"
+query_cypher = "MATCH (n)-[*3]->(m) RETURN m"
 
 input_stream_cypher = InputStream(query_cypher)
 lexer_cypher = LcypherLexer(input_stream_cypher)
@@ -17,7 +17,7 @@ tree_cypher = parser_cypher.oC_Cypher()
 print(f"[Cypher AST]:{tree_cypher.toStringTree(recog=parser_cypher)}")
 
 # print a ISO-GQL AST
-query_gql = "MATCH (n) RETURN n"
+query_gql = "MATCH (n)-[]->{3,3}(m) RETURN m"
 
 input_stream_gql = InputStream(query_gql)
 lexer_gql = GQLLexer(input_stream_gql)
