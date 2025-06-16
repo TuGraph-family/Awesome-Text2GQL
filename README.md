@@ -109,6 +109,12 @@ This example shows how to use AwesomeText2GQL Framework to generalize from one I
 
 This example shows how to use AwesomeText2GQL Framework to translate English question into Chinese question with the same semantic meaning.
 
+#### AST Printing
+
+`python ./examples/print_ast.py`
+
+This example shows how to use AwesomeText2GQL Framework to print the ast of a query. Visualizing the AST is helpful for IR and other AST related development.
+
 ## Modules
 
 Awesome-Text2GQL use Translator, Generalizer and Generator to assit the entire process of Text2GQL dataset construction. 
