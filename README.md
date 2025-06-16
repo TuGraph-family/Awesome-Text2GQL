@@ -103,6 +103,12 @@ This example shows how to use AwesomeText2GQL Framework to generalize from one c
 
 This example shows how to use AwesomeText2GQL Framework to generalize from one ISO-GQL corpus pair to construct a Text2GQL corpus dataset.
 
+#### English to Chinese
+
+`python ./examples/english_to_chinese.py`
+
+This example shows how to use AwesomeText2GQL Framework to translate English question into Chinese question with the same semantic meaning.
+
 ## Modules
 
 Awesome-Text2GQL use Translator, Generalizer and Generator to assit the entire process of Text2GQL dataset construction. 

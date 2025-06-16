@@ -12,7 +12,7 @@ from app.impl.tugraph_cypher.ast_visitor.tugraph_cypher_ast_visitor import Tugra
 
 INSTRUCTION_TEMPLATE = """
 I want you to work like a Graph database expert,
-translate my question into a excutable query, and return only the query to me.
+translate my question into a executable query, and return only the query to me.
 Below is an description about the graph database' schema to help you with your work.
 Schema Description:
 {schema_description}
