@@ -318,6 +318,11 @@ if all check passed, you can submit your code.
 
 create a pull request, link it to a related issue, then wait for the project maintainer to review your changes and provide feedback. If your pull request is finally approved by our maintainer, we will merge it. Other details can reference to our [contributing document](https://github.com/TuGraph-family/community/blob/master/docs/CONTRIBUTING.md).
 
+### Contributors Wall
+<a href="https://github.com/TuGraph-family/Awesome-Text2GQL/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=TuGraph-family/Awesome-Text2GQL&max=200" />
+</a>
+
 ## Attention
 
 This project is still under development, suggestions, issues or pull requests are welcome.
