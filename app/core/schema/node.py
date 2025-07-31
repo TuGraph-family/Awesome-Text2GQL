@@ -6,3 +6,4 @@ from typing import Dict, List
 class Node:
     label: str
     properties: List[Dict[str, str]]
+    primary: str
