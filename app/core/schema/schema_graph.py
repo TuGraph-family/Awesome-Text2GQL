@@ -150,3 +150,7 @@ class SchemaGraph:
                 ReturnItem(symbolic_name=symbolic_name, property=property, alias=property.upper())
             )
         return ReturnBody(return_item_list=return_item_list, sort_item_list=[])
+
+    def validate(self) -> bool:
+        print("validation not implemented.")
+        return True
