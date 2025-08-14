@@ -31,8 +31,8 @@ class SchemaGraph:
 
     def gen_desc(self):
         desc = f"{self.db_id} includes\nnodes: "
-        for edge in self.edge_dict:
-            desc = desc + edge + ", "
+        for node in self.node_dict:
+            desc = desc + node + ", "
         desc = desc.strip(", ")
         desc += "\nedges: "
         for edge in self.edge_dict:

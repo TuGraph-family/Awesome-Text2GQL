@@ -10,8 +10,8 @@ from app.core.schema.schema_graph import SchemaGraph
 
 class SchemaGenerator():
     """Schema generator based on LLM"""
-    def __init__(self):
-        self._llm_client = LlmClient(model="qwen3-coder-plus-2025-07-22")
+    def __init__(self, llm_client:LlmClient):
+        self._llm_client = llm_client
     
     def _calc_node_range(self, complexity: int) -> tuple:
         """Calculate node count range based on complexity level"""
@@ -139,39 +139,3 @@ class SchemaGenerator():
 class SchemaParseError(Exception):
     """Custom exception for Schema parsing errors"""
     pass
-
-
-class NodeType:
-    def __init__(self, name, properties=None):
-        self.name = name
-        self.properties = properties or []
-
-    @classmethod
-    def from_dict(cls, data):
-        return cls(
-            name=data.get("name"),
-            properties=[Property.from_dict(p) for p in data.get("properties", [])]
-        )
-
-class RelationshipType:
-    def __init__(self, name, source, target, properties=None, cardinality="MANY_TO_MANY"):
-        self.name = name
-        self.source = source
-        self.target = target
-        self.properties = properties or []
-        self.cardinality = cardinality
-
-class Property:
-    def __init__(self, name, type_, constraints=None):
-        self.name = name
-        self.type = type_
-        self.constraints = constraints or []
-
-    @classmethod
-    def from_dict(cls, data):
-        return cls(
-            name=data.get("name"),
-            type_=data.get("type"),
-            constraints=data.get("constraints", [])
-        )
-
