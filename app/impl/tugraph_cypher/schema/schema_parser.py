@@ -289,3 +289,39 @@ class TuGraphSchemaParser(SchemaParser):
                             vertex_or_edge_instance[keyword] = str(item)
                     vertex_or_edge_instance_list.append(vertex_or_edge_instance)
         return vertex_or_edge_instance_list
+
+    def save_schema_to_file(self, output_dir, schema_graph: SchemaGraph, domain: str, subdomain: str):
+        """save SchemaGraph to JSON file"""
+
+        output_dir.mkdir(exist_ok=True)
+        
+        filename = f"{domain.replace(' ', '_')}_{subdomain.replace(' ', '_')}.json"
+        file_path = output_dir / filename
+        
+        schema_data = []
+        
+        # add VERTEX
+        for label, node in schema_graph.node_dict.items():
+            node_data = {
+                "type": "VERTEX",
+                "label": label,
+                "properties": node.properties,
+                "primary":node.primary
+            }
+            schema_data.append(node_data)
+        
+        # add EDGE
+        for label, edge in schema_graph.edge_dict.items():
+            edge_data = {
+                "type": "EDGE",
+                "label": label,
+                "properties": edge.properties,
+                "constraints": edge.src_dst_list
+            }
+            schema_data.append(edge_data)
+        
+        # save to file
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(schema_data, f, ensure_ascii=False, indent=2)
+        
+        return str(file_path)

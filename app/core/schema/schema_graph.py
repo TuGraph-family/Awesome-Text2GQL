@@ -31,8 +31,8 @@ class SchemaGraph:
 
     def gen_desc(self):
         desc = f"{self.db_id} includes\nnodes: "
-        for edge in self.edge_dict:
-            desc = desc + edge + ", "
+        for node in self.node_dict:
+            desc = desc + node + ", "
         desc = desc.strip(", ")
         desc += "\nedges: "
         for edge in self.edge_dict:
@@ -150,3 +150,7 @@ class SchemaGraph:
                 ReturnItem(symbolic_name=symbolic_name, property=property, alias=property.upper())
             )
         return ReturnBody(return_item_list=return_item_list, sort_item_list=[])
+
+    def validate(self) -> bool:
+        print("validation not implemented.")
+        return True
