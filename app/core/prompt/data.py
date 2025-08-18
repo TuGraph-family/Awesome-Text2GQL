@@ -61,17 +61,21 @@ CSV Formatting & Safety Rules:
     ```python
     def _sanitize_for_csv(self, row_data: list) -> list:
         \"\"\"
-        Cleans a list of data just before it's written to CSV.
+        Cleans and formats a list of data just before it's written to CSV.
+        - Formats datetime objects to 'YYYY-MM-DD HH:MM:SS'.
         - Converts None to an empty string ''.
-        - Strips whitespace from strings.
-        - Removes newlines and carriage returns from strings.
+        - Strips whitespace and removes newlines from all other data.
         \"\"\"
         cleaned_row = []
         for item in row_data:
-            if item is None:
-                cleaned_row.append('')  # CRITICAL: Convert None to empty string
+            if isinstance(item, datetime):
+                # Format datetime objects specifically
+                cleaned_row.append(item.strftime('%Y-%m-%d %H:%M:%S'))
+            elif item is None:
+                # Convert None to empty string
+                cleaned_row.append('')
             else:
-                # Convert all items to string, then clean
+                # Convert all other items to string, then clean
                 s = str(item).strip()
                 s = s.replace('\r\n', ' ').replace('\n', ' ').replace('\r', ' ')
                 cleaned_row.append(s)
@@ -105,7 +109,7 @@ user_activity_counts = np.random.zipf(a=2, size=USER_COUNT)
 ```
 """
 
-fix_instruction = """
+FIX_INSTRUCTION = """
 The Python code you previously generated failed with an error. 
 Please analyze the code and the error traceback, fix the bug, and provide the complete, corrected Python script.
 
@@ -126,6 +130,256 @@ Constraints:
 """
 
 
-fix_system_prompt = """
+FIX_SYSTEM_PROMPT = """
 You are a senior Python debugger. Your task is to fix the provided code based on the error message.
+"""
+
+
+IMPORT_SYSTEM_PROMPT = """
+You are tasked with constructing an `import_config.json` file for use with the `lgraph_import` command to import test data into a TuGraph-DB graph database. This `import_config.json` file consists of two main sections:
+1. The graph schema, which I have already prepared.
+2. The `files` section, which specifies the paths to data files, header information, and column details. I will provide you with all CSV files, their headers, and an example of the `files` array. Your job is to help me generate a correct `import_config.json` file for these CSV files to facilitate data import.
+
+Example of `import_config.json`:
+{{
+    "schema": [],
+    "files": [
+        {{
+            "path": "Customer.csv",
+            "label": "Customer",
+            "format": "CSV",
+            "header": 1,
+            "columns": [
+                "id",
+                "name",
+                "risk_level",
+                "kyc_status",
+                "last_updated",
+                "noise_attr_1"
+            ]
+        }},
+        {{
+            "path": "Account.csv",
+            "label": "Account",
+            "format": "CSV",
+            "header": 1,
+            "columns": [
+                "account_id",
+                "balance",
+                "currency",
+                "open_date"
+            ]
+        }},
+        {{
+            "path": "Transaction.csv",
+            "label": "Transaction",
+            "format": "CSV",
+            "header": 1,
+            "columns": [
+                "txn_id",
+                "amount",
+                "timestamp",
+                "counterparty"
+            ]
+        }},
+        {{
+            "path": "Guarantor.csv",
+            "label": "Guarantor",
+            "format": "CSV",
+            "header": 1,
+            "columns": [
+                "guarantor_id",
+                "credit_rating",
+                "relation_type"
+            ]
+        }},
+        {{
+            "path": "Ecommerce_Order.csv",
+            "label": "Ecommerce_Order",
+            "format": "CSV",
+            "header": 1,
+            "columns": [
+                "order_id",
+                "product",
+                "amount"
+            ]
+        }},
+        {{
+            "path": "OWNS.csv",
+            "label": "OWNS",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Customer",
+            "DST_ID": "Account",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "ownership_percent"
+            ]
+        }},
+        {{
+            "path": "HAS_TRANSACTION.csv",
+            "label": "HAS_TRANSACTION",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Account",
+            "DST_ID": "Transaction",
+            "columns": [
+                "SRC_ID",
+                "DST_ID"
+            ]
+        }},
+        {{
+            "path": "GUARANTEES.csv",
+            "label": "GUARANTEES",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Guarantor",
+            "DST_ID": "Customer",
+            "columns": [
+                "SRC_ID",
+                "DST_ID",
+                "guarantee_amount",
+                "expiry_date"
+            ]
+        }},
+        {{
+            "path": "CYCLIC_GUARANTEE_1.csv",
+            "label": "CYCLIC_GUARANTEE_1",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Guarantor",
+            "DST_ID": "Guarantor",
+            "columns": [
+                "SRC_ID",
+                "DST_ID"
+            ]
+        }},
+        {{
+            "path": "CYCLIC_GUARANTEE_2.csv",
+            "label": "CYCLIC_GUARANTEE_2",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Guarantor",
+            "DST_ID": "Guarantor",
+            "columns": [
+                "SRC_ID",
+                "DST_ID"
+            ]
+        }},
+        {{
+            "path": "CROSS_DOMAIN_ORDER.csv",
+            "label": "CROSS_DOMAIN_ORDER",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Customer",
+            "DST_ID": "Ecommerce_Order",
+            "columns": [
+                "SRC_ID",
+                "DST_ID"
+            ]
+        }},
+        {{
+            "path": "NOISE_REL_1.csv",
+            "label": "NOISE_REL_1",
+            "format": "CSV",
+            "header": 1,
+            "SRC_ID": "Transaction",
+            "DST_ID": "Guarantor",
+            "columns": [
+                "SRC_ID",
+                "DST_ID"
+            ]
+        }}
+    ]
+}}
+
+Important notes:
+1. For edge files, always use "SRC_ID" and "DST_ID" as column names to indicate the source and destination nodes, rather than using the actual property names. For example:
+{{"path": "TRIGGERED_ALERT.csv","label": "TRIGGERED_ALERT_BY_TRANSACTION", "format":"CSV","header": 3,"SRC_ID": "Transaction","DST_ID": "Alert","columns": [
+        "transaction_id",
+        "alert_id",
+        "alert_reason"
+     ]}}
+Should be written as:
+{{"path": "TRIGGERED_ALERT.csv","label": "TRIGGERED_ALERT_BY_TRANSACTION", "format":"CSV","header": 3,"SRC_ID": "Transaction","DST_ID": "Alert","columns": [
+        "SRC_ID",
+        "DST_ID",
+        "alert_reason"
+     ]}}
+That is, use "SRC_ID" and "DST_ID" in the columns array to specify the edge endpoints.
+
+2. For edge files, the "label" value must match the value defined in the schema exactly. Do not add suffixes or modify the label, otherwise the import will fail. For example:
+{{
+     "path": "TRIGGERED_ALERT.csv",
+     "label": "TRIGGERED_ALERT_BY_TRANSACTION",
+     "format": "CSV",
+     ...
+}},
+{{
+     "path": "TRIGGERED_ALERT.csv",
+     "label": "TRIGGERED_ALERT_BY_RISKSCORE",
+     "format": "CSV",
+     ...
+}}
+Should be written as:
+{{
+     "path": "TRIGGERED_ALERT.csv",
+     "label": "TRIGGERED_ALERT",
+     "format": "CSV",
+     ...
+}},
+{{
+     "path": "TRIGGERED_ALERT.csv",
+     "label": "TRIGGERED_ALERT",
+     "format": "CSV",
+     ...
+}}
+Always use the label value as defined in the schema.
+
+3. In the files section, for each edge, the "SRC_ID" and "DST_ID" values must be strings, not arrays. For example:
+{{
+     "path": "SourceOf.csv",
+     "label": "SourceOf",
+     "format": "CSV",
+     "header": 1,
+     "SRC_ID": ["MOUNTAIN", "LAKE"],
+     "DST_ID": "RIVER",
+     "columns": ["SRC_ID", "DST_ID"]
+}}
+is incorrect. If a node needs to point to multiple nodes, create separate blocks for each source node:
+{{
+     "path": "SourceOf.csv",
+     "label": "SourceOf",
+     "format": "CSV",
+     "header": 1,
+     "SRC_ID": "MOUNTAIN",
+     "DST_ID": "RIVER",
+     "columns": ["SRC_ID", "DST_ID"]
+}},
+{{
+     "path": "SourceOf.csv",
+     "label": "SourceOf",
+     "format": "CSV",
+     "header": 1,
+     "SRC_ID": "LAKE",
+     "DST_ID": "RIVER",
+     "columns": ["SRC_ID", "DST_ID"]
+}}
+The same applies for "DST_ID".
+"""
+
+
+IMPORT_INSTRUCTION = """
+Based on the schema and file information below, generate the complete `import_config.json` file. Follow all the rules defined in the system prompt.
+
+## Graph Schema
+```json
+{schema_json}
+```
+
+CSV Files Information
+```
+{csv_files_info}
+```
 """

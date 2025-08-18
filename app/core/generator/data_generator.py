@@ -1,3 +1,4 @@
+import copy
 import json
 import subprocess
 import re
@@ -13,8 +14,8 @@ from app.core.prompt import data
 class DataGenerator:
     """High-quality data generator based on Schema"""
 
-    def __init__(self):
-        self.llm_client = LlmClient(model="qwen3-coder-plus-2025-07-22")
+    def __init__(self, llm_client:LlmClient):
+        self.llm_client = llm_client
         self.schema_json = None
 
 
@@ -95,14 +96,14 @@ class DataGenerator:
         for attempt in range(max_retries + 1):
             if attempt > 0:
                 print(f"--- Attempt {attempt + 1}/{max_retries + 1}: Asking LLM to fix the previous error ---")
-                fix_instruction = data.fix_instruction.format(
+                FIX_INSTRUCTION = data.FIX_INSTRUCTION.format(
                     last_error = last_error,
                     original_code = original_code
                 )
-                fix_system_prompt = data.fix_system_prompt
+                FIX_SYSTEM_PROMPT = data.FIX_SYSTEM_PROMPT
                 message = [
-                    {"role": "system", "content": fix_system_prompt},
-                    {"role": "user", "content": fix_instruction}
+                    {"role": "system", "content": FIX_SYSTEM_PROMPT},
+                    {"role": "user", "content": FIX_INSTRUCTION}
                 ]
                 response = self.llm_client.call_with_messages(message)
                 code = self._extract_python_code(response)
@@ -139,6 +140,12 @@ class DataGenerator:
                 else:
                     last_error = f"STDOUT:\n{result.stdout}\n\nSTDERR:\n{result.stderr}"
                     print(f"Script failed on attempt {attempt + 1}. Error:\n{last_error}")
+                    # remove failed Python code file after each attempt, only reserve the successful one
+                    try:
+                        if script_path.exists():
+                            script_path.unlink()
+                    except Exception as del_err:
+                        print(f"Failed to delete failed script {script_path}: {del_err}")
 
             except subprocess.TimeoutExpired as e:
                 last_error = f"Script execution timed out: {e}"
@@ -150,3 +157,76 @@ class DataGenerator:
             time.sleep(2) # Avoid excessive API calls
 
         raise RuntimeError(f"Failed to generate a working script after {max_retries + 1} attempts. Last error:\n{last_error}")
+
+    def clean_json_schema(self, input_data):
+        """Clean JSON schema: set 'optional' to True and 'unique' to False for non-_id properties."""
+        if isinstance(input_data, str):
+            try:
+                data = json.loads(input_data)
+            except json.JSONDecodeError:
+                # Failed to parse, return original input
+                return input_data
+        else:
+            data = copy.deepcopy(input_data)
+        
+        if not isinstance(data, list):
+            if isinstance(data, dict) and "schema" in data:
+                data = data["schema"]
+            else:
+                # Cannot process, return original data
+                return data
+        
+        for item in data:
+            # Only process VERTEX type
+            if isinstance(item, dict) and item.get("type") == "VERTEX":
+                properties = item.get("properties", [])
+                # Iterate all properties
+                for prop in properties:
+                    if not isinstance(prop, dict):
+                        continue
+                    prop_name = prop.get("name", "")
+                    if prop_name and not prop_name.endswith("_id"):
+                        # set 'optional' to True and 'unique' to False for non-_id properties
+                        prop["optional"] = True
+                        prop["unique"] = False
+        
+        return json.dumps(data, indent=2)
+
+    def generate_import_config(self, csv_file_info: str):
+        IMPORT_SYSTEM_PROMPT = data.IMPORT_SYSTEM_PROMPT
+        IMPORT_INSTRUCTION = data.IMPORT_INSTRUCTION.format(
+            schema_json = self.clean_json_schema(self.schema_json),
+            csv_files_info = csv_file_info
+        )
+    
+        message = [
+            {"role": "system", "content": IMPORT_SYSTEM_PROMPT},
+            {"role": "user", "content": IMPORT_INSTRUCTION}
+        ]
+
+        response = self.llm_client.call_with_messages(message)
+        # Parse response as JSON
+        try:
+            import_config = json.loads(response)
+        except Exception:
+            raise ValueError("LLM did not return valid JSON for import config.")
+
+        # Parse cleaned schema
+        try:
+            cleaned_schema = json.loads(self.clean_json_schema(self.schema_json))
+        except Exception:
+            raise ValueError("Failed to parse cleaned schema JSON.")
+
+        # Synthesize: replace schema array in import_config with cleaned_schema
+        import_config["schema"] = cleaned_schema
+
+        # Return synthesized config as JSON string
+        # Write import_config JSON to /example/generated_data/scripts/csv_files/import_config.json
+        output_path = self.script_dir / "csv_files" / "import_config.json"
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(import_config, f, indent=2, ensure_ascii=False)
+            return True
+        except Exception as e:
+            print(f"Failed to write import config: {e}")
+            return False

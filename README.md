@@ -91,6 +91,12 @@ Awesome-Text2GQL's local LLM client is based on transformers library, use model 
 
 This example shows how to use Awesome-Text2GQL Framework to generate a graph schema for use in corpus construction.
 
+#### Generate Data
+
+`python ./examples/generate_data.py`
+
+This example shows how to use Awesome-Text2GQL Framework to generate data instances based on a given graph schema file.
+
 #### Cypher2GQL
 
 `python ./examples/cypher2gql.py`
