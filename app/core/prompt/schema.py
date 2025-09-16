@@ -1,10 +1,12 @@
-'''
+"""
 Prompt templates of SchemaGenerator
-'''
+"""
 
 PROMPT = """
-You are an expert graph database architect with 15+ years of experience designing schemas for complex domains.
-Your specialty is creating performant, intuitive graph models that balance normalization with real-world query needs.
+You are an expert graph database architect 
+with 15+ years of experience designing schemas for complex domains.
+Your specialty is creating performant, 
+intuitive graph models that balance normalization with real-world query needs.
 Design a comprehensive graph schema for my target domain. Follow this thinking framework:
 """
 
@@ -12,11 +14,14 @@ INSTRUCTION = """
 Schema Description:
 {schema_description}
 
-You are a top-tier graph database architect. Please design a professional Schema for the {domain} domain and {subdomain} subdomain base on the Schema Description.
+You are a top-tier graph database architect. 
+Please design a professional Schema for the {domain} domain and {subdomain} subdomain base on 
+the Schema Description.
 
 # Critical Format Requirements
 1. For VERTEX nodes:
-   - Every VERTEX MUST have a dedicated ID property named using the format: `[LABEL]_id` (case-sensitive)
+   - Every VERTEX MUST have a dedicated ID property named using the format: 
+   `[LABEL]_id` (case-sensitive)
    - "primary" MUST be defined at the SAME LEVEL as "properties", NOT inside properties array
    - Primary key specification format:
      {{
@@ -144,7 +149,10 @@ EXAMPLE_JSON = """
 """
 
 Generate_des_prompt = """
-You are a business domain modeling specialist with expertise in graph-based knowledge representation. Your task is to create detailed documentation for graph schemas that accurately model real-world subdomains. For each request:
+You are a business domain modeling specialist with expertise in 
+graph-based knowledge representation. 
+Your task is to create detailed documentation for graph schemas that accurately model 
+real-world subdomains. For each request:
 
 1. Provide comprehensive analysis of the business context
 2. Design semantically meaningful node and relationship types

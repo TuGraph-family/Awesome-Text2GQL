@@ -1,0 +1,22 @@
+[
+    {
+        "question": "Which donors and recipients are connected through the same biological material node, indicating a direct donation relationship?",
+        "query": "MATCH (d:Donor)-[donates:Donates]->(bm:BiologicalMaterial)<-[receives:Receives]-(r:Recipient) RETURN d, r"
+    },
+    {
+        "question": "Identify pairs of recipients who received biological materials from different donors, but those donors share the same health status.",
+        "query": "MATCH (r1:Recipient)-[:Receives]->(bm1:BiologicalMaterial)<-[:Donates]-(d1:Donor), (r2:Recipient)-[:Receives]->(bm2:BiologicalMaterial)<-[:Donates]-(d2:Donor) WHERE d1.Donor_id <> d2.Donor_id AND d1.HealthStatus = d2.HealthStatus RETURN DISTINCT r1, r2"
+    },
+    {
+        "question": "Are there any medical procedures that involve biological materials from the same donation batch, and if so, which procedures and batches are they?",
+        "query": "MATCH (mp:MedicalProcedure)-[r:Requires]->(bm:BiologicalMaterial)<-[:BelongsToBatch]-(db:DonationBatch) WITH mp, db, count(bm) as materialCount WHERE materialCount > 1 RETURN DISTINCT mp.MedicalProcedure_id, mp.Type, db.DonationBatch_id, db.CollectionDate"
+    },
+    {
+        "question": "Is there any donor in the database with a consent status of 'Revoked'?",
+        "query": "MATCH (d:Donor) WHERE d.ConsentStatus = 'Revoked' RETURN d"
+    },
+    {
+        "question": "Does the database contain any biological material with a status of 'Expired'?",
+        "query": "MATCH (bm:BiologicalMaterial) WHERE bm.Status = 'Expired' RETURN bm"
+    }
+]

@@ -1,0 +1,449 @@
+[
+  {
+    "type": "VERTEX",
+    "label": "Player",
+    "properties": [
+      {
+        "name": "player_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "username",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "registration_date",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "skill_level",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "reputation_score",
+        "type": "DOUBLE",
+        "optional": false
+      }
+    ],
+    "primary": "player_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "Card",
+    "properties": [
+      {
+        "name": "card_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "card_type",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "rarity",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "cost",
+        "type": "INT32",
+        "optional": true
+      },
+      {
+        "name": "power",
+        "type": "INT32",
+        "optional": true
+      },
+      {
+        "name": "health",
+        "type": "INT32",
+        "optional": true
+      },
+      {
+        "name": "abilities",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "artwork_url",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "primary": "card_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "Deck",
+    "properties": [
+      {
+        "name": "deck_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "format_type",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "creation_date",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "last_modified",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "is_public",
+        "type": "BOOL",
+        "optional": false
+      }
+    ],
+    "primary": "deck_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "GameSession",
+    "properties": [
+      {
+        "name": "session_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "start_time",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "end_time",
+        "type": "DATETIME",
+        "optional": true
+      },
+      {
+        "name": "game_format",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "status",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "winner_id",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "primary": "session_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "Tournament",
+    "properties": [
+      {
+        "name": "tournament_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "start_date",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "end_date",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "entry_fee",
+        "type": "DOUBLE",
+        "optional": false
+      },
+      {
+        "name": "prize_pool",
+        "type": "DOUBLE",
+        "optional": false
+      },
+      {
+        "name": "participant_limit",
+        "type": "INT32",
+        "optional": false
+      }
+    ],
+    "primary": "tournament_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "CardSet",
+    "properties": [
+      {
+        "name": "set_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "release_date",
+        "type": "DATE",
+        "optional": false
+      },
+      {
+        "name": "card_count",
+        "type": "INT32",
+        "optional": false
+      }
+    ],
+    "primary": "set_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "GameFormat",
+    "properties": [
+      {
+        "name": "format_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "description",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "min_deck_size",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "max_deck_size",
+        "type": "INT32",
+        "optional": false
+      }
+    ],
+    "primary": "format_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "MatchResult",
+    "properties": [
+      {
+        "name": "result_id",
+        "type": "STRING",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "session_id",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "player_id",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "final_score",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "rank_change",
+        "type": "INT32",
+        "optional": false
+      }
+    ],
+    "primary": "result_id"
+  },
+  {
+    "type": "EDGE",
+    "label": "OWNS_CARD",
+    "properties": [
+      {
+        "name": "quantity",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "acquisition_date",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "acquisition_method",
+        "type": "STRING",
+        "optional": false
+      }
+    ],
+    "constraints": [
+      [
+        "Player",
+        "Card"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "CONTAINS",
+    "properties": [
+      {
+        "name": "card_count",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "position",
+        "type": "INT32",
+        "optional": true
+      }
+    ],
+    "constraints": [
+      [
+        "Deck",
+        "Card"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "PLAYS_IN",
+    "properties": [
+      {
+        "name": "role",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "team",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "constraints": [
+      [
+        "Player",
+        "GameSession"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "USES_DECK",
+    "properties": [
+      {
+        "name": "player_side",
+        "type": "STRING",
+        "optional": false
+      }
+    ],
+    "constraints": [
+      [
+        "Player",
+        "Deck"
+      ],
+      [
+        "GameSession",
+        "Deck"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "PARTICIPATES_IN",
+    "properties": [
+      {
+        "name": "seed",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "bracket_position",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "constraints": [
+      [
+        "Player",
+        "Tournament"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "BELONGS_TO_SET",
+    "properties": [],
+    "constraints": [
+      [
+        "Card",
+        "CardSet"
+      ]
+    ]
+  },
+  {
+    "type": "EDGE",
+    "label": "SUPPORTS_FORMAT",
+    "properties": [],
+    "constraints": [
+      [
+        "Deck",
+        "GameFormat"
+      ],
+      [
+        "Tournament",
+        "GameFormat"
+      ]
+    ]
+  }
+]
