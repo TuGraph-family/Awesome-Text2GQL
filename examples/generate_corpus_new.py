@@ -3,8 +3,6 @@ import logging
 from pathlib import Path
 import time
 
-from TuGraphClient import TuGraphClient
-
 from app.core.generator.corpus_generator_new import CorpusGenerator
 from app.core.llm.llm_client import LlmClient
 from app.core.validator.corpus_validator import CorpusValidator
@@ -14,6 +12,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger("CorpusGeneratorScript")
 
 
@@ -44,17 +43,20 @@ def main():
         # Ensure output directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        tu_client = TuGraphClient(
-            start_host_port="localhost:7070",
-            username="admin",
-            password="73@TuGraph73@TuGraph",
-            graph=graph,
-        )
+        # Store client parameters in a dictionary
+        tu_client_params = {
+            "start_host_port": "localhost:7070",
+            "username": "admin",
+            "password": "73@TuGraph73@TuGraph",
+            "graph": graph,
+        }
+
         llm_client = LlmClient(model="qwen3-coder-plus-2025-07-22")
         
         # Initialize the generator and validator with their respective clients
         generator = CorpusGenerator(llm_client=llm_client)
-        validator = CorpusValidator(tu_client=tu_client)
+        # Pass the parameters to the validator
+        validator = CorpusValidator(tu_client_params=tu_client_params)
 
         target_corpus_size = 100
         questions_per_call = 5
@@ -64,7 +66,7 @@ def main():
             
         # Initialize an empty list for the corpus and a small set of seed queries for context
         corpus_res = []
-        seed_context = validator.execute_and_get_context(
+        seed_context = validator.validate_and_filter_pairs(
             [
                 {"question": "Seed 1", "query": "MATCH (n) RETURN n LIMIT 5"},
                 {"question": "Seed 2", "query": "MATCH p=()-[r]->() RETURN p LIMIT 5"},
@@ -79,7 +81,7 @@ def main():
             logger.info(f"\n--- Iteration {iteration} ---")
             
             # Use a mix of seed context and existing corpus context
-            current_context = seed_context + validator.execute_and_get_context(corpus_res)
+            current_context = seed_context + validator.validate_and_filter_pairs(corpus_res)
             
             # --- Phase A: Generate a batch of questions ---
             questions_batch = generator.generate_questions_batch(
