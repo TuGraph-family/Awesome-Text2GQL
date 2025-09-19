@@ -2,7 +2,7 @@ import logging
 import time
 from typing import Any, Dict, List
 
-from TuGraphClient import TuGraphClient
+from app.impl.tugraph_cypher.db_client.tugraph_db_client import TuGraphDBClient
 
 logger = logging.getLogger("CorpusValidator")
 
@@ -11,22 +11,21 @@ class CorpusValidator:
     def __init__(self, tu_client_params: dict):
         # Store parameters instead of the client object itself
         self._tu_client_params = tu_client_params
-        self._tu_client = self._create_client()
         self._last_checked_time = time.time()
         
-    def _create_client(self, attempts: int = 3, delay: float = 5.0):
-        """Helper method to create a new TuGraphClient instance with retry logic."""
-        for attempt in range(1, attempts + 1):
-            try:
-                client = TuGraphClient(**self._tu_client_params)
-                client.call_cypher("RETURN 1", timeout=5)
-                logger.info("Successfully created/reconnected TuGraphClient.")
-                return client
-            except Exception as e:
-                logger.error(f"Failed to create/reconnect TuGraphClient: {e}")
-                if attempt < attempts:
-                    time.sleep(delay*attempt)
-        return None
+    # def _create_client(self, attempts: int = 3, delay: float = 5.0):
+    #     """create a new TuGraphClient instance with retry logic."""
+    #     for attempt in range(1, attempts + 1):
+    #         try:
+    #             client = TuGraphClient(**self._tu_client_params)
+    #             client.call_cypher("RETURN 1", timeout=5)
+    #             logger.info("Successfully created/reconnected TuGraphClient.")
+    #             return client
+    #         except Exception as e:
+    #             logger.error(f"Failed to create/reconnect TuGraphClient: {e}")
+    #             if attempt < attempts:
+    #                 time.sleep(delay*attempt)
+    #     return None
 
     # @property
     # def tu_client(self):
@@ -54,13 +53,15 @@ class CorpusValidator:
         result is not None.
         """
         # client = self.tu_client
-        client = self._create_client()
+        # client = self._create_client()
+        client = TuGraphDBClient._create_client(self._tu_client_params)
         if not client:
             logger.error("Database connection is not ready. Skipping validation.")
             return []
             
         print("\n--- Validating generated pairs against the database ---")
         valid_pairs = []
+        valid_num = 0
         for pair in pairs:
             question = pair.get("question")
             query = pair.get("query")
@@ -75,7 +76,7 @@ class CorpusValidator:
                 res = client.call_cypher(validation_query, timeout=30)
                 
                 if res and res.get("result") is not None:
-                    # logger.info(f"Valid pair: '{question}'")
+                    valid_num += 1
                     valid_pairs.append(pair)
                 else:
                     logger.warning("Invalid pair "
@@ -83,26 +84,27 @@ class CorpusValidator:
             except Exception as e:
                 logger.error(f"Query for '{question}' failed: {e}")
 
+        logger.info(f"{valid_num}/{len(pairs)} pairs are validated. ")
         return valid_pairs
 
     # execute_and_get_context method would use self.tu_client just like validate_and_filter_pairs
-    def execute_and_get_context(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
-        # client = self.tu_client
-        client = self._create_client()
-        if not client:
-            logger.error("Database connection is not ready. Skipping context generation.")
-            return []
+    # def execute_and_get_context(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
+    #     # client = self.tu_client
+    #     client = self._create_client()
+    #     if not client:
+    #         logger.error("Database connection is not ready. Skipping context generation.")
+    #         return []
         
-        context_items = []
-        for pair in pairs:
-            try:
-                res = client.call_cypher(pair["query"], timeout=60)
-                if res and res.get("result"):
-                    res_summary = str(res)[:500] + "..." if len(str(res)) > 500 else str(res)
-                    context_items.append({
-                        "question": pair["question"], 
-                        "query": pair["query"], 
-                        "result": res_summary })
-            except Exception:
-                continue
-        return context_items
+    #     context_items = []
+    #     for pair in pairs:
+    #         try:
+    #             res = client.call_cypher(pair["query"], timeout=60)
+    #             if res and res.get("result"):
+    #                 res_summary = str(res)[:500] + "..." if len(str(res)) > 500 else str(res)
+    #                 context_items.append({
+    #                     "question": pair["question"], 
+    #                     "query": pair["query"], 
+    #                     "result": res_summary })
+    #         except Exception:
+    #             continue
+    #     return context_items

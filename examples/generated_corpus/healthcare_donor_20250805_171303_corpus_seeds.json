@@ -1,0 +1,402 @@
+[
+    {
+        "question": "Find all medical procedures that occurred later than the procedure with ID 'MP001'.",
+        "query": "MATCH (mp:MedicalProcedure) WHERE mp.MedicalProcedure_id = 'MP001' WITH mp MATCH (mp2:MedicalProcedure) WHERE mp2.Date > mp.Date RETURN mp2"
+    },
+    {
+        "question": "Retrieve all hospitals that were accredited after the hospital named 'General Hospital'.",
+        "query": "MATCH (h1:Hospital {Name: 'General Hospital'}), (h2:Hospital) WHERE h2.AccreditationStatus > h1.AccreditationStatus RETURN h2"
+    },
+    {
+        "question": "Find all donors who are older than the donor named 'John Doe'.",
+        "query": "MATCH (d:Donor) WHERE d.Name = 'John Doe' WITH d MATCH (other:Donor) WHERE other.DateOfBirth < d.DateOfBirth RETURN other"
+    },
+    {
+        "question": "Retrieve all recipients who have a health condition that is more critical than the recipient named 'Jane Smith'.",
+        "query": "MATCH (r:Recipient) WHERE r.Name = 'Jane Smith' WITH r.HealthCondition AS janeHealthCondition MATCH (rec:Recipient) WHERE rec.HealthCondition > janeHealthCondition RETURN rec"
+    },
+    {
+        "question": "Identify all hospitals that have a name alphabetically greater than the hospital named 'City Hospital'.",
+        "query": "MATCH (h:Hospital) WHERE h.Name > 'City Hospital' RETURN h"
+    },
+    {
+        "question": "Find all donation batches that have a higher quantity than the batch with ID 'DB001'.",
+        "query": "MATCH (db:DonationBatch) WHERE db.DonationBatch_id = 'DB001' WITH db.Quantity AS targetQuantity MATCH (db2:DonationBatch) WHERE db2.Quantity > targetQuantity RETURN db2"
+    },
+    {
+        "question": "Which recipients are compatible with biological materials collected from donors having a specific health status and stored under certain conditions?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:CompatibleWith]->(r:Recipient) WHERE d.HealthStatus = 'specific_health_status' AND bm.StorageCondition = 'certain_conditions' RETURN DISTINCT r"
+    },
+    {
+        "question": "List all regulatory requirements that are complied with by donors who have donated materials belonging to a specific donation batch.",
+        "query": "MATCH (rr:RegulatoryRequirement)<-[:CompliesWith]-(d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.DonationBatch_id = 'specific_batch_id' RETURN DISTINCT rr"
+    },
+    {
+        "question": "Which donors have donated biological materials that were part of a donation batch with a quantity greater than 100 units?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.Quantity > 100 RETURN DISTINCT d"
+    },
+    {
+        "question": "Identify hospitals that performed medical procedures using biological materials which expired before the procedure date.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure)<-[:Requires]-(bm:BiologicalMaterial) WHERE bm.ExpirationDate < mp.Date RETURN DISTINCT h"
+    },
+    {
+        "question": "Find all recipients who received biological materials that were collected from donors with a consent status of 'Approved' and stored under specific storage conditions.",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:Receives]->(r:Recipient) WHERE d.ConsentStatus = 'Approved' AND bm.StorageCondition IS NOT NULL RETURN DISTINCT r"
+    },
+    {
+        "question": "Which biological materials have been donated by the donor named 'John Doe' and are part of a donation batch with a quantity greater than 50 units?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.Quantity > 50 RETURN bm"
+    },
+    {
+        "question": "Identify all recipients who are compatible with biological materials collected from donors having a health status of 'Healthy' and stored under 'Refrigerated' conditions.",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:CompatibleWith]->(r:Recipient) WHERE d.HealthStatus = 'Healthy' AND bm.StorageCondition = 'Refrigerated' RETURN DISTINCT r"
+    },
+    {
+        "question": "Which regulatory requirements are complied with by donors who have donated biological materials that expired before the medical procedure date and were stored under 'Frozen' conditions?",
+        "query": "MATCH (d:Donor)-[:CompliesWith]->(r:RegulatoryRequirement) WITH d, r MATCH (d)-[:Donates]->(b:BiologicalMaterial)-[:Requires]->(mp:MedicalProcedure) WHERE b.ExpirationDate < mp.Date AND b.StorageCondition = 'Frozen' RETURN DISTINCT r"
+    },
+    {
+        "question": "Find all hospitals that have performed medical procedures using biological materials which belong to a donation batch with a batch status of 'Completed' and were collected after a specific date.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.BatchStatus = 'Completed' AND db.CollectionDate > datetime('2023-01-01 00:00:00') RETURN DISTINCT h"
+    },
+    {
+        "question": "Which donors and the donor named 'John Doe' have both donated biological materials that were part of the same donation batch?",
+        "query": "MATCH (d1:Donor {Name: 'John Doe'})-[:Donates]->(bm1:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch), (d2:Donor)-[:Donates]->(bm2:BiologicalMaterial)-[:BelongsToBatch]->(db) RETURN DISTINCT d2.Name"
+    },
+    {
+        "question": "Identify all recipients who are compatible with biological materials from donors that 'Jane Smith' is also compatible with.",
+        "query": "MATCH (donor:Donor {Name: 'Jane Smith'})-[:Donates]->(bm:BiologicalMaterial)-[:CompatibleWith]->(recipient:Recipient) RETURN DISTINCT recipient"
+    },
+    {
+        "question": "List all medical procedures that used biological materials from the same donor who contributed to the batch used in the procedure with ID 'MP001'.",
+        "query": "MATCH (mp:MedicalProcedure {MedicalProcedure_id: 'MP001'})-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(donor:Donor) WITH donor MATCH (donor)-[:Donates]->(bm2:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WITH db MATCH (mp2:MedicalProcedure)-[:Requires]->(bm3:BiologicalMaterial)-[:BelongsToBatch]->(db) RETURN DISTINCT mp2"
+    },
+    {
+        "question": "Find hospitals that have performed medical procedures using biological materials from the same donation batch as those used in procedures at 'City Hospital'.",
+        "query": "MATCH (h:Hospital {Name: 'City Hospital'})-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch)<-[:BelongsToBatch]-(bm2:BiologicalMaterial)<-[:Requires]-(mp2:MedicalProcedure)<-[:Performs]-(h2:Hospital) RETURN DISTINCT h2"
+    },
+    {
+        "question": "Which donors and the donor named 'John Doe' have both donated biological materials that were part of the same donation batch?",
+        "query": "MATCH (d1:Donor {Name: 'John Doe'})-[:Donates]->(bm1:BiologicalMaterial)-[:BelongsToBatch]->(batch:DonationBatch), (d2:Donor)-[:Donates]->(bm2:BiologicalMaterial)-[:BelongsToBatch]->(batch) WHERE d1.Donor_id <> d2.Donor_id RETURN DISTINCT d2.Name"
+    },
+    {
+        "question": "Which biological materials have been donated by the donor named 'John Doe' and are part of a donation batch with a quantity greater than 50 units?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.Quantity > 50 RETURN bm"
+    },
+    {
+        "question": "Identify all recipients who are compatible with biological materials from donors that 'Jane Smith' is also compatible with.",
+        "query": "MATCH (donor:Donor {Name: 'Jane Smith'})-[:CompatibleWith]->(bm:BiologicalMaterial)<-[:CompatibleWith]-(recipient:Recipient) RETURN DISTINCT recipient"
+    },
+    {
+        "question": "Identify the shortest traversal path from the regulatory requirement named 'Compliance Standard A' to any biological material that complies with it.",
+        "query": "MATCH (rr:RegulatoryRequirement {Name: 'Compliance Standard A'})-[:CompliesWith]->(d:Donor)-[:Donates]->(bm:BiologicalMaterial) RETURN rr, d, bm"
+    },
+    {
+        "question": "Find the shortest path between the donation batch with ID 'DB001' and the recipients who received materials from that batch.",
+        "query": "MATCH (db:DonationBatch {DonationBatch_id: 'DB001'})-[:BelongsToBatch]->(bm:BiologicalMaterial)-[r:Receives]->(rec:Recipient) RETURN db, bm, rec, r"
+    },
+    {
+        "question": "Find all possible paths between the hospital named 'City Hospital' and any donor who has donated materials used in medical procedures there.",
+        "query": "MATCH (h:Hospital {Name: 'City Hospital'})-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN DISTINCT h, d"
+    },
+    {
+        "question": "What is the shortest path between the donor named 'John Doe' and the recipient named 'Jane Smith' through biological materials?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[donates:Donates]->(bm:BiologicalMaterial)<-[receives:Receives]-(r:Recipient {Name: 'Jane Smith'}) RETURN shortestPath((d)-[:Donates*..10]-(r)) AS path"
+    },
+    {
+        "question": "What are all the paths connecting the medical procedure with ID 'MP001' to the donors who contributed materials used in that procedure?",
+        "query": "MATCH (mp:MedicalProcedure {MedicalProcedure_id: 'MP001'})-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN mp, bm, d"
+    },
+    {
+        "question": "Find the maximum and minimum quantity of biological materials donated by each donor and list the donors along with these quantities.",
+        "query": "MATCH (d:Donor)-[don:Donates]->(bm:BiologicalMaterial) RETURN d.Name AS DonorName, MAX(don.Quantity) AS MaxQuantity, MIN(don.Quantity) AS MinQuantity"
+    },
+    {
+        "question": "What is the total quantity of biological materials collected from donors with a health status of 'Healthy' and stored under 'Refrigerated' conditions?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.HealthStatus = 'Healthy' AND bm.StorageCondition = 'Refrigerated' RETURN sum(bm.quantity) AS total_quantity"
+    },
+    {
+        "question": "How many donors have a consent status of 'Approved' and have donated biological materials that are currently in 'Active' status?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.ConsentStatus = 'Approved' AND bm.Status = 'Active' RETURN COUNT(DISTINCT d) AS DonorCount"
+    },
+    {
+        "question": "What is the average quantity of biological materials per donation batch that has a batch status of 'Completed'?",
+        "query": "MATCH (db:DonationBatch) WHERE db.BatchStatus = 'Completed' RETURN avg(db.Quantity) AS average_quantity"
+    },
+    {
+        "question": "Count the number of medical procedures performed by each hospital and list the hospitals along with their procedure counts.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure) RETURN h.Name AS Hospital, count(mp) AS ProcedureCount"
+    },
+    {
+        "question": "List all medical procedures of type 'Transplant' that occurred in the year 2023, sorted by procedure date in ascending order.",
+        "query": "MATCH (m:MedicalProcedure) WHERE m.Type = 'Transplant' AND m.Date >= datetime('2023-01-01 00:00:00') AND m.Date < datetime('2024-01-01 00:00:00') RETURN m ORDER BY m.Date ASC"
+    },
+    {
+        "question": "Retrieve all biological materials that were collected after January 1, 2023, and are stored under 'Refrigerated' conditions, sorted by collection date in descending order.",
+        "query": "MATCH (b:BiologicalMaterial) WHERE b.CollectionDate > datetime('2023-01-01 00:00:00') AND b.StorageCondition = 'Refrigerated' RETURN b ORDER BY b.CollectionDate DESC"
+    },
+    {
+        "question": "Find all hospitals located in 'New York' with an accreditation status of 'Active', sorted by hospital name in ascending order.",
+        "query": "MATCH (h:Hospital) WHERE h.Location = 'New York' AND h.AccreditationStatus = 'Active' RETURN h ORDER BY h.Name ASC"
+    },
+    {
+        "question": "Identify all recipients with blood type 'O+' who have a health condition rated as 'Critical', sorted by their health condition in descending order.",
+        "query": "MATCH (r:Recipient) WHERE r.BloodType = 'O+' AND r.HealthCondition = 'Critical' RETURN r ORDER BY r.HealthCondition DESC"
+    },
+    {
+        "question": "Find all donors who are younger than the donor named 'Alice Johnson'.",
+        "query": "MATCH (d:Donor) WHERE d.Name = 'Alice Johnson' WITH d AS alice MATCH (donor:Donor) WHERE donor.DateOfBirth > alice.DateOfBirth RETURN donor"
+    },
+    {
+        "question": "List all medical procedures that occurred earlier than the procedure with ID 'MP002'.",
+        "query": "MATCH (mp:MedicalProcedure) WHERE mp.MedicalProcedure_id = 'MP002' WITH mp.Date AS targetDate MATCH (m:MedicalProcedure) WHERE m.Date < targetDate RETURN m"
+    },
+    {
+        "question": "Find all recipients who have a more critical health condition than the recipient named 'Robert Brown'.",
+        "query": "MATCH (r:Recipient {Name: 'Robert Brown'}) WITH r MATCH (other:Recipient) WHERE other.HealthCondition > r.HealthCondition RETURN other"
+    },
+    {
+        "question": "Identify all hospitals that were accredited before the hospital named 'Metropolitan General'.",
+        "query": "MATCH (h:Hospital) WHERE h.AccreditationStatus IS NOT NULL AND h.Name <> 'Metropolitan General' RETURN h"
+    },
+    {
+        "question": "Find the maximum and minimum quantity of biological materials donated by each donor and list the donors along with these quantities.",
+        "query": "MATCH (d:Donor)-[don:Donates]->(bm:BiologicalMaterial) RETURN d.Name AS DonorName, MAX(don.Quantity) AS MaxQuantity, MIN(don.Quantity) AS MinQuantity"
+    },
+    {
+        "question": "What is the total quantity of biological materials collected from donors with a health status of 'Healthy' and stored under 'Refrigerated' conditions?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.HealthStatus = 'Healthy' AND bm.StorageCondition = 'Refrigerated' RETURN sum(bm.Quantity) AS TotalQuantity"
+    },
+    {
+        "question": "How many donors have a consent status of 'Approved' and have donated biological materials that are currently in 'Active' status?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.ConsentStatus = 'Approved' AND bm.Status = 'Active' RETURN COUNT(DISTINCT d)"
+    },
+    {
+        "question": "What is the average quantity of biological materials per donation batch that has a batch status of 'Completed'?",
+        "query": "MATCH (db:DonationBatch) WHERE db.BatchStatus = 'Completed' RETURN avg(db.Quantity) AS average_quantity"
+    },
+    {
+        "question": "Count the number of medical procedures performed by each hospital and list the hospitals along with their procedure counts.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure) RETURN h.Name AS Hospital, count(mp) AS ProcedureCount"
+    },
+    {
+        "question": "Which donors and the donor named 'John Doe' have both donated biological materials that were part of the same donation batch?",
+        "query": "MATCH (d1:Donor {Name: 'John Doe'})-[:Donates]->(bm1:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch), (d2:Donor)-[:Donates]->(bm2:BiologicalMaterial)-[:BelongsToBatch]->(db) RETURN DISTINCT d2.Name"
+    },
+    {
+        "question": "Which biological materials have been donated by the donor named 'John Doe' and are part of a donation batch with a quantity greater than 50 units?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.Quantity > 50 RETURN bm"
+    },
+    {
+        "question": "Which hospitals have performed medical procedures using biological materials which belong to a donation batch with a batch status of 'Completed' and were collected after January 1, 2023?",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.BatchStatus = 'Completed' AND db.CollectionDate > datetime('2023-01-01 00:00:00') RETURN DISTINCT h"
+    },
+    {
+        "question": "Identify all recipients who are compatible with biological materials collected from donors having a health status of 'Healthy' and stored under 'Refrigerated' conditions.",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:CompatibleWith]->(r:Recipient) WHERE d.HealthStatus = 'Healthy' AND bm.StorageCondition = 'Refrigerated' RETURN DISTINCT r"
+    },
+    {
+        "question": "Find all regulatory requirements that are complied with by donors who have donated materials belonging to the donation batch with ID 'DB001'.",
+        "query": "MATCH (d:Donor)-[:CompliesWith]->(r:RegulatoryRequirement), (d)-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch) WHERE db.DonationBatch_id = 'DB001' RETURN DISTINCT r"
+    },
+    {
+        "question": "Identify the shortest traversal path from the regulatory requirement named 'Compliance Standard A' to any biological material that complies with it.",
+        "query": "MATCH (rr:RegulatoryRequirement {Name: 'Compliance Standard A'})-[:CompliesWith]->(d:Donor)-[:Donates]->(bm:BiologicalMaterial) RETURN rr, d, bm"
+    },
+    {
+        "question": "Find the shortest path between the donation batch with ID 'DB001' and the recipients who received materials from that batch.",
+        "query": "MATCH (db:DonationBatch {DonationBatch_id: 'DB001'})-[:BelongsToBatch]->(bm:BiologicalMaterial)-[r:Receives]->(rec:Recipient) RETURN db, bm, rec, r"
+    },
+    {
+        "question": "Find all possible paths between the hospital named 'City Hospital' and any donor who has donated materials used in medical procedures there.",
+        "query": "MATCH (h:Hospital {Name: 'City Hospital'})-[:Performs]->(mp:MedicalProcedure)-[r:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN DISTINCT h, mp, bm, d"
+    },
+    {
+        "question": "What are all the paths connecting the medical procedure with ID 'MP001' to the donors who contributed materials used in that procedure?",
+        "query": "MATCH (mp:MedicalProcedure {MedicalProcedure_id: 'MP001'})-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN mp, bm, d"
+    },
+    {
+        "question": "Identify the hospitals that performed medical procedures using biological materials which expired before the procedure date and were donated by donors with a consent status of 'Approved'.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) WHERE d.ConsentStatus = 'Approved' AND bm.ExpirationDate < mp.Date RETURN DISTINCT h"
+    },
+    {
+        "question": "Find all recipients who received biological materials that were donated by donors with a health status of 'Healthy' and were part of donation batches collected after January 1, 2023.",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:BelongsToBatch]->(db:DonationBatch), (r:Recipient)-[:Receives]->(bm) WHERE d.HealthStatus = 'Healthy' AND db.CollectionDate > datetime('2023-01-01 00:00:00') RETURN DISTINCT r"
+    },
+    {
+        "question": "Which biological materials donated by the donor named 'John Doe' were used in medical procedures that had an outcome of 'Successful'?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[:Donates]->(bm:BiologicalMaterial)-[:Requires]->(mp:MedicalProcedure {Outcome: 'Successful'}) RETURN bm"
+    },
+    {
+        "question": "Which donors have donated biological materials that were used in medical procedures performed by hospitals located in 'New York'?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial)-[:Requires]->(mp:MedicalProcedure)<-[:Performs]-(h:Hospital) WHERE h.Location = 'New York' RETURN DISTINCT d"
+    },
+    {
+        "question": "List all regulatory requirements that are complied with by donors who have donated materials used in medical procedures at hospitals with an accreditation status of 'Active'.",
+        "query": "MATCH (rr:RegulatoryRequirement)<-[:CompliesWith]-(d:Donor)-[:Donates]->(bm:BiologicalMaterial)<-[:Requires]-(mp:MedicalProcedure)<-[:Performs]-(h:Hospital) WHERE h.AccreditationStatus = 'Active' RETURN DISTINCT rr"
+    },
+    {
+        "question": "Which biological materials have a 'Donates' relationship with the donor named 'John Doe'?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[donates:Donates]->(bm:BiologicalMaterial) RETURN bm"
+    },
+    {
+        "question": "Which hospitals have a 'Performs' relationship with medical procedures that used biological materials donated by the donor named 'Robert Brown'?",
+        "query": "MATCH (d:Donor {Name: 'Robert Brown'})-[:Donates]->(bm:BiologicalMaterial)<-[:Requires]-(mp:MedicalProcedure)<-[:Performs]-(h:Hospital) RETURN DISTINCT h"
+    },
+    {
+        "question": "Which medical procedures have a 'Requires' relationship with biological materials that were donated by the donor named 'Alice Johnson'?",
+        "query": "MATCH (d:Donor {Name: 'Alice Johnson'})-[:Donates]->(bm:BiologicalMaterial)<-[:Requires]-(mp:MedicalProcedure) RETURN mp"
+    },
+    {
+        "question": "Which regulatory requirements have a 'CompliesWith' relationship with the donor named 'Emily Davis'?",
+        "query": "MATCH (d:Donor)-[:CompliesWith]->(r:RegulatoryRequirement) WHERE d.Name = 'Emily Davis' RETURN r"
+    },
+    {
+        "question": "Which recipients have a 'Receives' relationship with biological materials donated by the donor named 'Jane Smith'?",
+        "query": "MATCH (d:Donor {Name: 'Jane Smith'})-[:Donates]->(bm:BiologicalMaterial)-[:Receives]->(r:Recipient) RETURN r"
+    },
+    {
+        "question": "Find all recipients with blood type 'O+' who have a health condition rated as 'Critical', sorted by their health condition in descending order.",
+        "query": "MATCH (r:Recipient) WHERE r.BloodType = 'O+' AND r.HealthCondition = 'Critical' RETURN r ORDER BY r.HealthCondition DESC"
+    },
+    {
+        "question": "List all medical procedures of type 'Transplant' that occurred in the year 2023, sorted by procedure date in ascending order.",
+        "query": "MATCH (m:MedicalProcedure) WHERE m.Type = 'Transplant' AND m.Date >= datetime('2023-01-01 00:00:00') AND m.Date < datetime('2024-01-01 00:00:00') RETURN m ORDER BY m.Date ASC"
+    },
+    {
+        "question": "Retrieve all biological materials that were collected after January 1, 2023, and are stored under 'Refrigerated' conditions, sorted by collection date in descending order.",
+        "query": "MATCH (bm:BiologicalMaterial) WHERE bm.CollectionDate > datetime('2023-01-01 00:00:00') AND bm.StorageCondition = 'Refrigerated' RETURN bm ORDER BY bm.CollectionDate DESC"
+    },
+    {
+        "question": "Identify all hospitals located in 'New York' with an accreditation status of 'Active', sorted by hospital name in ascending order.",
+        "query": "MATCH (h:Hospital) WHERE h.Location = 'New York' AND h.AccreditationStatus = 'Active' RETURN h ORDER BY h.Name ASC"
+    },
+    {
+        "question": "Identify the shortest traversal path from the regulatory requirement named 'Compliance Standard A' to any biological material that complies with it.",
+        "query": "MATCH (rr:RegulatoryRequirement {Name: 'Compliance Standard A'})-[c:CompliesWith]->(d:Donor)-[don:Donates]->(bm:BiologicalMaterial) RETURN rr, c, d, don, bm"
+    },
+    {
+        "question": "Find the shortest path between the donation batch with ID 'DB001' and the recipients who received materials from that batch.",
+        "query": "MATCH (db:DonationBatch {DonationBatch_id: 'DB001'})-[:BelongsToBatch]->(bm:BiologicalMaterial)-[r:Receives]->(rec:Recipient) RETURN db, bm, rec, r"
+    },
+    {
+        "question": "Find all possible paths between the hospital named 'City Hospital' and any donor who has donated materials used in medical procedures there.",
+        "query": "MATCH (h:Hospital {Name: 'City Hospital'})-[:Performs]->(mp:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN DISTINCT h, d"
+    },
+    {
+        "question": "What is the shortest path between the donor named 'John Doe' and the recipient named 'Jane Smith' through biological materials?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[donates:Donates]->(bm:BiologicalMaterial)<-[receives:Receives]-(r:Recipient {Name: 'Jane Smith'}) RETURN shortestPath((d)-[:Donates]->(bm)<-[:Receives]-(r)) AS path"
+    },
+    {
+        "question": "What are all the paths connecting the medical procedure with ID 'MP001' to the donors who contributed materials used in that procedure?",
+        "query": "MATCH (mp:MedicalProcedure {MedicalProcedure_id: 'MP001'})-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN mp, bm, d"
+    },
+    {
+        "question": "Retrieve all biological materials that were collected after January 1, 2023, and are stored under 'Frozen' conditions, sorted by collection date in descending order.",
+        "query": "MATCH (bm:BiologicalMaterial) WHERE bm.CollectionDate > datetime('2023-01-01 00:00:00') AND bm.StorageCondition = 'Frozen' RETURN bm ORDER BY bm.CollectionDate DESC"
+    },
+    {
+        "question": "List all recipients with blood type 'AB+' who have a health condition rated as 'Critical', sorted by their health condition in descending order.",
+        "query": "MATCH (r:Recipient) WHERE r.BloodType = 'AB+' AND r.HealthCondition = 'Critical' RETURN r ORDER BY r.HealthCondition DESC"
+    },
+    {
+        "question": "Find all medical procedures of type 'Surgery' that occurred in the year 2023 and had an outcome of 'Successful', sorted by procedure date in ascending order.",
+        "query": "MATCH (m:MedicalProcedure) WHERE m.Type = 'Surgery' AND m.Date >= datetime('2023-01-01 00:00:00') AND m.Date <= datetime('2023-12-31 23:59:59') AND m.Outcome = 'Successful' RETURN m ORDER BY m.Date ASC"
+    },
+    {
+        "question": "Identify all hospitals located in 'California' with an accreditation status of 'Active', sorted by hospital name in ascending order.",
+        "query": "MATCH (h:Hospital) WHERE h.Location = 'California' AND h.AccreditationStatus = 'Active' RETURN h ORDER BY h.Name ASC"
+    },
+    {
+        "question": "Find all recipients with blood type 'O+' who have a health condition rated as 'Critical', sorted by their health condition in descending order.",
+        "query": "MATCH (r:Recipient) WHERE r.BloodType = 'O+' AND r.HealthCondition = 'Critical' RETURN r ORDER BY r.HealthCondition DESC"
+    },
+    {
+        "question": "Retrieve all biological materials that were collected after January 1, 2023, and are stored under 'Refrigerated' conditions, sorted by collection date in descending order.",
+        "query": "MATCH (bm:BiologicalMaterial) WHERE bm.CollectionDate > datetime('2023-01-01 00:00:00') AND bm.StorageCondition = 'Refrigerated' RETURN bm ORDER BY bm.CollectionDate DESC"
+    },
+    {
+        "question": "Identify all hospitals located in 'New York' with an accreditation status of 'Active', sorted by hospital name in ascending order.",
+        "query": "MATCH (h:Hospital) WHERE h.Location = 'New York' AND h.AccreditationStatus = 'Active' RETURN h ORDER BY h.Name ASC"
+    },
+    {
+        "question": "List all medical procedures of type 'Transplant' that occurred in the year 2023 and had an outcome of 'Successful', sorted by procedure date in ascending order.",
+        "query": "MATCH (mp:MedicalProcedure) WHERE mp.Type = 'Transplant' AND mp.Outcome = 'Successful' AND mp.Date >= datetime('2023-01-01 00:00:00') AND mp.Date < datetime('2024-01-01 00:00:00') RETURN mp ORDER BY mp.Date ASC"
+    },
+    {
+        "question": "List all medical procedures that were performed on a date later than the procedure with ID 'MP002'.",
+        "query": "MATCH (mp:MedicalProcedure) WHERE mp.MedicalProcedure_id = 'MP002' WITH mp.Date AS targetDate MATCH (m:MedicalProcedure) WHERE m.Date > targetDate RETURN m"
+    },
+    {
+        "question": "Which biological materials have an expiration date later than the material with ID 'BM001'?",
+        "query": "MATCH (bm:BiologicalMaterial) WHERE bm.BiologicalMaterial_id = 'BM001' WITH bm.ExpirationDate AS expDate MATCH (bm2:BiologicalMaterial) WHERE bm2.ExpirationDate > expDate RETURN bm2"
+    },
+    {
+        "question": "Retrieve all hospitals that were accredited later than the hospital with ID 'H004'.",
+        "query": "MATCH (h1:Hospital {Hospital_id: 'H004'}), (h2:Hospital) WHERE h2.AccreditationStatus > h1.AccreditationStatus RETURN h2"
+    },
+    {
+        "question": "Find all recipients with blood type 'O+' who have a health condition rated as 'Critical', sorted by their health condition in descending order.",
+        "query": "MATCH (r:Recipient) WHERE r.BloodType = 'O+' AND r.HealthCondition = 'Critical' RETURN r ORDER BY r.HealthCondition DESC"
+    },
+    {
+        "question": "Retrieve all biological materials that were collected after January 1, 2023, and are stored under 'Refrigerated' conditions, sorted by collection date in descending order.",
+        "query": "MATCH (b:BiologicalMaterial) WHERE b.CollectionDate > datetime('2023-01-01 00:00:00') AND b.StorageCondition = 'Refrigerated' RETURN b ORDER BY b.CollectionDate DESC"
+    },
+    {
+        "question": "Identify all hospitals located in 'New York' with an accreditation status of 'Active', sorted by hospital name in ascending order.",
+        "query": "MATCH (h:Hospital) WHERE h.Location = 'New York' AND h.AccreditationStatus = 'Active' RETURN h ORDER BY h.Name ASC"
+    },
+    {
+        "question": "List all medical procedures of type 'Transplant' that occurred in the year 2023 and had an outcome of 'Successful', sorted by procedure date in ascending order.",
+        "query": "MATCH (mp:MedicalProcedure) WHERE mp.Type = 'Transplant' AND mp.Outcome = 'Successful' AND mp.Date >= datetime('2023-01-01 00:00:00') AND mp.Date < datetime('2024-01-01 00:00:00') RETURN mp ORDER BY mp.Date ASC"
+    },
+    {
+        "question": "Identify the shortest traversal path from the regulatory requirement named 'Compliance Standard A' to any biological material that complies with it.",
+        "query": "MATCH (rr:RegulatoryRequirement {Name: 'Compliance Standard A'})-[:CompliesWith]->(d:Donor)-[:Donates]->(bm:BiologicalMaterial) RETURN rr, d, bm"
+    },
+    {
+        "question": "Find the shortest path between the donation batch with ID 'DB001' and the recipients who received materials from that batch.",
+        "query": "MATCH (db:DonationBatch {DonationBatch_id: 'DB001'})-[:BelongsToBatch]->(bm:BiologicalMaterial)-[r:Receives]->(rec:Recipient) RETURN db, bm, rec, r"
+    },
+    {
+        "question": "Find all possible paths between the hospital named 'City Hospital' and any donor who has donated materials used in medical procedures there.",
+        "query": "MATCH (h:Hospital {Name: 'City Hospital'})-[:Performs]->(p:MedicalProcedure)-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN DISTINCT h, d"
+    },
+    {
+        "question": "What are all the paths connecting the medical procedure with ID 'MP001' to the donors who contributed materials used in that procedure?",
+        "query": "MATCH (mp:MedicalProcedure {MedicalProcedure_id: 'MP001'})-[:Requires]->(bm:BiologicalMaterial)<-[:Donates]-(d:Donor) RETURN mp, bm, d"
+    },
+    {
+        "question": "What is the total quantity of biological materials collected from donors with a health status of 'Healthy' and stored under 'Frozen' conditions?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.HealthStatus = 'Healthy' AND bm.StorageCondition = 'Frozen' RETURN SUM(bm.Quantity) AS TotalQuantity"
+    },
+    {
+        "question": "Find the maximum and minimum quantity of biological materials donated by each donor who has a health status of 'Recovered' and list the donors along with these quantities.",
+        "query": "MATCH (d:Donor {HealthStatus: 'Recovered'})-[donates:Donates]->(bm:BiologicalMaterial) WITH d, MAX(donates.Quantity) AS MaxQuantity, MIN(donates.Quantity) AS MinQuantity RETURN d.Name AS DonorName, MaxQuantity, MinQuantity"
+    },
+    {
+        "question": "How many donors have a consent status of 'Approved' and have donated biological materials that are currently in 'Inactive' status?",
+        "query": "MATCH (d:Donor)-[:Donates]->(bm:BiologicalMaterial) WHERE d.ConsentStatus = 'Approved' AND bm.Status = 'Inactive' RETURN count(DISTINCT d)"
+    },
+    {
+        "question": "Count the number of medical procedures performed by each hospital located in 'California' and list the hospitals along with their procedure counts.",
+        "query": "MATCH (h:Hospital)-[:Performs]->(mp:MedicalProcedure) WHERE h.Location = 'California' RETURN h.Name AS Hospital, count(mp) AS ProcedureCount"
+    },
+    {
+        "question": "Which biological materials have a 'Donates' relationship with the donor named 'John Doe'?",
+        "query": "MATCH (d:Donor {Name: 'John Doe'})-[:Donates]->(bm:BiologicalMaterial) RETURN bm"
+    },
+    {
+        "question": "Which hospitals have a 'Performs' relationship with medical procedures that used biological materials donated by the donor named 'Robert Brown'?",
+        "query": "MATCH (d:Donor {Name: 'Robert Brown'})-[:Donates]->(bm:BiologicalMaterial)-[:Requires]->(mp:MedicalProcedure)<-[:Performs]-(h:Hospital) RETURN DISTINCT h"
+    },
+    {
+        "question": "Which regulatory requirements have a 'CompliesWith' relationship with the donor named 'Emily Davis'?",
+        "query": "MATCH (d:Donor)-[:CompliesWith]->(r:RegulatoryRequirement) WHERE d.Name = 'Emily Davis' RETURN r"
+    },
+    {
+        "question": "Which medical procedures have a 'Requires' relationship with biological materials that were donated by the donor named 'Alice Johnson'?",
+        "query": "MATCH (d:Donor {Name: 'Alice Johnson'})-[:Donates]->(bm:BiologicalMaterial)<-[:Requires]-(mp:MedicalProcedure) RETURN mp"
+    }
+]

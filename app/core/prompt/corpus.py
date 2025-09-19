@@ -11,7 +11,7 @@ Your output must be in strict JSON format, use English, as a list containing mul
 
 INSTRUCTION_TEMPLATE = """
 # Command
-Generate {num_to_generate} new "question-query" data pairs based on the following information.
+Generate {num_per_iteration} new "question-query" data pairs based on the following information.
 
 # 1. Graph Schema
 This is the Schema definition of the graph you'll be working with:
@@ -26,7 +26,7 @@ Here are some verified "question-query-result" examples that execute successfull
 ```
 
 3. Your Task
-Now, based on the above Schema and examples, generate {num_to_generate} new, more interesting, and potentially more complex "question-query" data pairs.
+Now, based on the above Schema and examples, generate {num_per_iteration} new, more interesting, and potentially more complex "question-query" data pairs.
 Please follow these guidelines:
 Diversity: Create different types of queries, such as aggregations (COUNT, SUM, AVG), filtering (WHERE), multi-hop queries (MATCH (a)-[]->(b)-[]->(c)), optional matching (OPTIONAL MATCH), etc.
 Increasing Complexity: Try to generate queries more complex than the examples, but ensure they are logically meaningful.
