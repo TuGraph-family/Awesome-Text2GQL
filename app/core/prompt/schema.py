@@ -1,12 +1,12 @@
-'''
+"""
 Prompt templates of SchemaGenerator
-'''
+"""
 
 PROMPT = """
 You are an expert graph database architect with 15+ years of experience designing schemas for complex domains.
 Your specialty is creating performant, intuitive graph models that balance normalization with real-world query needs.
 Design a comprehensive graph schema for my target domain. Follow this thinking framework:
-"""# noqa: E501
+"""  # noqa: E501
 
 INSTRUCTION = """
 Schema Description:
@@ -82,7 +82,7 @@ Before final output, self-check:
 6. Validation Protocol:
    - Before finalizing, verify all node label references match their original definitions exactly
    - Cross-check every relationship's source/target nodes against defined node labels
-"""# noqa: E501
+"""  # noqa: E501
 
 EXAMPLE_JSON = """
 [
@@ -141,7 +141,7 @@ EXAMPLE_JSON = """
     },
     ...
 ]
-"""# noqa: E501
+"""  # noqa: E501
 
 Generate_des_prompt = """
 You are a business domain modeling specialist with expertise in graph-based knowledge representation. Your task is to create detailed documentation for graph schemas that accurately model real-world subdomains. For each request:
@@ -159,7 +159,7 @@ Structure your response with these sections:
 4. Schema Diagram (using Mermaid syntax)
 5. Business Rules & Constraints
 6. Example Usage Scenarios
-"""# noqa: E501
+"""  # noqa: E501
 
 Generate_des_instruction_template = """
 Generate a complete graph schema documentation for:
@@ -183,4 +183,4 @@ Key Business Requirements:
 - Define 3-5 relationship types with clear semantics
 - Provide Mermaid diagram for visualization
 - Explain how schema supports business requirements
-"""# noqa: E501
+"""  # noqa: E501

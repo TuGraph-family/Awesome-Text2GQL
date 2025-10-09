@@ -1,12 +1,12 @@
-'''
+"""
 Prompt templates of CorpusGenerator
-'''
+"""
 
 SYSTEM_PROMPT = """
 You are an expert in graph databases and the Cypher query language. Your task is to generate new, high-quality, and diverse "natural language question-Cypher query" data pairs based on the provided graph schema and some validated query examples.
 Please ensure that the Cypher queries you generate are syntactically correct and compatible with the provided graph schema.
 Your output must be in strict JSON format, use English, as a list containing multiple objects.
-"""# noqa: E501
+"""  # noqa: E501
 
 
 INSTRUCTION_TEMPLATE = """
@@ -44,7 +44,7 @@ For example:
         "query": "(Corresponding Cypher query 2)"
     }}
 ]
-"""# noqa: E501
+"""  # noqa: E501
 
 ENHANCEMENT_PROMPT_TEMPLATE = """
 # Command
@@ -88,18 +88,18 @@ For example:
         "query": "(Corresponding Cypher query 2)"
     }}
 ]
-"""# noqa: E501
+"""  # noqa: E501
 
 
 QUERY_ARCHETYPES = [
-    "Aggregation and Counting: Statistics on certain types of nodes or relationships in the graph, such as calculating quantity, sum, average, maximum/minimum values. Example: 'Count the number of all type A nodes in the database.'", # noqa: E501
-    "Filtering and Sorting: Filter nodes that meet conditions based on one or more attribute values, and sort the results. Example: 'Find type A nodes where attribute X is greater than [some value] and attribute Y is [some string], sorted by attribute X in descending order.'",# noqa: E501
-    "Relationship Reachability Query: Query which other nodes can be reached from a specific node through specified relationships. Example: 'Which type B nodes have [R-type relationship] with the type A node named [instance name]?'",# noqa: E501
-    "Multi-hop Path Query: Query complex paths spanning two or more relationships. Example: 'Which type A nodes can connect to the type C node named [instance name] through type B nodes? (A->B->C)'",# noqa: E501
-    "Common Neighbors and Association Analysis: Find whether two or more nodes are connected through the same intermediate node, often used to discover indirect connections. Example: 'Which type A nodes and another type A node named [instance name] are both connected to the same type B node? (A1->B<-A2)'",# noqa: E501
-    "Existence and Boolean Checks: Check whether nodes or patterns that meet specific conditions exist in the graph, typically returning yes or no. Example: 'Does the database contain a type A node whose attribute X value is [some specific value]?'",# noqa: E501
-    "Attribute Comparison Query: Filter other nodes based on comparisons between different nodes or based on a node's attributes. Example: 'Find all other type A nodes whose attribute X value is greater than that of the type A node named [instance name].'",# noqa: E501
-    "Path Analysis and Traversal: Focus on analysis of paths themselves, such as finding the shortest path or all possible paths. Example: 'Find the shortest path between the type A node named [instance A] and the type B node named [instance B].'"# noqa: E501
+    "Aggregation and Counting: Statistics on certain types of nodes or relationships in the graph, such as calculating quantity, sum, average, maximum/minimum values. Example: 'Count the number of all type A nodes in the database.'",  # noqa: E501
+    "Filtering and Sorting: Filter nodes that meet conditions based on one or more attribute values, and sort the results. Example: 'Find type A nodes where attribute X is greater than [some value] and attribute Y is [some string], sorted by attribute X in descending order.'",  # noqa: E501
+    "Relationship Reachability Query: Query which other nodes can be reached from a specific node through specified relationships. Example: 'Which type B nodes have [R-type relationship] with the type A node named [instance name]?'",  # noqa: E501
+    "Multi-hop Path Query: Query complex paths spanning two or more relationships. Example: 'Which type A nodes can connect to the type C node named [instance name] through type B nodes? (A->B->C)'",  # noqa: E501
+    "Common Neighbors and Association Analysis: Find whether two or more nodes are connected through the same intermediate node, often used to discover indirect connections. Example: 'Which type A nodes and another type A node named [instance name] are both connected to the same type B node? (A1->B<-A2)'",  # noqa: E501
+    "Existence and Boolean Checks: Check whether nodes or patterns that meet specific conditions exist in the graph, typically returning yes or no. Example: 'Does the database contain a type A node whose attribute X value is [some specific value]?'",  # noqa: E501
+    "Attribute Comparison Query: Filter other nodes based on comparisons between different nodes or based on a node's attributes. Example: 'Find all other type A nodes whose attribute X value is greater than that of the type A node named [instance name].'",  # noqa: E501
+    "Path Analysis and Traversal: Focus on analysis of paths themselves, such as finding the shortest path or all possible paths. Example: 'Find the shortest path between the type A node named [instance A] and the type B node named [instance B].'",  # noqa: E501
 ]
 
 
@@ -130,7 +130,7 @@ For example:
 "Question 2..."
 ]
 
-"""# noqa: E501
+"""  # noqa: E501
 
 TRANSLATION_PROMPT_TEMPLATE = """
 Command
@@ -164,4 +164,4 @@ For example:
 {{
 "query": "MATCH (m:Movie) WHERE m.title = 'some movie' RETURN m"
 }}
-"""# noqa: E501
+"""  # noqa: E501

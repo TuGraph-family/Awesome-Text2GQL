@@ -1,12 +1,12 @@
-'''
+"""
 Prompt templates of DataGenerator
-'''
+"""
 
 PROMPT = """
 You are a world-class Python engineer and an expert in graph database test data generation. 
 Your task is to generate a single, self-contained, and executable Python script based on a given graph schema. 
 The script must produce high-quality, realistic data that simulates complex real-world scenarios.
-"""# noqa: E501
+"""  # noqa: E501
 
 INSTRUCTION_TEMPLATE = """
 Graph Schema:
@@ -107,7 +107,7 @@ writer.writerow([from_id, to_id, ...])
 user_activity_counts = np.random.zipf(a=2, size=USER_COUNT)
 # ... use these counts to generate a realistic number of events per user ...
 ```
-"""# noqa: E501
+"""  # noqa: E501
 
 FIX_INSTRUCTION = """
 The Python code you previously generated failed with an error. 
@@ -127,12 +127,12 @@ Constraints:
     ```
     {last_error}
     ``` 
-"""# noqa: E501
+"""  # noqa: E501
 
 
 FIX_SYSTEM_PROMPT = """
 You are a senior Python debugger. Your task is to fix the provided code based on the error message.
-"""# noqa: E501
+"""  # noqa: E501
 
 
 IMPORT_SYSTEM_PROMPT = """
@@ -367,7 +367,7 @@ is incorrect. If a node needs to point to multiple nodes, create separate blocks
      "columns": ["SRC_ID", "DST_ID"]
 }}
 The same applies for "DST_ID".
-"""# noqa: E501
+"""  # noqa: E501
 
 
 IMPORT_INSTRUCTION = """
@@ -382,4 +382,4 @@ CSV Files Information
 ```
 {csv_files_info}
 ```
-"""# noqa: E501
+"""  # noqa: E501
