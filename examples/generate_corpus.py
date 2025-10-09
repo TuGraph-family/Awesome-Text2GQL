@@ -53,7 +53,7 @@ def main():
         logger.info("Starting corpus generation process...")
 
         # Graph database name
-        graph = "example"
+        graph = "example_schema"
 
         # Set to a path to load seeds, or empty string "" to generate new seeds.
         # Example: seeds_json_path = "examples/generated_corpus/example_corpus_seeds.json"

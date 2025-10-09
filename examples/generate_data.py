@@ -20,7 +20,7 @@ def main():
         - llm_client (LlmClient): The language model client used for schema generation 
           (e.g, "qwen3-coder-plus-2025-07-22").
         """
-        schema_file = Path("examples/generated_schemas/healthcare_donor_20250805_171303.json")
+        schema_file = Path("examples/generated_schemas/example_schema.json")
         llm_client = LlmClient(model="qwen3-coder-plus-2025-07-22")
 
         logger.info("Creating DataGenerator...")
