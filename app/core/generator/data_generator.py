@@ -16,7 +16,6 @@ class DataGenerator:
 
     def __init__(self, llm_client: LlmClient):
         self.llm_client = llm_client
-        self.schema_json = None
 
     def _extract_python_code(self, response: str) -> str:
         """Robustly extract Python code from LLM response using regex."""
@@ -27,10 +26,10 @@ class DataGenerator:
         # If no code block found, return entire response as fallback (assuming it's all code)
         return response.strip()
 
-    def generate_data_script(self) -> str:
+    def generate_data_script(self, schema_json) -> str:
         """Call LLM to generate data generation Python script."""
 
-        data.INSTRUCTION_TEMPLATE = data.INSTRUCTION_TEMPLATE.format(schema_json=self.schema_json)
+        data.INSTRUCTION_TEMPLATE = data.INSTRUCTION_TEMPLATE.format(schema_json=schema_json)
         message = [
             {"role": "system", "content": data.PROMPT},
             {"role": "user", "content": data.INSTRUCTION_TEMPLATE},
@@ -86,14 +85,13 @@ class DataGenerator:
     ) -> Tuple[str, List[Path]]:
         """Generate, save, and execute data generation script with automatic retry/fix logic."""
         with open(schema_file, encoding="utf-8") as f:
-            self.schema_json = json.dumps(json.load(f), ensure_ascii=False)
+            schema_json = json.dumps(json.load(f), ensure_ascii=False)
 
-        self.output_base = Path(output_base)
+        output_base = Path(output_base)
 
         # Script will create ./csv_files/ subdir, but ensure root exists
-        self.script_dir = self.output_base / "scripts"
-        self.script_dir.mkdir(parents=True, exist_ok=True)
-        self.csv_dir = self.script_dir / "csv_files"
+        script_dir = output_base / "scripts"
+        script_dir.mkdir(parents=True, exist_ok=True)
 
         last_error = ""  # Error Traceback info
         original_code = ""
@@ -116,7 +114,7 @@ class DataGenerator:
                 code = self._extract_python_code(response)
             else:
                 print("--- Attempt 1: Generating initial script ---")
-                code = self.generate_data_script()
+                code = self.generate_data_script(schema_json)
 
             if not code:
                 last_error = "LLM returned empty code."
@@ -126,7 +124,7 @@ class DataGenerator:
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             script_name = f"data_generator_{timestamp}_attempt{attempt + 1}.py"
-            script_path = self.script_dir / script_name
+            script_path = script_dir / script_name
 
             with open(script_path, "w", encoding="utf-8") as f:
                 f.write(code)
@@ -134,7 +132,7 @@ class DataGenerator:
             try:
                 result = subprocess.run(
                     ["python", str(script_path.name)],
-                    cwd=str(self.script_dir),
+                    cwd=str(script_dir),
                     capture_output=True,
                     text=True,
                     encoding="utf-8",
@@ -143,7 +141,7 @@ class DataGenerator:
 
                 if result.returncode == 0:
                     print(f"--- Script executed successfully on attempt {attempt + 1}! ---")
-                    csv_files = list((self.script_dir / "csv_files").glob("*.csv"))
+                    csv_files = list((script_dir / "csv_files").glob("*.csv"))
                     if not csv_files:
                         raise FileNotFoundError(
                             "Script ran but produced no CSV files. Output:"
@@ -210,10 +208,13 @@ class DataGenerator:
 
         return json.dumps(data, indent=2)
 
-    def generate_import_config(self, csv_file_info: str):
+    def generate_import_config(self, schema_file, csv_file_info: str, output_path):
+        with open(schema_file, encoding="utf-8") as f:
+            schema_json = json.dumps(json.load(f), ensure_ascii=False)
+
         IMPORT_SYSTEM_PROMPT = data.IMPORT_SYSTEM_PROMPT
         IMPORT_INSTRUCTION = data.IMPORT_INSTRUCTION.format(
-            schema_json=self.clean_json_schema(self.schema_json), csv_files_info=csv_file_info
+            schema_json=self.clean_json_schema(schema_json), csv_files_info=csv_file_info
         )
 
         message = [
@@ -233,7 +234,7 @@ class DataGenerator:
 
         # Parse cleaned schema
         try:
-            cleaned_schema = json.loads(self.clean_json_schema(self.schema_json))
+            cleaned_schema = json.loads(self.clean_json_schema(schema_json))
         except Exception as err:
             raise ValueError("Failed to parse cleaned schema JSON.") from err
 
@@ -242,7 +243,8 @@ class DataGenerator:
 
         # Return synthesized config as JSON string
         # Write import_config JSON to /example/generated_data/scripts/csv_files/import_config.json
-        output_path = self.script_dir / "csv_files" / "import_config.json"
+        output_path =Path(output_path) / "import_config.json"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(import_config, f, indent=2, ensure_ascii=False)

@@ -56,7 +56,11 @@ def main():
 
         # Generate import_config.json file
         logger.info("Generate import_config.json file...")
-        success = data_gen.generate_import_config(csv_file_info)
+        success = data_gen.generate_import_config(
+            schema_file, 
+            csv_file_info,
+            output_path = "examples/generated_data/scripts/csv_files"
+        )
         if success:
             logger.info("import_config.json generation completed!")
         else:

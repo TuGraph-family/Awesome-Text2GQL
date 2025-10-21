@@ -75,7 +75,7 @@ def main():
         }
 
         # Initial exploration queries for seed generation
-        explor_query = [
+        explore_query = [
             {"question": "Seed 1", "query": "MATCH p = ()-[]-() RETURN p LIMIT 5"},
             {"question": "Seed 2", "query": "MATCH p = ()-[]-()-[]-() RETURN p LIMIT 5"},
         ]
@@ -99,7 +99,7 @@ def main():
         # Generate seeds from scratch if no path is provided
         if not seeds_json_path:
             logger.info("`seeds_json_path` is empty. Generating new seeds from scratch...")
-            seed_context = validator.execute_and_get_context(explor_query)
+            seed_context = validator.execute_with_results(explore_query)
 
             # Generation loop for seeds
             while len(seeds_corpus) < target_seeds_size:
@@ -116,8 +116,7 @@ def main():
                     questions_per_call,
                 )
                 # 2. Validate the batch and add valid pairs to the main list
-                validated_seeds = validator.validate_and_filter_pairs(tmp_seeds_corpus)
-                validated_seeds_with_context = validator.execute_and_get_context(validated_seeds)
+                validated_seeds_with_context = validator.execute_with_results(tmp_seeds_corpus)
                 seeds_corpus.extend(validated_seeds_with_context)
                 logger.info(f"Added {len(validated_seeds_with_context)} new valid seeds.")
 
@@ -133,9 +132,7 @@ def main():
                 with open(path_of_seeds_file, encoding="utf-8") as f:
                     loaded_seeds = json.load(f)
                 logger.info(f"Loaded {len(loaded_seeds)} pairs from file. Validating...")
-                validated_seeds = validator.validate_and_filter_pairs(loaded_seeds)
-                validated_seeds_with_context = validator.execute_and_get_context(validated_seeds)
-                seeds_corpus = validated_seeds_with_context
+                seeds_corpus = validator.execute_with_results(loaded_seeds)
                 logger.info(f"After validation, {len(seeds_corpus)} seed pairs are ready to use.")
             else:
                 logger.error(f"Seeds file not found at {seeds_json_path}. Cannot proceed.")
@@ -178,11 +175,8 @@ def main():
                     complexity_corpus_size=num_per_llm_call,
                 )
 
-                # 1. Validate the raw corpus
-                validated_corpus = validator.validate_and_filter_pairs(raw_corpus)
-
-                # 2. Execute query and get context (assuming this function exists)
-                pairs_with_context = validator.execute_and_get_context(validated_corpus)
+                # 1. Execute query and get context (assuming this function exists)
+                pairs_with_context = validator.execute_with_results(raw_corpus)
 
                 iteration_pairs.extend(pairs_with_context)
 
