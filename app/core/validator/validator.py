@@ -27,12 +27,9 @@ class CorpusValidator:
         """Return the created client instance."""
         return self._client
 
-    def execute_with_results(
-            self, 
-            pairs: List[Dict[str, str]]
-        ) -> List[Dict[str, Any]]:
+    def execute_with_results(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         """
-        Validate all pairs and get query result, 
+        Validate all pairs and get query result,
         filter out pairs that fail execution or have empty results.
         """
         client = self._get_client()

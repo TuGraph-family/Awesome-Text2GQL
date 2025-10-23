@@ -243,7 +243,7 @@ class DataGenerator:
 
         # Return synthesized config as JSON string
         # Write import_config JSON to /example/generated_data/scripts/csv_files/import_config.json
-        output_path =Path(output_path) / "import_config.json"
+        output_path = Path(output_path) / "import_config.json"
         output_path.parent.mkdir(parents=True, exist_ok=True)
         try:
             with open(output_path, "w", encoding="utf-8") as f:

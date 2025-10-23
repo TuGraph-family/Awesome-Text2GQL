@@ -37,7 +37,7 @@ def main():
         - graph (str): The name of the graph database to use (e.g., "example").
         - schema_file (Path): The path to the schema file
           (e.g., "examples/generated_schemas/example.json").
-        - output_path (Path): The path where the generated corpus will be saved
+        - output_file (Path): The path where the generated corpus will be saved
           (e.g., "examples/generated_corpus/example_corpus.json").
         - seeds_json_path (str): Optional path to load existing seeds, or empty to generate new ones
         - tu_client_params (dict): TuGraph database connection parameters 
@@ -53,24 +53,24 @@ def main():
         logger.info("Starting corpus generation process...")
 
         # Graph database name
-        graph = "example_schema"
+        graph = "example_graph"
 
         # Set to a path to load seeds, or empty string "" to generate new seeds.
         # Example: seeds_json_path = "examples/generated_corpus/example_corpus_seeds.json"
         seeds_json_path = ""
 
         schema_file = Path(f"examples/generated_schemas/{graph}.json")
-        output_path = Path(f"examples/generated_corpus/{graph}_corpus.json")
-        seeds_path = output_path.parent / (output_path.stem + "_seeds" + output_path.suffix)
+        output_file = Path(f"examples/generated_corpus/{graph}_corpus.json")
+        seeds_path = output_file.parent / (output_file.stem + "_seeds" + output_file.suffix)
 
         # Ensure output directory exists
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # TuGraph client parameters
         tu_client_params = {
             "start_host_port": "localhost:7070",
             "username": "admin",
-            "password": "73@TuGraph73@TuGraph",
+            "password": "73@TuGraph",
             "graph": graph,
         }
 
@@ -182,7 +182,7 @@ def main():
 
             # Save the corpus of this batch to a separate file
             batch_file_path = (
-                output_path.parent / f"{output_path.stem}_{batch_number:02d}{output_path.suffix}"
+                output_file.parent / f"{output_file.stem}_{batch_number:02d}{output_file.suffix}"
             )
             save_corpus_without_results(iteration_pairs, batch_file_path)
 
