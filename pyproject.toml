@@ -17,6 +17,7 @@ transformers = "4.51.3"
 pandas = "2.2.3"
 pyarrow = "^20.0.0"
 dashscope = "^1.23.4"
+tugraphclient = "^2.0"
 
 [[tool.poetry.source]]
 name = "PyPI"

@@ -19,7 +19,6 @@ class TuGraphDBClient(DB_Client):
         self.client: TuGraphClient | None = None
         # Call internal method to handle connection creation logic
         self.client = self.create_client(db_client_params)
-        self.db_client_params = db_client_params
 
     def create_client(self, db_client_params: Dict[str, Any]) -> TuGraphClient | None:
         """
@@ -56,13 +55,6 @@ class TuGraphDBClient(DB_Client):
             # Assume TuGraphClient's call_cypher method returns query result
             result = self.client.call_cypher(query, timeout=30)
 
-            # Handle 401 error, make a new connection
-            if isinstance(result, str) and "401" in result:
-                # Query successful but no records found
-                self.client = None
-                self.client = self.create_client(self.db_client_params)
-                return QueryResult(status_code=QueryStatus.SERVER_ERROR, data=["401 Unauthorized"])
-            
             # Assume result is a list or dictionary containing data
             if not result or isinstance(result, str) or not result.get("result"):
                 # Query successful but no records found

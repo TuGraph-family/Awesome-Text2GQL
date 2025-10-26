@@ -23,8 +23,8 @@ def main():
         - llm_client (LlmClient): The language model client used for schema generation 
           (e.g, "qwen3-coder-plus-2025-07-22").
         """
-        domain = "game"
-        subdomain = "card_games"
+        domain = "moive"
+        subdomain = "movielens"
         complexity_level = 3
         llm_client = LlmClient(model="qwen3-coder-plus-2025-07-22")
 

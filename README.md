@@ -97,6 +97,14 @@ This example shows how to use Awesome-Text2GQL Framework to generate a graph sch
 
 This example shows how to use Awesome-Text2GQL Framework to generate data instances based on a given graph schema file.
 
+#### Generate Corpus
+
+This example shows how to use the Awesome-Text2GQL framework to generate a corpus. Before running it, ensure you have a running database instance and update the database connection and output configuration in examples/generate_corpus.py. Then run:
+
+`python ./examples/generate_corpus.py`
+
+When the script finishes, the generated corpus will be saved to the output directory specified in the script.
+
 #### Cypher2GQL
 
 `python ./examples/cypher2gql.py`

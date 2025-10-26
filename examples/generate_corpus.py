@@ -37,7 +37,7 @@ def main():
         - graph (str): The name of the graph database to use (e.g., "example").
         - schema_file (Path): The path to the schema file
           (e.g., "examples/generated_schemas/example.json").
-        - output_path (Path): The path where the generated corpus will be saved
+        - output_file (Path): The path where the generated corpus will be saved
           (e.g., "examples/generated_corpus/example_corpus.json").
         - seeds_json_path (str): Optional path to load existing seeds, or empty to generate new ones
         - tu_client_params (dict): TuGraph database connection parameters 
@@ -53,29 +53,29 @@ def main():
         logger.info("Starting corpus generation process...")
 
         # Graph database name
-        graph = "example_schema"
+        graph = "example_graph"
 
         # Set to a path to load seeds, or empty string "" to generate new seeds.
         # Example: seeds_json_path = "examples/generated_corpus/example_corpus_seeds.json"
         seeds_json_path = ""
 
         schema_file = Path(f"examples/generated_schemas/{graph}.json")
-        output_path = Path(f"examples/generated_corpus/{graph}_corpus.json")
-        seeds_path = output_path.parent / (output_path.stem + "_seeds" + output_path.suffix)
+        output_file = Path(f"examples/generated_corpus/{graph}_corpus.json")
+        seeds_path = output_file.parent / (output_file.stem + "_seeds" + output_file.suffix)
 
         # Ensure output directory exists
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
 
         # TuGraph client parameters
         tu_client_params = {
             "start_host_port": "localhost:7070",
             "username": "admin",
-            "password": "73@TuGraph73@TuGraph",
+            "password": "73@TuGraph",
             "graph": graph,
         }
 
         # Initial exploration queries for seed generation
-        explor_query = [
+        explore_query = [
             {"question": "Seed 1", "query": "MATCH p = ()-[]-() RETURN p LIMIT 5"},
             {"question": "Seed 2", "query": "MATCH p = ()-[]-()-[]-() RETURN p LIMIT 5"},
         ]
@@ -99,7 +99,7 @@ def main():
         # Generate seeds from scratch if no path is provided
         if not seeds_json_path:
             logger.info("`seeds_json_path` is empty. Generating new seeds from scratch...")
-            seed_context = validator.execute_and_get_context(explor_query)
+            seed_context = validator.execute_with_results(explore_query)
 
             # Generation loop for seeds
             while len(seeds_corpus) < target_seeds_size:
@@ -116,8 +116,7 @@ def main():
                     questions_per_call,
                 )
                 # 2. Validate the batch and add valid pairs to the main list
-                validated_seeds = validator.validate_and_filter_pairs(tmp_seeds_corpus)
-                validated_seeds_with_context = validator.execute_and_get_context(validated_seeds)
+                validated_seeds_with_context = validator.execute_with_results(tmp_seeds_corpus)
                 seeds_corpus.extend(validated_seeds_with_context)
                 logger.info(f"Added {len(validated_seeds_with_context)} new valid seeds.")
 
@@ -133,9 +132,7 @@ def main():
                 with open(path_of_seeds_file, encoding="utf-8") as f:
                     loaded_seeds = json.load(f)
                 logger.info(f"Loaded {len(loaded_seeds)} pairs from file. Validating...")
-                validated_seeds = validator.validate_and_filter_pairs(loaded_seeds)
-                validated_seeds_with_context = validator.execute_and_get_context(validated_seeds)
-                seeds_corpus = validated_seeds_with_context
+                seeds_corpus = validator.execute_with_results(loaded_seeds)
                 logger.info(f"After validation, {len(seeds_corpus)} seed pairs are ready to use.")
             else:
                 logger.error(f"Seeds file not found at {seeds_json_path}. Cannot proceed.")
@@ -178,17 +175,14 @@ def main():
                     complexity_corpus_size=num_per_llm_call,
                 )
 
-                # 1. Validate the raw corpus
-                validated_corpus = validator.validate_and_filter_pairs(raw_corpus)
-
-                # 2. Execute query and get context (assuming this function exists)
-                pairs_with_context = validator.execute_and_get_context(validated_corpus)
+                # 1. Execute query and get context (assuming this function exists)
+                pairs_with_context = validator.execute_with_results(raw_corpus)
 
                 iteration_pairs.extend(pairs_with_context)
 
             # Save the corpus of this batch to a separate file
             batch_file_path = (
-                output_path.parent / f"{output_path.stem}_{batch_number:02d}{output_path.suffix}"
+                output_file.parent / f"{output_file.stem}_{batch_number:02d}{output_file.suffix}"
             )
             save_corpus_without_results(iteration_pairs, batch_file_path)
 
