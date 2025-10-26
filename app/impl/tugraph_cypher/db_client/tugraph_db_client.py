@@ -54,6 +54,13 @@ class TuGraphDBClient(DB_Client):
         try:
             # Assume TuGraphClient's call_cypher method returns query result
             result = self.client.call_cypher(query, timeout=30)
+            
+            # Handle 401 error, make a new connection
+            if isinstance(result, str) and "401" in result:
+                # Query successful but no records found
+                self.client = None
+                self.client = self.create_client(self.db_client_params)
+                return QueryResult(status_code=QueryStatus.SERVER_ERROR, data=["401 Unauthorized"])
 
             # Assume result is a list or dictionary containing data
             if not result or isinstance(result, str) or not result.get("result"):
