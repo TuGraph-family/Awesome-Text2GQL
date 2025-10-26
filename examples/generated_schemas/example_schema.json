@@ -1,513 +1,300 @@
 [
   {
     "type": "VERTEX",
-    "label": "Customer",
+    "label": "USER",
     "properties": [
       {
-        "name": "Customer_id",
-        "type": "STRING",
+        "name": "USER_id",
+        "type": "INT64",
         "optional": false,
         "unique": true,
         "index": true
       },
       {
-        "name": "customer_type",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "name",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "risk_rating",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "onboarding_date",
-        "type": "DATE",
-        "optional": true
-      },
-      {
-        "name": "kyc_status",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "Customer_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "Account",
-    "properties": [
-      {
-        "name": "Account_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "account_number",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "account_type",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "balance",
-        "type": "DOUBLE",
-        "optional": false
-      },
-      {
-        "name": "currency",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "status",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "opening_date",
-        "type": "DATE",
-        "optional": true
-      },
-      {
-        "name": "last_activity_date",
-        "type": "DATETIME",
-        "optional": true
-      }
-    ],
-    "primary": "Account_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "Transaction",
-    "properties": [
-      {
-        "name": "Transaction_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "amount",
-        "type": "DOUBLE",
-        "optional": false
-      },
-      {
-        "name": "currency",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "timestamp",
-        "type": "DATETIME",
-        "optional": false
-      },
-      {
-        "name": "transaction_type",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "status",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "reference_number",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "Transaction_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "FinancialProduct",
-    "properties": [
-      {
-        "name": "FinancialProduct_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "product_type",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "name",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "risk_profile",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "regulatory_category",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "FinancialProduct_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "RegulatoryEntity",
-    "properties": [
-      {
-        "name": "RegulatoryEntity_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "name",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "jurisdiction",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "compliance_domain",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "reporting_frequency",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "RegulatoryEntity_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "Institution",
-    "properties": [
-      {
-        "name": "Institution_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "name",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "bic_code",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "country",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "institution_type",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "Institution_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "AuditLog",
-    "properties": [
-      {
-        "name": "AuditLog_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "event_type",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "timestamp",
-        "type": "DATETIME",
-        "optional": false
-      },
-      {
-        "name": "user_id",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "details",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "primary": "AuditLog_id"
-  },
-  {
-    "type": "VERTEX",
-    "label": "RiskAssessment",
-    "properties": [
-      {
-        "name": "RiskAssessment_id",
-        "type": "STRING",
-        "optional": false,
-        "unique": true,
-        "index": true
-      },
-      {
-        "name": "risk_level",
-        "type": "STRING",
-        "optional": false
-      },
-      {
-        "name": "assessment_date",
-        "type": "DATETIME",
-        "optional": false
-      },
-      {
-        "name": "review_frequency",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "flags_raised",
+        "name": "age",
         "type": "INT32",
         "optional": true
+      },
+      {
+        "name": "gender",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "occupation",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "zip_code",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "registration_date",
+        "type": "DATETIME",
+        "optional": false
       }
     ],
-    "primary": "RiskAssessment_id"
+    "primary": "USER_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "MOVIE",
+    "properties": [
+      {
+        "name": "MOVIE_id",
+        "type": "INT64",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "title",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "release_year",
+        "type": "INT32",
+        "optional": false
+      },
+      {
+        "name": "duration",
+        "type": "INT32",
+        "optional": true
+      },
+      {
+        "name": "plot_summary",
+        "type": "STRING",
+        "optional": true
+      },
+      {
+        "name": "language",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "primary": "MOVIE_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "GENRE",
+    "properties": [
+      {
+        "name": "GENRE_id",
+        "type": "INT64",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "name",
+        "type": "STRING",
+        "optional": false,
+        "unique": true
+      },
+      {
+        "name": "description",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "primary": "GENRE_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "RATING",
+    "properties": [
+      {
+        "name": "RATING_id",
+        "type": "INT64",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "score",
+        "type": "FLOAT",
+        "optional": false
+      },
+      {
+        "name": "timestamp",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "review_text",
+        "type": "STRING",
+        "optional": true
+      }
+    ],
+    "primary": "RATING_id"
+  },
+  {
+    "type": "VERTEX",
+    "label": "TAG",
+    "properties": [
+      {
+        "name": "TAG_id",
+        "type": "INT64",
+        "optional": false,
+        "unique": true,
+        "index": true
+      },
+      {
+        "name": "text_content",
+        "type": "STRING",
+        "optional": false
+      },
+      {
+        "name": "timestamp",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "relevance_score",
+        "type": "FLOAT",
+        "optional": true
+      }
+    ],
+    "primary": "TAG_id"
   },
   {
     "type": "EDGE",
-    "label": "HoldsAccount",
+    "label": "RATES",
     "properties": [
       {
-        "name": "relationship_type",
-        "type": "STRING",
-        "optional": true
+        "name": "rating_timestamp",
+        "type": "DATETIME",
+        "optional": false
       },
       {
-        "name": "access_level",
-        "type": "STRING",
-        "optional": true
+        "name": "rating_value",
+        "type": "FLOAT",
+        "optional": false
       },
       {
-        "name": "start_date",
-        "type": "DATE",
+        "name": "confidence_weight",
+        "type": "FLOAT",
         "optional": true
       }
     ],
     "constraints": [
       [
-        "Customer",
-        "Account"
-      ]
-    ]
-  },
-  {
-    "type": "EDGE",
-    "label": "TransactsWith",
-    "properties": [
-      {
-        "name": "direction",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "transaction_role",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "purpose_code",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "constraints": [
-      [
-        "Account",
-        "Transaction"
+        "USER",
+        "RATING"
       ],
       [
-        "Transaction",
-        "Account"
+        "RATING",
+        "MOVIE"
       ]
     ]
   },
   {
     "type": "EDGE",
-    "label": "OffersProduct",
+    "label": "BELONGS_TO",
     "properties": [
       {
-        "name": "start_date",
-        "type": "DATE",
-        "optional": true
-      },
-      {
-        "name": "terms_agreed",
+        "name": "primary_classification",
         "type": "BOOL",
         "optional": true
       },
       {
-        "name": "current_balance_impact",
-        "type": "DOUBLE",
+        "name": "strength_score",
+        "type": "FLOAT",
         "optional": true
       }
     ],
     "constraints": [
       [
-        "Account",
-        "FinancialProduct"
+        "MOVIE",
+        "GENRE"
       ]
     ]
   },
   {
     "type": "EDGE",
-    "label": "ReportsTo",
+    "label": "TAGS",
     "properties": [
       {
-        "name": "reporting_category",
-        "type": "STRING",
+        "name": "tag_timestamp",
+        "type": "DATETIME",
+        "optional": false
+      },
+      {
+        "name": "user_confidence",
+        "type": "FLOAT",
         "optional": true
       },
       {
-        "name": "compliance_status",
-        "type": "STRING",
-        "optional": true
-      },
-      {
-        "name": "last_reported_date",
-        "type": "DATE",
+        "name": "public_visibility",
+        "type": "BOOL",
         "optional": true
       }
     ],
     "constraints": [
       [
-        "Account",
-        "RegulatoryEntity"
+        "USER",
+        "TAG"
       ],
       [
-        "Transaction",
-        "RegulatoryEntity"
+        "TAG",
+        "MOVIE"
       ]
     ]
   },
   {
     "type": "EDGE",
-    "label": "AssessesRisk",
+    "label": "SIMILAR_TO",
     "properties": [
       {
-        "name": "risk_level",
+        "name": "similarity_score",
+        "type": "FLOAT",
+        "optional": false
+      },
+      {
+        "name": "algorithm_version",
         "type": "STRING",
         "optional": true
       },
       {
-        "name": "assessment_date",
+        "name": "update_timestamp",
         "type": "DATETIME",
         "optional": true
       }
     ],
     "constraints": [
       [
-        "Customer",
-        "Account"
-      ],
-      [
-        "Customer",
-        "Transaction"
+        "MOVIE",
+        "MOVIE"
       ]
     ]
   },
   {
     "type": "EDGE",
-    "label": "CorrespondentWith",
+    "label": "FRIENDS_WITH",
     "properties": [
       {
-        "name": "relationship_start",
-        "type": "DATE",
+        "name": "connection_strength",
+        "type": "FLOAT",
         "optional": true
       },
       {
-        "name": "relationship_status",
-        "type": "STRING",
+        "name": "mutual_interests_count",
+        "type": "INT32",
         "optional": true
-      }
-    ],
-    "constraints": [
-      [
-        "Institution",
-        "Institution"
-      ]
-    ]
-  },
-  {
-    "type": "EDGE",
-    "label": "RecordedIn",
-    "properties": [
+      },
       {
-        "name": "record_type",
-        "type": "STRING",
+        "name": "last_interaction",
+        "type": "DATETIME",
         "optional": true
       }
     ],
     "constraints": [
       [
-        "Transaction",
-        "AuditLog"
-      ],
-      [
-        "Account",
-        "AuditLog"
-      ],
-      [
-        "Customer",
-        "AuditLog"
-      ]
-    ]
-  },
-  {
-    "type": "EDGE",
-    "label": "Triggered",
-    "properties": [
-      {
-        "name": "trigger_reason",
-        "type": "STRING",
-        "optional": true
-      }
-    ],
-    "constraints": [
-      [
-        "Transaction",
-        "RiskAssessment"
-      ],
-      [
-        "Account",
-        "RiskAssessment"
+        "USER",
+        "USER"
       ]
     ]
   }
