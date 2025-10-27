@@ -17,23 +17,23 @@ Awesome-Text2GQL is an AI-assisted framework for Text2GQL dataset construction. 
 
 + **Translation**
 
-    + [x] **Question translation** from graph query languages to questions in different natural languages to accelerate question annotation.
+  + [x] **Question translation** from graph query languages to questions in different natural languages to accelerate question annotation.
 
-    + [x] **Query translation** between different graph query languages to gather corpus from all existing graph query languages.
+  + [x] **Query translation** between different graph query languages to gather corpus from all existing graph query languages.
 
 + **Generalization**
 
-    + [x] **Question generalization** for getting natural language questions in different language style but with same semantic meaning to increase the diversity of corpus.
+  + [x] **Question generalization** for getting natural language questions in different language style but with same semantic meaning to increase the diversity of corpus.
 
-    + [x] **Query generalization** for instantiating similar query patterns on different graph schemas to increase the diversity of corpus.
+  + [x] **Query generalization** for instantiating similar query patterns on different graph schemas to increase the diversity of corpus.
 
-+ **Generation**(Future Plan)
++ **Generation**
 
-    + [ ] **Data generation** for generating database instance from graph schema to increase the diversity of database domain.
+  + [x] **Schema generation** for automatically generating complex graph database schemas from natural language domain descriptions.
 
-    + [ ] **Question generation** for generating possibly asked questions from graph schema to assist question annotation.
+  + [x] **Data generation** for generating realistic simulation data that follows statistical distributions (power-law, long-tail, normal distribution, etc.).
 
-    + [ ] **Query generation** for generating corresponding query from natural language question to assist question annotation.
+  + [x] **Corpus generation** for producing high-quality Question-Query pairs with complex queries (multi-hop, nested queries) through iterative enhancement strategies.
 
 ## Demo: TuGraph-DB ChatBot
 
@@ -81,6 +81,7 @@ echo $DASHSCOPE_API_KEY
 ```
 
 #### Local LLM Setup
+
 Awesome-Text2GQL's local LLM client is based on transformers library, use model id from HuggingFace model hub if you can access HuggingFace or use the related local file path where the LLM model is. Add model_path when initializing llm client if you want to use local LLM instead of remote LLM.
 
 ### Run Example
@@ -99,7 +100,15 @@ This example shows how to use Awesome-Text2GQL Framework to generate data instan
 
 #### Generate Corpus
 
-This example shows how to use the Awesome-Text2GQL framework to generate a corpus. Before running it, ensure you have a running database instance and update the database connection and output configuration in examples/generate_corpus.py. Then run:
+This example shows how to use the Awesome-Text2GQL framework to generate a corpus. Before running it, ensure you have a running database instance and update the database connection and output configuration in examples/generate_corpus.py. Alternatively, you can import our provided test dataset into TuGraph. Download link:`https://xxxx.com`.
+
+Example TuGraph import command:
+
+```shell
+# lgraph_import -u admin -p 73@TuGraph -c import_config.json --dir /var/lib/lgraph/data/ --overwrite true -v 3
+```
+
+After all, run:
 
 `python ./examples/generate_corpus.py`
 
@@ -137,7 +146,7 @@ This example shows how to use AwesomeText2GQL Framework to print the ast of a qu
 
 ## Modules
 
-Awesome-Text2GQL use Translator, Generalizer and Generator to assit the entire process of Text2GQL dataset construction. 
+Awesome-Text2GQL use Translator, Generalizer and Generator to assit the entire process of Text2GQL dataset construction.
 
 ### Translator
 
@@ -266,21 +275,70 @@ if success:
         query_list.append(query)
 ```
 
-### Generator(Future Plan)
+### Generator
 
-Generator supports the corpus and database instance generation only based on a given schema with the assistance of LLM. Users can use generator to generate corpus and correponding database instance with only a schema when there is no avaliable corpus.
+The framework implements a full-chain automated generation pipeline: **Schema Generation → Graph Database Instance Construction → Complex Corpus Generation**. This transforms the traditional "manual template design & semi-automatic corpus generation" model into a new paradigm of fully automated generation.
+
+![Architecture Diagram](./images/Architecture.drawio.svg)
+
+The system consists of four highly cohesive, loosely coupled core modules:
+
+| **Module** | **Function Description** |
+|------------|--------------------------|
+| **Schema Generator** | Parses graph database Schema (nodes/edges/properties/indexes), extracts Schema for data Generator use |
+| **Data Generator** | Generates simulated node and edge data based on Schema, supporting large-scale complex relationship network construction |
+| **Corpus Generator** | Uses LLM to generate high-quality Question-Query pairs containing multi-hop queries, nested queries |
+| **Validator** | Checks the correctness of generated Schema, and the grammatical/semantic correctness of Query |
+
+#### Schema Generator
+
+The Schema Generator module automatically creates complex graph database schemas from natural language domain descriptions. It introduces Domain and Subdomain concepts to enhance semantic hierarchy and implements a quantifiable graph structure generation strategy based on a 5-level complexity model.
+
+**Key Features:**
+
++ Generates Schema Graph format schemas convertible to TuGraph modeling files
++ Supports quantitative control over schema complexity through predefined node and relationship ranges
++ Uses LLM to generate Schema Descriptions and corresponding Schema JSON
++ Ensures polymorphism through SchemaGraph class for future database adapters
+
+![Schema Generator Architecture](./images/Schema.drawio.svg)
 
 #### Data Generator
 
-Data generator aims to generate actual database instance from a graph schema with the assistance of LLM. LLM can understand the structure of a graph schema and generate corresponding data to construct a real database instance for query execution. 
+The Data Generator module creates realistic simulation data based on generated schemas, following real-world statistical distributions like power-law, long-tail, and normal distributions.
 
-#### Question Generator
+**Key Features:**
 
-Question generator aims to generate natural language questions on given database instance with the assistance of LLM. LLM can understand the structure and the content of the database instance then ask natural language questions as a database user.
++ Generates node and edge CSV files with property constraints (INT64, DATE, STRING)
++ Creates TuGraph-compatible import_config.json for batch importing via lgraph_import
++ Handles common import errors (type parsing failures, missing delimiters, null value handling)
++ Generated 488 CSV files containing ~3,716,332 rows of data during development
 
-#### Query Generator
+![Data Generator Architecture](./images/Data.drawio.svg)
 
-Query generator aims to generate the actual query of a corresponding natural language question with the current Text2GQL ability of LLM. The generated question may not be executable or grammarly correct, but can be use as a reference for further annotation.
+#### Corpus Generator
+
+The Corpus Generator produces high-quality Question-Query pairs through a hierarchical generation strategy that balances complexity and diversity.
+
+**Key Features:**
+
++ Layered generation strategy: first generates simple seed corpus, then complex corpus based on seeds
++ Real validation: all queries are executed and verified on actual graph databases
++ Context-aware generation: uses query execution results as context for LLM enhancement
++ Iterative enhancement: controllable iteration rounds for gradually increasing complexity
++ Generated 800+ high-quality corpus pairs across multiple domains
+
+![Corpus Generator Architecture](./images/Corpus.drawio.svg)
+
+## Experimental Results
+
+The framework has been extensively tested, generating:
+
++ **32 Schemas** across 8 domains, with the most complex containing 24 node types and 28 edge types
++ **488 CSV files** containing approximately **3,716,332 rows** of simulated data
++ **800+ high-quality Question-Query pairs** with complex queries (multi-hop, nested queries)
+
+Testing on LLM-synthesized datasets shows that the framework successfully generates complex corpora that challenge current LLMs, with execution accuracy below 30% on complex iterated corpora. Fine-tuning experiments demonstrate that models trained on framework-generated data show improved performance.
 
 ## Development Guide
 
@@ -314,7 +372,7 @@ The schema parser class is a virtual class and should be implemented for differe
 
 ## Future Plan
 
-Awesome-Text2GQL plans to support the Text2GQL corpus construction from only a schema with the generator module.
+Awesome-Text2GQL will continue to enhance the quality and diversity of generated corpora and improve the framework's usability and performance.
 
 ## Contribution
 
@@ -339,6 +397,7 @@ if all check passed, you can submit your code.
 create a pull request, link it to a related issue, then wait for the project maintainer to review your changes and provide feedback. If your pull request is finally approved by our maintainer, we will merge it. Other details can reference to our [contributing document](https://github.com/TuGraph-family/community/blob/master/docs/CONTRIBUTING.md).
 
 ### Contributors Wall
+
 <a href="https://github.com/TuGraph-family/Awesome-Text2GQL/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=TuGraph-family/Awesome-Text2GQL&max=200" />
 </a>
