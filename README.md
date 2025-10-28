@@ -100,7 +100,7 @@ This example shows how to use Awesome-Text2GQL Framework to generate data instan
 
 #### Generate Corpus
 
-This example shows how to use the Awesome-Text2GQL framework to generate a corpus. Before running it, ensure you have a running database instance and update the database connection and output configuration in examples/generate_corpus.py. Alternatively, you can import our provided test dataset into TuGraph. Download link:`https://xxxx.com`.
+This example shows how to use the Awesome-Text2GQL framework to generate a corpus. Before running it, ensure you have a running database instance and update the database connection and output configuration in examples/generate_corpus.py. Alternatively, you can import our provided test dataset into TuGraph. Download link: [*test dataset*](https://tugraph-web.oss-cn-beijing.aliyuncs.com/tugraph/datasets/text2gql/awesome-text2gql/example_graph.zip).
 
 Example TuGraph import command:
 
@@ -285,7 +285,7 @@ The system consists of four highly cohesive, loosely coupled core modules:
 
 | **Module** | **Function Description** |
 |------------|--------------------------|
-| **Schema Generator** | Parses graph database Schema (nodes/edges/properties/indexes), extracts Schema for data Generator use |
+| **Schema Generator** | Understands natural-language domain and subdomain descriptions and generates corresponding graph schemas (nodes, edges, properties) for the Data Generator |
 | **Data Generator** | Generates simulated node and edge data based on Schema, supporting large-scale complex relationship network construction |
 | **Corpus Generator** | Uses LLM to generate high-quality Question-Query pairs containing multi-hop queries, nested queries |
 | **Validator** | Checks the correctness of generated Schema, and the grammatical/semantic correctness of Query |
@@ -296,7 +296,7 @@ The Schema Generator module automatically creates complex graph database schemas
 
 **Key Features:**
 
-+ Generates Schema Graph format schemas convertible to TuGraph modeling files
++ Generates SchemaGraph format schemas that can be converted into TuGraph modeling files or adapted for other database engines
 + Supports quantitative control over schema complexity through predefined node and relationship ranges
 + Uses LLM to generate Schema Descriptions and corresponding Schema JSON
 + Ensures polymorphism through SchemaGraph class for future database adapters
@@ -309,7 +309,7 @@ The Data Generator module creates realistic simulation data based on generated s
 
 **Key Features:**
 
-+ Generates node and edge CSV files with property constraints (INT64, DATE, STRING)
++ Generates node and edge CSV files with property constraints
 + Creates TuGraph-compatible import_config.json for batch importing via lgraph_import
 + Handles common import errors (type parsing failures, missing delimiters, null value handling)
 + Generated 488 CSV files containing ~3,716,332 rows of data during development
@@ -332,11 +332,42 @@ The Corpus Generator produces high-quality Question-Query pairs through a hierar
 
 ## Experimental Results
 
-The framework has been extensively tested, generating:
+We used the framework’s automated generation pipeline to construct multi-dimensional test datasets `Geography_World`, `Movie_Movielens`, `Healthcare_Donor` and training datasets `Banking_Financial`, `Game Olympics`, `Retail_RetailWorld`. They can be downloaded here: [*test set*](https://tugraph-web.oss-cn-beijing.aliyuncs.com/tugraph/datasets/text2gql/awesome-text2gql/test.zip), [*training set*](https://tugraph-web.oss-cn-beijing.aliyuncs.com/tugraph/datasets/text2gql/awesome-text2gql/train.zip).
 
-+ **32 Schemas** across 8 domains, with the most complex containing 24 node types and 28 edge types
-+ **488 CSV files** containing approximately **3,716,332 rows** of simulated data
-+ **800+ high-quality Question-Query pairs** with complex queries (multi-hop, nested queries)
+Then, we conducted zero-shot experiments using three test database instances and their generated corpora. We evaluated Qwen-Plus, Qwen-8B Base, and Qwen-8B fine-tuned with LoRA on different datasets using four metrics: **Grammar**, **Similarity**, **Google BLEU**, and **EA**.
+
+| Test Set                       | Schema Complexity | Grammer | Similarity | Google BLEU | EA    |
+| ------------------------------ | --------- | ------- | ---------- | ----------- | ----- |
+| geography              | 5 |  83.7    | 85.8       | 64.3        | 16.28 |
+| geography_seeds        | 5 |  100     | 84.1       | 58.7        | 14.29 |
+| healthcare_donor       | 3 |  84.8    | 87.8       | 63.2        | 27.85 |
+| healthcare_donor_seeds | 3 |  95.2    | 86.7       | 53.6        | 42.86 |
+| movie                  | 3 |  86.5    | 88.3       | 63.4        | 14.86 |
+| movie_seeds            | 3 |  96.4    | 86.8       | 50.8        | 50.00 |
+
+<p align="center"\>Table 1. Qwen-Plus Experiment Results on LLM-Synthesis Dataset  </p\>
+
+| Test Set               | Schema Complexity |  Grammar | Similarity | Google BLUE | EA     |
+|------------------------|--------- |---------|------------|-------------|--------|
+| geography              | 5 |  0.884   | 0.856      | 0.564       |  26.74% |
+| geography_seeds        | 5 |  0.929   | 0.861      | 0.551       | 21.43% |
+| healthcare_donor       | 3 |  0.949   | 0.885      | 0.652       | 29.11% |
+| healthcare_donor_seeds | 3 |  1.000   | 0.861      | 0.510       | 42.86% |
+| movie                  | 3 |  0.946   | 0.877      | 0.598       | 6.76%  |
+| movie_seeds            | 3 |  0.893   | 0.864      | 0.512       | 39.29% |
+
+<p align="center"\>Table 2. Qwen-8B Base Experiment Results on LLM-Synthesis Dataset  </p\>
+
+| Test Set               |  Schema Complexity | Grammar | Similarity | Google BLUE | EA     |
+|------------------------|--------- |---------|------------|-------------|--------|
+| geography              | 5 |  0.942   | 0.878      | 0.683       | 20.93% |
+| geography_seeds        | 5 |  1.000   | 0.899      | 0.747       | 71.43% |
+| healthcare_donor       | 3 |  0.987   | 0.870      | 0.578       | 27.85% |
+| healthcare_donor_seeds | 3 |  1.000   | 0.901      | 0.641       | 71.43% |
+| movie                  | 3 |  1.000   | 0.893      | 0.600       | 28.38% |
+| movie_seeds            | 3 |  1.000   | 0.927      | 0.633       | 64.29% |
+
+<p align="center"\>Table 3. Qwen-8B Base fine-tuned with LoRA Experiment Results on LLM-Synthesis Dataset  </p\>
 
 Testing on LLM-synthesized datasets shows that the framework successfully generates complex corpora that challenge current LLMs, with execution accuracy below 30% on complex iterated corpora. Fine-tuning experiments demonstrate that models trained on framework-generated data show improved performance.
 
