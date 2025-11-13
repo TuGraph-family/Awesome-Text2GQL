@@ -54,7 +54,7 @@ class TuGraphDBClient(DB_Client):
         try:
             # Assume TuGraphClient's call_cypher method returns query result
             result = self.client.call_cypher(query, timeout=30)
-            
+
             # Handle 401 error, make a new connection
             if isinstance(result, str) and "401" in result:
                 # Query successful but no records found
