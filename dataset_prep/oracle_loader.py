@@ -66,7 +66,7 @@ class DatasetOracleLoader:
 
     def cleanup(self, ignore_errors: bool = False) -> None:
         self._execute(
-            f'DROP PROPERTY GRAPH {OracleNameSanitizer.quote(self.graph_name)}',
+            f"DROP PROPERTY GRAPH {OracleNameSanitizer.quote(self.graph_name)}",
             ignore_errors=ignore_errors,
         )
         for edge in reversed(self.manifest["edges"]):
@@ -125,16 +125,17 @@ class DatasetOracleLoader:
         return counts
 
     def _find_edge_file(self, edge: Dict[str, Any], files: Iterable[Dict[str, Any]]):
+        same_label_files = []
         for file_item in files:
-            if (
-                file_item.get("label") == edge["label"]
-                and file_item.get("SRC_ID") == edge["src"]
-                and file_item.get("DST_ID") == edge["dst"]
-            ):
+            if file_item.get("label") != edge["label"]:
+                continue
+            same_label_files.append(file_item)
+            if file_item.get("SRC_ID") == edge["src"] and file_item.get("DST_ID") == edge["dst"]:
                 return file_item
-        for file_item in files:
-            if file_item.get("label") == edge["label"]:
-                return file_item
+        if any("SRC_ID" in item or "DST_ID" in item for item in same_label_files):
+            return None
+        if same_label_files:
+            return same_label_files[0]
         return None
 
     def _load_file(

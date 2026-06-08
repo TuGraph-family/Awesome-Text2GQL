@@ -10,6 +10,7 @@ from typing import Any, Dict, List
 from app.core.validator.db_client import QueryStatus
 from app.impl.oracle_sqlpgq.db_client.oracle_db_client import OracleDBClient
 from app.impl.oracle_sqlpgq.utils.sqlpgq import OracleNameSanitizer
+from dataset_prep.cypher_schema import CypherSchema
 from dataset_prep.discover import DatabaseUnit, discover_database_units, source_query
 from dataset_prep.oracle_loader import DatasetOracleLoader
 from dataset_prep.preflight import run_preflight
@@ -18,12 +19,20 @@ from examples.cypher2oracle_sqlpgq import cypher2oracle_sqlpgq
 
 UNSUPPORTED_PATTERNS = {
     "shortest_path": re.compile(r"\b(ANY|ALL)\s+SHORTEST\b|\bSHORTEST\b", re.IGNORECASE),
-    "cost": re.compile(r"\b(TOTAL_COST|COST)\b", re.IGNORECASE),
+    "cost": re.compile(
+        r"\b(?:ANY|ALL)\s+CHEAPEST\b|\bTOTAL\s+COST\b|\bCOST\s*\(",
+        re.IGNORECASE,
+    ),
     "inline_subquery": re.compile(r"\bCALL\s*\{|\bEXISTS\s*\{", re.IGNORECASE),
     "lateral": re.compile(r"\bLATERAL\b", re.IGNORECASE),
     "optional_match": re.compile(r"\bOPTIONAL\s+MATCH\b", re.IGNORECASE),
     "relative_duration": re.compile(r"\bdate\s*\(\s*\)\s*[-+]\s*duration\s*\(", re.IGNORECASE),
     "unwind": re.compile(r"\bUNWIND\b", re.IGNORECASE),
+    "open_ended_variable_length_path": re.compile(
+        r"-\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*(?:->|-)|"
+        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*-",
+        re.IGNORECASE,
+    ),
     "expensive_variable_length_path": re.compile(
         r"-\s*\[[^\]]*\*(?:\s*\.\.\s*(?:[1-9]\d+)|\s*)\]\s*-",
         re.IGNORECASE,
@@ -131,6 +140,7 @@ def process_unit(
     property_type_map: Dict[str, Dict[str, str]] = {}
     node_primary_key_map: Dict[str, str] = {}
     edge_primary_key_map: Dict[str, str] = {}
+    source_schema = CypherSchema.from_path(unit.import_config_path)
 
     enriched: List[Dict[str, Any]] = []
     unsupported_samples: List[Dict[str, Any]] = []
@@ -161,6 +171,7 @@ def process_unit(
                 property_type_map=property_type_map,
                 node_primary_key_map=node_primary_key_map,
                 edge_primary_key_map=edge_primary_key_map,
+                source_schema=source_schema,
                 validation_timeout_ms=args.oracle_validation_timeout_ms,
                 validation_fetch_limit=args.oracle_validation_fetch_limit,
             )
@@ -211,8 +222,10 @@ def process_unit(
 def load_records(query_path: Path) -> List[Dict[str, Any]]:
     data = json.loads(query_path.read_text(encoding="utf-8"))
     if isinstance(data, dict):
-        return [dict(value, id=key) if isinstance(value, dict) else {"id": key, "value": value}
-                for key, value in data.items()]
+        return [
+            dict(value, id=key) if isinstance(value, dict) else {"id": key, "value": value}
+            for key, value in data.items()
+        ]
     return list(data)
 
 
@@ -225,6 +238,7 @@ def translate_record(
     property_type_map: Dict[str, Dict[str, str]] | None = None,
     node_primary_key_map: Dict[str, str] | None = None,
     edge_primary_key_map: Dict[str, str] | None = None,
+    source_schema: CypherSchema | None = None,
     validation_timeout_ms: int = 0,
     validation_fetch_limit: int = 0,
 ) -> Dict[str, Any]:
@@ -232,7 +246,10 @@ def translate_record(
     query_field, query = source_query(record)
     output["oracle_source_query_field"] = query_field
     output["oracle_source_query"] = query
-    output["oracle_unsupported_features"] = detect_unsupported_features(query)
+    output["oracle_unsupported_features"] = detect_unsupported_features(
+        query,
+        source_schema=source_schema,
+    )
     if not query:
         output.update(
             _status(None, "missing_source_query", "unsupported", "No source query found.")
@@ -286,15 +303,24 @@ def translate_record(
     return output
 
 
-def detect_unsupported_features(query: str) -> List[str]:
+def detect_unsupported_features(
+    query: str,
+    source_schema: CypherSchema | None = None,
+) -> List[str]:
     searchable_query = mask_string_literals(query or "")
     features = [
         name
         for name, pattern in UNSUPPORTED_PATTERNS.items()
         if query and pattern.search(searchable_query)
     ]
+    if query and has_quantified_relationship_property_map(searchable_query):
+        features.append("quantified_relationship_property_map")
+    if query and has_expensive_bounded_variable_length_path(searchable_query):
+        features.append("expensive_variable_length_path")
     if query and len(re.findall(r"\bWITH\b", searchable_query, flags=re.IGNORECASE)) > 1:
         features.append("multiple_with")
+    if source_schema is not None:
+        features.extend(issue.signature for issue in source_schema.validation_issues(query))
     if "optional_match" in features and is_supported_correlated_optional_match(query):
         features.remove("optional_match")
     if "optional_match" in features and is_supported_standalone_optional_match(query):
@@ -305,7 +331,31 @@ def detect_unsupported_features(query: str) -> List[str]:
         features.remove("optional_match")
     if "optional_match" in features and is_supported_optional_null_antijoin(query):
         features.remove("optional_match")
-    return features
+    return list(dict.fromkeys(features))
+
+
+def has_quantified_relationship_property_map(query: str) -> bool:
+    return bool(
+        re.search(
+            r"\[[^\]]*\*\s*(?:\d+\s*)?(?:\.\.\s*\d*)?[^\]]*\{[^}]+\}[^\]]*\]|"
+            r"\[[^\]]*\{[^}]+\}[^\]]*\*\s*(?:\d+\s*)?(?:\.\.\s*\d*)?[^\]]*\]",
+            query,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def has_expensive_bounded_variable_length_path(query: str) -> bool:
+    for match in re.finditer(
+        r"\[[^\]]*\*\s*(?P<lower>\d+)?\s*\.\.\s*(?P<upper>\d+)\s*[^\]]*\]",
+        query,
+        flags=re.IGNORECASE,
+    ):
+        lower = int(match.group("lower") or "1")
+        upper = int(match.group("upper"))
+        if lower >= 2 and upper >= 5:
+            return True
+    return False
 
 
 def mask_string_literals(query: str) -> str:

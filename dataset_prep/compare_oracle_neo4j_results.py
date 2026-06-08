@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+# ruff: noqa: E402,I001
+
 import argparse
 import csv
-from collections import Counter
-from datetime import date, datetime, timedelta
-from decimal import Decimal
 import json
 import logging
 import os
 from pathlib import Path
 import re
 import sys
+from collections import Counter
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta
+from decimal import Decimal
 from typing import Any, Dict, Iterable, List, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +29,7 @@ except ImportError:  # pragma: no cover - depends on local environment.
 from app.core.validator.db_client import QueryStatus
 from app.impl.oracle_sqlpgq.db_client.oracle_db_client import OracleDBClient
 from app.impl.oracle_sqlpgq.utils.sqlpgq import OracleNameSanitizer
+from dataset_prep.cypher_schema import CypherSchema, CypherSchemaIssue
 from dataset_prep.discover import DatabaseUnit, discover_database_units
 from dataset_prep.oracle_loader import DatasetOracleLoader
 from dataset_prep.reporting import append_jsonl, write_json
@@ -33,6 +37,21 @@ from dataset_prep.reporting import append_jsonl, write_json
 
 DEFAULT_VALID_ORACLE_STATUSES = {"success", "no_record"}
 logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)
+
+
+@dataclass(frozen=True)
+class StableExecutionQueries:
+    oracle_sqlpgq: str
+    cypher: str
+    applied: bool = False
+    reason: str = ""
+
+
+@dataclass(frozen=True)
+class CypherReturnItem:
+    expression: str
+    alias: str
+    order_term: str
 
 
 class DatasetNeo4jLoader:
@@ -55,6 +74,7 @@ class DatasetNeo4jLoader:
         self.batch_size = batch_size
         self.clear_batch_size = max(batch_size, 1000)
         self.config = json.loads(import_config_path.read_text(encoding="utf-8"))
+        self.cypher_schema = CypherSchema(self.config)
         self.schema = list(self.config.get("schema", []))
         self.files = list(self.config.get("files", []))
         self.vertices = [item for item in self.schema if item.get("type") == "VERTEX"]
@@ -71,6 +91,15 @@ class DatasetNeo4jLoader:
             }
             for item in self.schema
         }
+        self.vertex_labels = {item["label"] for item in self.vertices}
+        self.edge_labels = {item["label"] for item in self.edges}
+        self.node_label_aliases = self._schema_name_aliases(self.vertex_labels)
+        self.edge_type_aliases = self._schema_name_aliases(self.edge_labels)
+        self.property_aliases_by_label = {
+            label: self._schema_name_aliases(properties)
+            for label, properties in self.property_types_by_label.items()
+        }
+        self.global_property_aliases = self._global_property_aliases()
 
     def close(self) -> None:
         self.driver.close()
@@ -92,18 +121,8 @@ class DatasetNeo4jLoader:
             self._clear_with_session(owned_session)
 
     def _clear_with_session(self, session: Any) -> None:
-        rel_delete = (
-            "MATCH ()-[r]-() "
-            "WITH r LIMIT $limit "
-            "DELETE r "
-            "RETURN count(r) AS deleted"
-        )
-        node_delete = (
-            "MATCH (n) "
-            "WITH n LIMIT $limit "
-            "DELETE n "
-            "RETURN count(n) AS deleted"
-        )
+        rel_delete = "MATCH ()-[r]-() WITH r LIMIT $limit DELETE r RETURN count(r) AS deleted"
+        node_delete = "MATCH (n) WITH n LIMIT $limit DELETE n RETURN count(n) AS deleted"
         self._delete_until_empty(session, rel_delete)
         self._delete_until_empty(session, node_delete)
 
@@ -119,9 +138,7 @@ class DatasetNeo4jLoader:
         try:
             with self.driver.session(database=self.database) as session:
                 executable = (
-                    Query(query, timeout=timeout_s)
-                    if Query is not None and timeout_s
-                    else query
+                    Query(query, timeout=timeout_s) if Query is not None and timeout_s else query
                 )
                 result = session.run(executable)
                 return "success", [dict(record) for record in result], ""
@@ -131,10 +148,188 @@ class DatasetNeo4jLoader:
             return status, [], error
 
     def prepare_query(self, query: str) -> str:
+        query = self._rewrite_schema_aliases(query)
         query = self._coerce_string_backed_boolean_literals(query)
         query = self._coerce_string_backed_numeric_comparisons(query)
         query = self._coerce_string_backed_date_comparisons(query)
         return query
+
+    def source_validation_issues(self, query: str) -> list[CypherSchemaIssue]:
+        schema = getattr(self, "cypher_schema", None)
+        if schema is None:
+            return []
+        return schema.validation_issues(query)
+
+    def _rewrite_schema_aliases(self, query: str) -> str:
+        query = _rewrite_outside_string_literals(query, self._rewrite_node_labels)
+        query = _rewrite_outside_string_literals(query, self._rewrite_relationship_types)
+        variables = self._query_variable_labels(query)
+        edge_variables = self._query_edge_variable_labels(query)
+        full_query = query
+        return _rewrite_outside_string_literals(
+            query,
+            lambda segment: self._rewrite_property_accesses(
+                segment,
+                variables,
+                edge_variables,
+                full_query,
+            ),
+        )
+
+    def _rewrite_node_labels(self, query: str) -> str:
+        def replace(match: re.Match) -> str:
+            label = match.group("quoted_label") or match.group("label")
+            canonical = self._canonical_node_label(label)
+            return f"{match.group('prefix')}{_cypher_identifier(canonical)}"
+
+        return re.sub(
+            r"(?P<prefix>\(\s*(?:[A-Za-z_][A-Za-z0-9_]*\s*)?:\s*)"
+            r"(?:`(?P<quoted_label>[^`]+)`|(?P<label>[A-Za-z_][A-Za-z0-9_$#-]*))",
+            replace,
+            query,
+        )
+
+    def _rewrite_relationship_types(self, query: str) -> str:
+        def rewrite_type(raw_type: str) -> str:
+            stripped = raw_type.strip()
+            if not stripped:
+                return raw_type
+            if stripped.startswith("`") and stripped.endswith("`"):
+                label = stripped[1:-1]
+            else:
+                label = stripped
+            return _cypher_identifier(self._canonical_edge_type(label))
+
+        def replace(match: re.Match) -> str:
+            types = [rewrite_type(item) for item in match.group("types").split("|")]
+            return f"{match.group('prefix')}{'|'.join(types)}"
+
+        return re.sub(
+            r"(?P<prefix>\[\s*(?:[A-Za-z_][A-Za-z0-9_]*\s*)?:\s*)"
+            r"(?P<types>`[^`]+`|[A-Za-z_][A-Za-z0-9_$#-]*"
+            r"(?:\s*\|\s*(?:`[^`]+`|[A-Za-z_][A-Za-z0-9_$#-]*))*)",
+            replace,
+            query,
+        )
+
+    def _rewrite_property_accesses(
+        self,
+        query: str,
+        variables: Dict[str, str],
+        edge_variables: Dict[str, str] | None = None,
+        full_query: str | None = None,
+    ) -> str:
+        edge_variables = edge_variables or {}
+        full_query = full_query or query
+
+        def replace(match: re.Match) -> str:
+            variable = match.group("variable")
+            property_name = match.group("quoted_property") or match.group("property")
+            target_variable, canonical = self._canonical_property_reference(
+                full_query,
+                variable,
+                property_name,
+                variables,
+                edge_variables,
+            )
+            return f"{target_variable}.{_cypher_identifier(canonical)}"
+
+        return re.sub(
+            r"\b(?P<variable>[A-Za-z_][A-Za-z0-9_]*)\.\s*"
+            r"(?:`(?P<quoted_property>[^`]+)`|"
+            r"(?P<property>[A-Za-z_][A-Za-z0-9_$#-]*))",
+            replace,
+            query,
+        )
+
+    def _canonical_node_label(self, label: str) -> str:
+        return self._canonical_schema_name(
+            label,
+            getattr(self, "node_label_aliases", {}),
+        )
+
+    def _canonical_edge_type(self, edge_type: str) -> str:
+        return self._canonical_schema_name(
+            edge_type,
+            getattr(self, "edge_type_aliases", {}),
+        )
+
+    def _canonical_property_name(
+        self,
+        variable: str,
+        property_name: str,
+        variables: Dict[str, str],
+    ) -> str:
+        target_variable, canonical = self._canonical_property_reference(
+            "",
+            variable,
+            property_name,
+            variables,
+            {},
+        )
+        return canonical if target_variable else property_name
+
+    def _canonical_property_reference(
+        self,
+        query: str,
+        variable: str,
+        property_name: str,
+        variables: Dict[str, str],
+        edge_variables: Dict[str, str],
+    ) -> tuple[str, str]:
+        if property_name.lower() in {"identity", "id"}:
+            if variable in variables:
+                primary_key = self.primary_by_label.get(variables[variable])
+                if primary_key:
+                    return variable, primary_key
+            if variable in edge_variables:
+                return variable, "EDGE_ID"
+        schema = getattr(self, "cypher_schema", None)
+        if schema is not None and query:
+            redirected_variable, redirected_property = schema.redirected_property_target(
+                query,
+                variable,
+                property_name,
+            )
+            if redirected_variable and redirected_property:
+                return redirected_variable, redirected_property
+        label = variables.get(variable, "")
+        aliases_by_label = getattr(self, "property_aliases_by_label", {})
+        if label in aliases_by_label:
+            canonical = self._canonical_schema_name(property_name, aliases_by_label[label])
+            if canonical != property_name:
+                return variable, canonical
+        return variable, self._canonical_schema_name(
+            property_name,
+            getattr(self, "global_property_aliases", {}),
+        )
+
+    def _canonical_schema_name(self, name: str, aliases: Dict[str, str]) -> str:
+        cleaned = OracleNameSanitizer.clean(name, fallback=name)
+        return (
+            aliases.get(name)
+            or aliases.get(cleaned)
+            or aliases.get(name.lower())
+            or aliases.get(cleaned.lower())
+            or name
+        )
+
+    def _schema_name_aliases(self, names: Iterable[str]) -> Dict[str, str]:
+        aliases: Dict[str, str] = {}
+        for name in names:
+            cleaned = OracleNameSanitizer.clean(name, fallback=name)
+            for alias in {name, cleaned, name.lower(), cleaned.lower()}:
+                aliases.setdefault(alias, name)
+        return aliases
+
+    def _global_property_aliases(self) -> Dict[str, str]:
+        candidates: Dict[str, set[str]] = {}
+        for properties in getattr(self, "property_types_by_label", {}).values():
+            for property_name in properties:
+                cleaned = OracleNameSanitizer.clean(property_name, fallback=property_name)
+                for alias in {property_name, cleaned, property_name.lower(), cleaned.lower()}:
+                    candidates.setdefault(alias, set()).add(property_name)
+        return {alias: next(iter(names)) for alias, names in candidates.items() if len(names) == 1}
 
     def _coerce_string_backed_boolean_literals(self, query: str) -> str:
         variables = self._query_variable_labels(query)
@@ -194,10 +389,7 @@ class DatasetNeo4jLoader:
             property_name = match.group("property")
             if not self._is_string_property(variables.get(variable, ""), property_name):
                 return match.group(0)
-            return (
-                f"{variable}.{property_name} {match.group('operator')} "
-                f"'{match.group('value')}'"
-            )
+            return f"{variable}.{property_name} {match.group('operator')} '{match.group('value')}'"
 
         query = re.sub(
             r"\b(?P<variable>[A-Za-z_][A-Za-z0-9_]*)\."
@@ -213,10 +405,7 @@ class DatasetNeo4jLoader:
             property_name = match.group("property")
             if not self._is_string_property(variables.get(variable, ""), property_name):
                 return match.group(0)
-            return (
-                f"'{match.group('value')}' {match.group('operator')} "
-                f"{variable}.{property_name}"
-            )
+            return f"'{match.group('value')}' {match.group('operator')} {variable}.{property_name}"
 
         query = re.sub(
             r"\b(?P<value>-?\d+(?:\.\d+)?)\s*"
@@ -255,8 +444,7 @@ class DatasetNeo4jLoader:
             if re.fullmatch(r"\s*date\s*\(", left, flags=re.IGNORECASE):
                 return match.group(0)
             return (
-                f"date({variable}.{property_name}) "
-                f"{match.group('operator')} {match.group('right')}"
+                f"date({variable}.{property_name}) {match.group('operator')} {match.group('right')}"
             )
 
         query = re.sub(
@@ -275,8 +463,7 @@ class DatasetNeo4jLoader:
             if not self._is_string_property(variables.get(variable, ""), property_name):
                 return match.group(0)
             return (
-                f"{match.group('left')} {match.group('operator')} "
-                f"date({variable}.{property_name})"
+                f"{match.group('left')} {match.group('operator')} date({variable}.{property_name})"
             )
 
         return re.sub(
@@ -345,6 +532,18 @@ class DatasetNeo4jLoader:
             query,
         ):
             labels[match.group("variable")] = match.group("quoted_label") or match.group("label")
+        return labels
+
+    def _query_edge_variable_labels(self, query: str) -> Dict[str, str]:
+        labels: Dict[str, str] = {}
+        for match in re.finditer(
+            r"\[\s*(?P<variable>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*"
+            r"(?:`(?P<quoted_label>[^`]+)`|(?P<label>[A-Za-z_][A-Za-z0-9_$#|.-]*))",
+            query,
+        ):
+            label = match.group("quoted_label") or match.group("label")
+            if "|" not in label:
+                labels[match.group("variable")] = label
         return labels
 
     def _is_string_property(self, label: str, property_name: str) -> bool:
@@ -419,8 +618,7 @@ class DatasetNeo4jLoader:
         path = self.csv_root / file_item["path"]
         source_columns = list(file_item.get("columns", []))
         schema_types = {
-            prop["name"]: prop.get("type", "STRING")
-            for prop in schema_item.get("properties", [])
+            prop["name"]: prop.get("type", "STRING") for prop in schema_item.get("properties", [])
         }
         header_rows = int(file_item.get("header", 0))
         rows: List[Dict[str, Any]] = []
@@ -495,18 +693,20 @@ class DatasetNeo4jLoader:
             f"CREATE (src)-[r:`{rel_type}`]->(dst) "
             f"SET r += row.props"
         )
-        batch_rows = [
-            {
-                "SRC_ID": row["SRC_ID"],
-                "DST_ID": row["DST_ID"],
-                "props": {
-                    key: value
-                    for key, value in row.items()
-                    if key not in ("SRC_ID", "DST_ID")
-                },
-            }
-            for row in rows
-        ]
+        batch_rows = []
+        for index, row in enumerate(rows, start=1):
+            props = {key: value for key, value in row.items() if key not in ("SRC_ID", "DST_ID")}
+            # Oracle edge tables use a per-table generated EDGE_ID. Adding the
+            # same validation-only value to Neo4j lets returned relationships
+            # normalize to the same identity across backends.
+            props.setdefault("EDGE_ID", index)
+            batch_rows.append(
+                {
+                    "SRC_ID": row["SRC_ID"],
+                    "DST_ID": row["DST_ID"],
+                    "props": props,
+                }
+            )
         self._run_batches(query, batch_rows)
 
     def _run_batches(self, query: str, rows: List[Dict[str, Any]]) -> None:
@@ -637,6 +837,7 @@ def compare_unit(
         "skip_reasons": {},
         "failure_reasons": {},
     }
+    element_label_aliases = oracle_element_label_aliases(oracle_loader)
     failures: List[Dict[str, Any]] = []
     try:
         if args.reuse_loaded:
@@ -673,22 +874,22 @@ def compare_unit(
                 summary["skipped"] += 1
                 increment(summary["skip_reasons"], skip_reason)
                 continue
-            cypher = (
-                record.get("oracle_source_query")
-                or record.get("initial_cypher")
-                or record.get("cypher")
-                or ""
-            )
-            if is_nondeterministic_limit_without_order(cypher):
-                summary["skipped"] += 1
-                increment(summary["skip_reasons"], "nondeterministic_limit_without_order")
-                continue
             summary["considered"] += 1
-            comparison = compare_record(record, oracle_client, neo4j_loader, args)
+            comparison = compare_record(
+                record,
+                oracle_client,
+                neo4j_loader,
+                args,
+                element_label_aliases=element_label_aliases,
+            )
             if comparison["matched"]:
                 summary["matched"] += 1
                 continue
-            if comparison["reason"] == "suspected_order_by_limit_tie":
+            if comparison["reason"] in {
+                "nondeterministic_limit_without_order",
+                "suspected_order_by_limit_tie",
+                "source_invalid",
+            }:
                 summary["skipped"] += 1
                 increment(summary["skip_reasons"], comparison["reason"])
                 continue
@@ -709,6 +910,8 @@ def compare_unit(
                     "neo4j_error": comparison["neo4j_error"],
                     "oracle_rows_sample": comparison["oracle_rows_sample"],
                     "neo4j_rows_sample": comparison["neo4j_rows_sample"],
+                    "result_diagnostics": comparison.get("result_diagnostics", {}),
+                    "deterministic_ordering": comparison.get("deterministic_ordering", {}),
                 }
             )
             if len(failures) >= 100:
@@ -737,6 +940,7 @@ def compare_record(
     oracle_client: OracleDBClient,
     neo4j_loader: DatasetNeo4jLoader,
     args: argparse.Namespace,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Dict[str, Any]:
     oracle_sqlpgq = record.get("oracle_sqlpgq") or ""
     cypher = (
@@ -745,14 +949,54 @@ def compare_record(
         or record.get("cypher")
         or ""
     )
-    oracle_result = oracle_client.execute_query(
+    source_validator = getattr(neo4j_loader, "source_validation_issues", None)
+    source_issues = source_validator(cypher) if source_validator else []
+    if source_issues:
+        return comparison_result(
+            False,
+            "source_invalid",
+            cypher,
+            oracle_sqlpgq,
+            "not_executed",
+            "source_invalid",
+            "",
+            "; ".join(f"{issue.signature}: {issue.message}" for issue in source_issues),
+            [],
+            [],
+            neo4j_loader.primary_by_label,
+            element_label_aliases,
+        )
+    execution_queries = stable_execution_queries(
         oracle_sqlpgq,
+        cypher,
+    )
+    oracle_result = oracle_client.execute_query(
+        execution_queries.oracle_sqlpgq,
         call_timeout_ms=args.oracle_timeout_ms,
     )
-    neo4j_status, neo4j_rows, neo4j_error = neo4j_loader.execute(cypher, args.neo4j_timeout_s)
+    neo4j_status, neo4j_rows, neo4j_error = neo4j_loader.execute(
+        execution_queries.cypher,
+        args.neo4j_timeout_s,
+    )
     oracle_status = query_status_name(oracle_result.status_code)
     oracle_rows = oracle_result.data if isinstance(oracle_result.data, list) else []
-    if oracle_status not in ("success", "no_record") or neo4j_status != "success":
+    if neo4j_status != "success":
+        return comparison_result(
+            False,
+            "source_invalid",
+            cypher,
+            oracle_sqlpgq,
+            oracle_status,
+            neo4j_status,
+            oracle_result.error or "",
+            neo4j_error,
+            oracle_rows,
+            neo4j_rows,
+            neo4j_loader.primary_by_label,
+            element_label_aliases,
+            execution_queries,
+        )
+    if oracle_status not in ("success", "no_record"):
         return comparison_result(
             False,
             "execution_error",
@@ -765,13 +1009,46 @@ def compare_record(
             oracle_rows,
             neo4j_rows,
             neo4j_loader.primary_by_label,
+            element_label_aliases,
+            execution_queries,
         )
-    oracle_counter = normalized_counter(oracle_rows, neo4j_loader.primary_by_label)
-    neo4j_counter = normalized_counter(neo4j_rows, neo4j_loader.primary_by_label)
+    oracle_counter = normalized_counter(
+        oracle_rows,
+        neo4j_loader.primary_by_label,
+        element_label_aliases,
+    )
+    neo4j_counter = normalized_counter(
+        neo4j_rows,
+        neo4j_loader.primary_by_label,
+        element_label_aliases,
+    )
     matched = oracle_counter == neo4j_counter
     reason = "result_mismatch" if not matched else ""
-    if not matched and is_order_by_limit_query(cypher) and oracle_rows and neo4j_rows:
-        reason = "suspected_order_by_limit_tie"
+    if (
+        not matched
+        and is_nondeterministic_limit_without_order(cypher)
+        and not execution_queries.applied
+        and oracle_rows
+        and neo4j_rows
+    ):
+        reason = "nondeterministic_limit_without_order"
+    elif (
+        not matched
+        and is_order_by_limit_query(cypher)
+        and not execution_queries.applied
+        and oracle_rows
+        and neo4j_rows
+    ):
+        has_tie = has_order_by_limit_boundary_tie(
+            cypher,
+            oracle_sqlpgq,
+            oracle_client,
+            neo4j_loader,
+            args,
+            element_label_aliases,
+        )
+        if has_tie is not False:
+            reason = "suspected_order_by_limit_tie"
     return comparison_result(
         matched,
         reason,
@@ -784,6 +1061,8 @@ def compare_record(
         oracle_rows,
         neo4j_rows,
         neo4j_loader.primary_by_label,
+        element_label_aliases,
+        execution_queries,
     )
 
 
@@ -799,8 +1078,10 @@ def comparison_result(
     oracle_rows: Sequence[Dict[str, Any]],
     neo4j_rows: Sequence[Dict[str, Any]],
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
+    execution_queries: StableExecutionQueries | None = None,
 ) -> Dict[str, Any]:
-    return {
+    result = {
         "matched": matched,
         "reason": reason,
         "cypher": cypher,
@@ -809,9 +1090,31 @@ def comparison_result(
         "neo4j_status": neo4j_status,
         "oracle_error": oracle_error,
         "neo4j_error": neo4j_error,
-        "oracle_rows_sample": normalize_rows(oracle_rows[:5], primary_by_label),
-        "neo4j_rows_sample": normalize_rows(neo4j_rows[:5], primary_by_label),
+        "oracle_rows_sample": normalize_rows(
+            oracle_rows[:5],
+            primary_by_label,
+            element_label_aliases,
+        ),
+        "neo4j_rows_sample": normalize_rows(
+            neo4j_rows[:5],
+            primary_by_label,
+            element_label_aliases,
+        ),
     }
+    if execution_queries and execution_queries.applied:
+        result["deterministic_ordering"] = {
+            "reason": execution_queries.reason,
+            "oracle_sqlpgq": execution_queries.oracle_sqlpgq,
+            "cypher": execution_queries.cypher,
+        }
+    if not matched and reason == "result_mismatch":
+        result["result_diagnostics"] = result_diagnostics(
+            oracle_rows,
+            neo4j_rows,
+            primary_by_label,
+            element_label_aliases,
+        )
+    return result
 
 
 def load_enriched_records(unit: DatabaseUnit, output_root: Path) -> List[Dict[str, Any]]:
@@ -821,9 +1124,7 @@ def load_enriched_records(unit: DatabaseUnit, output_root: Path) -> List[Dict[st
             f"Missing enriched Oracle SQL/PGQ records for {unit.split}/{unit.database}: {path}"
         )
     return [
-        json.loads(line)
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
     ]
 
 
@@ -848,9 +1149,7 @@ def skip_reason_for_record(
     if not record.get("oracle_sqlpgq"):
         return "missing_oracle_sqlpgq"
     if not (
-        record.get("oracle_source_query")
-        or record.get("initial_cypher")
-        or record.get("cypher")
+        record.get("oracle_source_query") or record.get("initial_cypher") or record.get("cypher")
     ):
         return "missing_cypher"
     if include_all_translatable:
@@ -861,19 +1160,490 @@ def skip_reason_for_record(
     return ""
 
 
-def is_nondeterministic_limit_without_order(query: str) -> bool:
-    normalized = _strip_string_literals(query)
-    return bool(
-        re.search(r"\bLIMIT\b", normalized, flags=re.IGNORECASE)
-        and not re.search(r"\bORDER\s+BY\b", normalized, flags=re.IGNORECASE)
+def stable_execution_queries(oracle_sqlpgq: str, cypher: str) -> StableExecutionQueries:
+    cypher_query = _stable_cypher_paging_query(cypher)
+    if cypher_query is None:
+        return StableExecutionQueries(oracle_sqlpgq, cypher)
+    oracle_query = _stable_oracle_paging_query(
+        oracle_sqlpgq,
+        cypher_query.projected_column_count,
+        has_existing_order=cypher_query.had_order_by,
+    )
+    if oracle_query is None:
+        return StableExecutionQueries(oracle_sqlpgq, cypher)
+    return StableExecutionQueries(
+        oracle_sqlpgq=oracle_query,
+        cypher=cypher_query.query,
+        applied=True,
+        reason=cypher_query.reason,
     )
 
 
+@dataclass(frozen=True)
+class StableCypherQuery:
+    query: str
+    projected_column_count: int
+    had_order_by: bool
+    reason: str
+
+
+@dataclass(frozen=True)
+class FinalCypherPaging:
+    return_start: int
+    return_end: int
+    body_start: int
+    body_end: int
+    pagination_start: int
+    has_order_by: bool
+    order_body_start: int = -1
+    order_body_end: int = -1
+    has_limit: bool = False
+    has_skip: bool = False
+
+
+def _stable_cypher_paging_query(query: str) -> StableCypherQuery | None:
+    final = _final_cypher_paging(query)
+    if final is None:
+        return None
+    return_body = query[final.body_start : final.body_end].strip()
+    return_items = _parse_cypher_return_items(return_body, query[: final.return_start])
+    if not return_items:
+        return None
+    order_terms = [item.order_term for item in return_items]
+    if final.has_order_by:
+        existing_terms = _order_by_expressions_from_body(
+            query[final.order_body_start : final.order_body_end]
+        )
+        missing_terms = _missing_order_terms(existing_terms, order_terms)
+        if not missing_terms:
+            return None
+        updated = (
+            query[: final.order_body_end].rstrip()
+            + ", "
+            + ", ".join(missing_terms)
+            + " "
+            + query[final.order_body_end :].lstrip()
+        )
+        return StableCypherQuery(
+            query=updated,
+            projected_column_count=len(return_items),
+            had_order_by=True,
+            reason="ordered_paging_tiebreaker",
+        )
+    updated = (
+        query[: final.pagination_start].rstrip()
+        + " ORDER BY "
+        + ", ".join(order_terms)
+        + " "
+        + query[final.pagination_start :].lstrip()
+    )
+    return StableCypherQuery(
+        query=updated,
+        projected_column_count=len(return_items),
+        had_order_by=False,
+        reason="unordered_paging",
+    )
+
+
+def _stable_oracle_paging_query(
+    query: str,
+    projected_column_count: int,
+    has_existing_order: bool,
+) -> str | None:
+    if projected_column_count < 1:
+        return None
+    stripped = query.rstrip().rstrip(";")
+    masked = _mask_string_literals(stripped)
+    if re.search(r"\bUNION\b", masked, flags=re.IGNORECASE):
+        return None
+    pagination_span = _trailing_sql_pagination_span(masked)
+    if pagination_span is None:
+        return None
+    order_terms = ", ".join(str(index) for index in range(1, projected_column_count + 1))
+    pagination_start, _ = pagination_span
+    if has_existing_order:
+        order_span = _final_top_level_sql_order_body_span(masked, pagination_start)
+        if order_span is None:
+            return None
+        _, order_body_end = order_span
+        return stripped[:order_body_end].rstrip() + ", " + order_terms + stripped[order_body_end:]
+    return (
+        stripped[:pagination_start].rstrip()
+        + "\nORDER BY "
+        + order_terms
+        + "\n"
+        + stripped[pagination_start:].lstrip()
+    )
+
+
+def _parse_cypher_return_items(
+    return_body: str,
+    query_before_return: str,
+) -> List[CypherReturnItem]:
+    body = re.sub(r"^\s*DISTINCT\b", "", return_body, flags=re.IGNORECASE).strip()
+    if not body:
+        return []
+    graph_variables = _graph_variables(query_before_return)
+    items: List[CypherReturnItem] = []
+    for raw_item in _split_top_level_commas(body):
+        expression, alias = _split_cypher_alias(raw_item)
+        if not _is_safe_stable_order_expression(expression, graph_variables):
+            return []
+        order_term = _cypher_identifier(alias) if alias else expression.strip()
+        if not order_term or order_term == "*":
+            return []
+        items.append(
+            CypherReturnItem(
+                expression=expression.strip(),
+                alias=alias,
+                order_term=order_term,
+            )
+        )
+    return items
+
+
+def _split_cypher_alias(item: str) -> tuple[str, str]:
+    masked = _mask_string_literals(item)
+    matches = list(re.finditer(r"\s+AS\s+", masked, flags=re.IGNORECASE))
+    if not matches:
+        return item.strip(), ""
+    match = matches[-1]
+    expression = item[: match.start()].strip()
+    alias = _unquote_cypher_identifier(item[match.end() :].strip())
+    return expression, alias
+
+
+def _is_safe_stable_order_expression(expression: str, graph_variables: set[str]) -> bool:
+    stripped = expression.strip()
+    if not stripped or stripped == "*":
+        return False
+    if stripped in graph_variables:
+        return False
+    if re.search(
+        r"\b(?:collect|labels|nodes|properties|relationships)\s*\(",
+        stripped,
+        flags=re.IGNORECASE,
+    ):
+        return False
+    return True
+
+
+def _graph_variables(query: str) -> set[str]:
+    masked = _mask_string_literals(query)
+    variables = {
+        match.group("variable")
+        for match in re.finditer(
+            r"\(\s*(?P<variable>[A-Za-z_][A-Za-z0-9_]*)"
+            r"(?=\s*(?::|\{|\)|WHERE\b))",
+            masked,
+            flags=re.IGNORECASE,
+        )
+    }
+    variables.update(
+        match.group("variable")
+        for match in re.finditer(
+            r"\[\s*(?P<variable>[A-Za-z_][A-Za-z0-9_]*)"
+            r"(?=\s*(?::|\*|\]|\{))",
+            masked,
+            flags=re.IGNORECASE,
+        )
+    )
+    variables.update(
+        match.group("variable")
+        for match in re.finditer(
+            r"\b(?:MATCH|OPTIONAL\s+MATCH)\s+(?P<variable>[A-Za-z_][A-Za-z0-9_]*)\s*=",
+            masked,
+            flags=re.IGNORECASE,
+        )
+    )
+    return variables
+
+
+def _final_cypher_paging(query: str) -> FinalCypherPaging | None:
+    masked = _mask_string_literals(query)
+    return_matches = list(re.finditer(r"\bRETURN\b", masked, flags=re.IGNORECASE))
+    if not return_matches:
+        return None
+    return_match = return_matches[-1]
+    after_return = masked[return_match.end() :]
+    order_match = re.search(r"\bORDER\s+BY\b", after_return, flags=re.IGNORECASE)
+    skip_match = re.search(r"\bSKIP\s+\d+\b", after_return, flags=re.IGNORECASE)
+    limit_match = re.search(r"\bLIMIT\s+\d+\b", after_return, flags=re.IGNORECASE)
+    if skip_match is None and limit_match is None:
+        return None
+    pagination_offsets = [match.start() for match in (skip_match, limit_match) if match is not None]
+    pagination_start = return_match.end() + min(pagination_offsets)
+    has_order_by = bool(order_match and return_match.end() + order_match.start() < pagination_start)
+    if has_order_by and order_match is not None:
+        body_end = return_match.end() + order_match.start()
+        order_body_start = return_match.end() + order_match.end()
+        order_body_end = pagination_start
+    else:
+        body_end = pagination_start
+        order_body_start = -1
+        order_body_end = -1
+    return FinalCypherPaging(
+        return_start=return_match.start(),
+        return_end=return_match.end(),
+        body_start=return_match.end(),
+        body_end=body_end,
+        pagination_start=pagination_start,
+        has_order_by=has_order_by,
+        order_body_start=order_body_start,
+        order_body_end=order_body_end,
+        has_limit=limit_match is not None,
+        has_skip=skip_match is not None,
+    )
+
+
+def _order_by_expressions_from_body(order_body: str) -> List[str]:
+    expressions = []
+    for item in _split_top_level_commas(order_body):
+        cleaned = re.sub(r"\s+(?:ASC|DESC)\s*$", "", item.strip(), flags=re.IGNORECASE)
+        if cleaned:
+            expressions.append(cleaned)
+    return expressions
+
+
+def _missing_order_terms(existing_terms: Sequence[str], order_terms: Sequence[str]) -> List[str]:
+    existing = {_normalize_order_term(term) for term in existing_terms}
+    return [term for term in order_terms if _normalize_order_term(term) not in existing]
+
+
+def _normalize_order_term(term: str) -> str:
+    return re.sub(r"\s+", "", _unquote_cypher_identifier(term.strip())).lower()
+
+
+def _trailing_sql_pagination_span(masked_sql: str) -> tuple[int, int] | None:
+    patterns = [
+        r"\s+OFFSET\s+\d+\s+ROWS\s+FETCH\s+FIRST\s+\d+\s+ROWS\s+ONLY\s*$",
+        r"\s+FETCH\s+FIRST\s+\d+\s+ROWS\s+ONLY\s*$",
+        r"\s+OFFSET\s+\d+\s+ROWS\s*$",
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, masked_sql, flags=re.IGNORECASE)
+        if match:
+            return match.span()
+    return None
+
+
+def _final_top_level_sql_order_body_span(
+    masked_sql: str,
+    search_end: int,
+) -> tuple[int, int] | None:
+    last_match: re.Match | None = None
+    for match in re.finditer(r"\bORDER\s+BY\b", masked_sql[:search_end], flags=re.IGNORECASE):
+        if _paren_depth_at(masked_sql, match.start()) == 0:
+            last_match = match
+    if last_match is None:
+        return None
+    return last_match.end(), search_end
+
+
+def _paren_depth_at(value: str, position: int) -> int:
+    depth = 0
+    for char in value[:position]:
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(depth - 1, 0)
+    return depth
+
+
+def is_nondeterministic_limit_without_order(query: str) -> bool:
+    paging = _final_cypher_paging(query)
+    return bool(paging and paging.has_limit and not paging.has_order_by)
+
+
 def is_order_by_limit_query(query: str) -> bool:
-    normalized = _strip_string_literals(query)
-    return bool(
-        re.search(r"\bORDER\s+BY\b", normalized, flags=re.IGNORECASE)
-        and re.search(r"\bLIMIT\b", normalized, flags=re.IGNORECASE)
+    paging = _final_cypher_paging(query)
+    return bool(paging and paging.has_limit and paging.has_order_by)
+
+
+def has_order_by_limit_boundary_tie(
+    cypher: str,
+    oracle_sqlpgq: str,
+    oracle_client: OracleDBClient,
+    neo4j_loader: DatasetNeo4jLoader,
+    args: argparse.Namespace,
+    element_label_aliases: Dict[str, str] | None = None,
+) -> bool | None:
+    limit = _trailing_cypher_limit(cypher)
+    if limit is None or limit < 1:
+        return None
+    sort_expressions = _order_by_expressions(cypher)
+    if not sort_expressions:
+        return None
+    expanded_cypher = _replace_trailing_cypher_limit(cypher, limit + 1)
+    expanded_sql = _replace_trailing_sql_fetch(oracle_sqlpgq, limit + 1)
+    if expanded_cypher == cypher or expanded_sql == oracle_sqlpgq:
+        return None
+
+    oracle_result = oracle_client.execute_query(
+        expanded_sql,
+        call_timeout_ms=args.oracle_timeout_ms,
+    )
+    neo4j_status, neo4j_rows, _ = neo4j_loader.execute(expanded_cypher, args.neo4j_timeout_s)
+    if query_status_name(oracle_result.status_code) not in {"success", "no_record"}:
+        return None
+    if neo4j_status != "success":
+        return None
+    oracle_rows = oracle_result.data if isinstance(oracle_result.data, list) else []
+    oracle_tie = _rows_have_boundary_tie(
+        oracle_rows,
+        limit,
+        sort_expressions,
+        element_label_aliases,
+    )
+    neo4j_tie = _rows_have_boundary_tie(
+        neo4j_rows,
+        limit,
+        sort_expressions,
+        element_label_aliases,
+    )
+    if oracle_tie is True or neo4j_tie is True:
+        return True
+    if oracle_tie is False and neo4j_tie is False:
+        return False
+    return None
+
+
+def _rows_have_boundary_tie(
+    rows: Sequence[Dict[str, Any]],
+    limit: int,
+    sort_expressions: Sequence[str],
+    element_label_aliases: Dict[str, str] | None = None,
+) -> bool | None:
+    if len(rows) <= limit:
+        return False
+    before = _sort_key_for_row(rows[limit - 1], sort_expressions, element_label_aliases)
+    after = _sort_key_for_row(rows[limit], sort_expressions, element_label_aliases)
+    if before is None or after is None:
+        return None
+    return before == after
+
+
+def _sort_key_for_row(
+    row: Dict[str, Any],
+    sort_expressions: Sequence[str],
+    element_label_aliases: Dict[str, str] | None = None,
+) -> tuple[Any, ...] | None:
+    values = []
+    for expression in sort_expressions:
+        value = _row_value_for_sort_expression(row, expression)
+        if value is _MISSING:
+            return None
+        values.append(_normalize_value(value, element_label_aliases=element_label_aliases))
+    return tuple(values)
+
+
+_MISSING = object()
+
+
+def _row_value_for_sort_expression(row: Dict[str, Any], expression: str) -> Any:
+    candidates = _sort_expression_candidates(expression)
+    for candidate in candidates:
+        if candidate in row:
+            return row[candidate]
+    lower_by_key = {str(key).lower(): key for key in row}
+    for candidate in candidates:
+        key = lower_by_key.get(candidate.lower())
+        if key is not None:
+            return row[key]
+    return _MISSING
+
+
+def _sort_expression_candidates(expression: str) -> List[str]:
+    expression = expression.strip()
+    expression = re.sub(r"^`(?P<name>.*)`$", r"\g<name>", expression)
+    candidates = [expression]
+    if "." in expression:
+        candidates.append(expression.rsplit(".", 1)[1].strip("`"))
+    candidates.append(OracleNameSanitizer.clean(expression, fallback=expression))
+    candidates.append(OracleNameSanitizer.alias(expression))
+    return list(dict.fromkeys(candidate for candidate in candidates if candidate))
+
+
+def _order_by_expressions(query: str) -> List[str]:
+    masked = _strip_string_literals(query)
+    match = re.search(
+        r"\bORDER\s+BY\s+(?P<body>.*?)(?:\bSKIP\b|\bLIMIT\b|$)",
+        masked,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return []
+    expressions = []
+    for item in _split_top_level_commas(match.group("body")):
+        cleaned = re.sub(r"\s+(?:ASC|DESC)\s*$", "", item.strip(), flags=re.IGNORECASE)
+        if cleaned:
+            expressions.append(cleaned)
+    return expressions
+
+
+def _split_top_level_commas(value: str) -> List[str]:
+    parts = []
+    start = 0
+    depths = {"(": 0, "[": 0, "{": 0}
+    quote = ""
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if quote:
+            if char == "\\" and quote in {"'", '"'}:
+                index += 2
+                continue
+            if char == quote:
+                if index + 1 < len(value) and value[index + 1] == quote:
+                    index += 2
+                    continue
+                quote = ""
+            index += 1
+            continue
+        if char in {"'", '"', "`"}:
+            quote = char
+        elif char == "(":
+            depths["("] += 1
+        elif char == ")":
+            depths["("] = max(depths["("] - 1, 0)
+        elif char == "[":
+            depths["["] += 1
+        elif char == "]":
+            depths["["] = max(depths["["] - 1, 0)
+        elif char == "{":
+            depths["{"] += 1
+        elif char == "}":
+            depths["{"] = max(depths["{"] - 1, 0)
+        elif char == "," and not any(depths.values()):
+            parts.append(value[start:index].strip())
+            start = index + 1
+        index += 1
+    parts.append(value[start:].strip())
+    return [part for part in parts if part]
+
+
+def _trailing_cypher_limit(query: str) -> int | None:
+    match = re.search(r"\bLIMIT\s+(?P<limit>\d+)\s*$", query.strip(), flags=re.IGNORECASE)
+    return int(match.group("limit")) if match else None
+
+
+def _replace_trailing_cypher_limit(query: str, limit: int) -> str:
+    return re.sub(
+        r"\bLIMIT\s+\d+\s*$",
+        f"LIMIT {limit}",
+        query.strip(),
+        count=1,
+        flags=re.IGNORECASE,
+    )
+
+
+def _replace_trailing_sql_fetch(query: str, limit: int) -> str:
+    return re.sub(
+        r"\bFETCH\s+FIRST\s+\d+\s+ROWS\s+ONLY\s*$",
+        f"FETCH FIRST {limit} ROWS ONLY",
+        query.strip(),
+        count=1,
+        flags=re.IGNORECASE,
     )
 
 
@@ -881,35 +1651,164 @@ def _strip_string_literals(query: str) -> str:
     return re.sub(r"'(?:''|\\'|[^'])*'|\"(?:\\\"|[^\"])*\"", "''", query or "")
 
 
+def _mask_string_literals(query: str) -> str:
+    if not query:
+        return ""
+    chars = list(query)
+    index = 0
+    while index < len(chars):
+        char = chars[index]
+        if char not in {"'", '"', "`"}:
+            index += 1
+            continue
+        quote = char
+        index += 1
+        while index < len(chars):
+            if chars[index] == "\\" and quote in {"'", '"'}:
+                chars[index] = " "
+                if index + 1 < len(chars):
+                    chars[index + 1] = " "
+                index += 2
+                continue
+            if chars[index] == quote:
+                if index + 1 < len(chars) and chars[index + 1] == quote:
+                    chars[index] = " "
+                    chars[index + 1] = " "
+                    index += 2
+                    continue
+                index += 1
+                break
+            chars[index] = " "
+            index += 1
+    return "".join(chars)
+
+
+def _rewrite_outside_string_literals(value: str, rewrite) -> str:
+    parts = []
+    start = 0
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if char not in ("'", '"'):
+            index += 1
+            continue
+        if start < index:
+            parts.append(rewrite(value[start:index]))
+        literal_start = index
+        quote = char
+        index += 1
+        while index < len(value):
+            if value[index] == "\\":
+                index += 2
+                continue
+            if value[index] == quote:
+                if index + 1 < len(value) and value[index + 1] == quote:
+                    index += 2
+                    continue
+                index += 1
+                break
+            index += 1
+        parts.append(value[literal_start:index])
+        start = index
+    if start < len(value):
+        parts.append(rewrite(value[start:]))
+    return "".join(parts)
+
+
+def _cypher_identifier(value: str) -> str:
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", value):
+        return value
+    return f"`{value.replace('`', '``')}`"
+
+
+def _unquote_cypher_identifier(value: str) -> str:
+    stripped = value.strip()
+    if stripped.startswith("`") and stripped.endswith("`") and len(stripped) >= 2:
+        return stripped[1:-1].replace("``", "`")
+    return stripped
+
+
 def normalized_counter(
     rows: Sequence[Dict[str, Any]],
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Counter[str]:
     return Counter(
         json.dumps(row, sort_keys=True, ensure_ascii=False)
-        for row in normalize_rows(rows, primary_by_label)
+        for row in normalize_rows(rows, primary_by_label, element_label_aliases)
     )
+
+
+def result_diagnostics(
+    oracle_rows: Sequence[Dict[str, Any]],
+    neo4j_rows: Sequence[Dict[str, Any]],
+    primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
+    sample_limit: int = 5,
+) -> Dict[str, Any]:
+    oracle_counter = normalized_counter(
+        oracle_rows,
+        primary_by_label,
+        element_label_aliases,
+    )
+    neo4j_counter = normalized_counter(
+        neo4j_rows,
+        primary_by_label,
+        element_label_aliases,
+    )
+    missing_from_neo4j = oracle_counter - neo4j_counter
+    extra_in_neo4j = neo4j_counter - oracle_counter
+    return {
+        "oracle_row_count": len(oracle_rows),
+        "neo4j_row_count": len(neo4j_rows),
+        "oracle_distinct_row_count": len(oracle_counter),
+        "neo4j_distinct_row_count": len(neo4j_counter),
+        "missing_from_neo4j_count": sum(missing_from_neo4j.values()),
+        "extra_in_neo4j_count": sum(extra_in_neo4j.values()),
+        "missing_from_neo4j_sample": _counter_rows_sample(
+            missing_from_neo4j,
+            sample_limit,
+        ),
+        "extra_in_neo4j_sample": _counter_rows_sample(extra_in_neo4j, sample_limit),
+    }
+
+
+def _counter_rows_sample(counter: Counter[str], sample_limit: int) -> List[Any]:
+    rows: List[Any] = []
+    for encoded_row, count in counter.items():
+        row = json.loads(encoded_row)
+        for _ in range(count):
+            rows.append(row)
+            if len(rows) >= sample_limit:
+                return rows
+    return rows
 
 
 def normalize_rows(
     rows: Sequence[Dict[str, Any]],
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> List[Any]:
-    return [normalize_row(row, primary_by_label) for row in rows]
+    return [normalize_row(row, primary_by_label, element_label_aliases) for row in rows]
 
 
 def normalize_row(
     row: Dict[str, Any],
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Any:
     # Compare return values rather than aliases: Oracle aliases often differ from Cypher aliases.
     values = list(row.values())
     if len(values) == 1 and _looks_like_path(values[0]):
-        return _normalize_path(values[0], primary_by_label)
-    return [_normalize_value(value, primary_by_label) for value in values]
+        return _normalize_path(values[0], primary_by_label, element_label_aliases)
+    return [_normalize_value(value, primary_by_label, element_label_aliases) for value in values]
 
 
-def _normalize_value(value: Any, primary_by_label: Dict[str, str] | None = None) -> Any:
+def _normalize_value(
+    value: Any,
+    primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
+) -> Any:
     if value is None:
         return None
     if isinstance(value, bool):
@@ -934,52 +1833,68 @@ def _normalize_value(value: Any, primary_by_label: Dict[str, str] | None = None)
     if isinstance(value, str):
         return _normalize_temporal_string(value)
     if _looks_like_path(value):
-        return _normalize_path(value, primary_by_label)
+        return _normalize_path(value, primary_by_label, element_label_aliases)
     if isinstance(value, (list, tuple)):
-        return [_normalize_value(item, primary_by_label) for item in value]
+        return [_normalize_value(item, primary_by_label, element_label_aliases) for item in value]
     if isinstance(value, dict):
-        oracle_identity = _normalize_oracle_graph_identity(value, primary_by_label)
+        oracle_identity = _normalize_oracle_graph_identity(
+            value,
+            primary_by_label,
+            element_label_aliases,
+        )
         if oracle_identity is not None:
             return oracle_identity
         return {
-            str(key): _normalize_value(item, primary_by_label)
+            str(key): _normalize_value(item, primary_by_label, element_label_aliases)
             for key, item in sorted(value.items())
         }
     if hasattr(value, "items") and hasattr(value, "labels"):
-        return _normalize_neo4j_node(value, primary_by_label)
+        return _normalize_neo4j_node(value, primary_by_label, element_label_aliases)
     if hasattr(value, "items") and hasattr(value, "type"):
-        return _normalize_neo4j_relationship(value, primary_by_label)
+        return _normalize_neo4j_relationship(
+            value,
+            primary_by_label,
+            element_label_aliases,
+        )
     if hasattr(value, "iso_format"):
-        return value.iso_format()
+        return _normalize_temporal_string(str(value.iso_format()))
     if hasattr(value, "isoformat"):
-        return value.isoformat()
+        return _normalize_temporal_string(str(value.isoformat()))
     return value
 
 
 def _normalize_temporal_string(value: str) -> str:
-    date_midnight = re.fullmatch(r"(\d{4}-\d{2}-\d{2})T00:00:00(?:\.0{6,9})?(?:Z)?", value)
-    if date_midnight:
-        return date_midnight.group(1)
     match = re.fullmatch(
-        r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.0{6,9})?(?:Z)?",
+        r"(?P<date>\d{4}-\d{2}-\d{2})[T ]"
+        r"(?P<time>\d{2}:\d{2}:\d{2})"
+        r"(?:\.(?P<fraction>\d{1,9}))?"
+        r"(?P<zone>Z|[+-]\d{2}:\d{2})?",
         value,
     )
     if match:
-        return match.group(1)
+        fraction = (match.group("fraction") or "").rstrip("0")
+        zone = match.group("zone") or ""
+        if zone in ("Z", "+00:00"):
+            zone = ""
+        if match.group("time") == "00:00:00" and not fraction and not zone:
+            return match.group("date")
+        base = f"{match.group('date')}T{match.group('time')}"
+        return f"{base}{'.' + fraction if fraction else ''}{zone}"
     return value
 
 
 def _normalize_oracle_graph_identity(
     value: Dict[str, Any],
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Dict[str, Any] | None:
     if "ELEM_TABLE" not in value or "KEY_VALUE" not in value:
         return None
-    label = str(value["ELEM_TABLE"])
+    label = _canonical_element_label(str(value["ELEM_TABLE"]), element_label_aliases)
     normalized = {
-        "element": OracleNameSanitizer.clean(label, fallback=label),
+        "element": label,
     }
-    key = _normalize_value(value["KEY_VALUE"], primary_by_label)
+    key = _normalize_value(value["KEY_VALUE"], primary_by_label, element_label_aliases)
     if key:
         normalized["key"] = key
     return normalized
@@ -988,33 +1903,43 @@ def _normalize_oracle_graph_identity(
 def _normalize_neo4j_node(
     value: Any,
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Dict[str, Any]:
     labels = sorted(str(label) for label in value.labels)
-    label = labels[0] if labels else ""
+    label = _canonical_element_label(labels[0] if labels else "", element_label_aliases)
     properties = dict(value.items())
     key = _node_key(label, properties, primary_by_label)
     if key:
         return {
             "element": OracleNameSanitizer.clean(label, fallback=label),
-            "key": _normalize_value(key, primary_by_label),
+            "key": _normalize_value(key, primary_by_label, element_label_aliases),
         }
     return {
-        "element": OracleNameSanitizer.clean(label, fallback=label),
-        "properties": _normalize_value(properties, primary_by_label),
+        "element": label,
+        "properties": _normalize_value(properties, primary_by_label, element_label_aliases),
     }
 
 
 def _normalize_neo4j_relationship(
     value: Any,
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> Dict[str, Any]:
-    rel_type = str(value.type)
+    rel_type = _canonical_element_label(str(value.type), element_label_aliases)
     normalized: Dict[str, Any] = {
-        "element": OracleNameSanitizer.clean(rel_type, fallback=rel_type),
+        "element": rel_type,
     }
     properties = dict(value.items())
+    edge_id = properties.get("EDGE_ID")
+    if edge_id is not None:
+        normalized["key"] = {"EDGE_ID": _normalize_value(edge_id, primary_by_label)}
+        return normalized
     if properties:
-        normalized["properties"] = _normalize_value(properties, primary_by_label)
+        normalized["properties"] = _normalize_value(
+            properties,
+            primary_by_label,
+            element_label_aliases,
+        )
     return normalized
 
 
@@ -1046,15 +1971,51 @@ def _looks_like_path(value: Any) -> bool:
 def _normalize_path(
     value: Any,
     primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
 ) -> List[Any]:
     nodes = list(value.nodes)
     relationships = list(value.relationships)
     normalized = []
     for index, node in enumerate(nodes):
-        normalized.append(_normalize_value(node, primary_by_label))
+        normalized.append(_normalize_value(node, primary_by_label, element_label_aliases))
         if index < len(relationships):
-            normalized.append(_normalize_value(relationships[index], primary_by_label))
+            normalized.append(
+                _normalize_value(
+                    relationships[index],
+                    primary_by_label,
+                    element_label_aliases,
+                )
+            )
     return normalized
+
+
+def _canonical_element_label(
+    label: str,
+    element_label_aliases: Dict[str, str] | None = None,
+) -> str:
+    cleaned = OracleNameSanitizer.clean(label, fallback=label)
+    if not element_label_aliases:
+        return cleaned
+    return element_label_aliases.get(cleaned, element_label_aliases.get(label, cleaned))
+
+
+def oracle_element_label_aliases(loader: DatasetOracleLoader) -> Dict[str, str]:
+    aliases: Dict[str, str] = {}
+    for vertex in loader.manifest.get("vertices", []):
+        graph_label = OracleNameSanitizer.clean(
+            vertex.get("graph_label", vertex["label"]),
+            fallback=vertex["label"],
+        )
+        source_label = OracleNameSanitizer.clean(vertex["label"], fallback=vertex["label"])
+        aliases[graph_label] = source_label
+    for edge in loader.manifest.get("edges", []):
+        graph_label = OracleNameSanitizer.clean(
+            edge.get("graph_label", edge["label"]),
+            fallback=edge["label"],
+        )
+        source_label = OracleNameSanitizer.clean(edge["label"], fallback=edge["label"])
+        aliases[graph_label] = source_label
+    return aliases
 
 
 def _convert_value(value: str, type_name: str) -> Any:

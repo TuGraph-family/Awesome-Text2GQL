@@ -7,7 +7,12 @@ from pathlib import Path
 import re
 from typing import Any, Dict, Iterable, List
 
+from dataset_prep.cypher_schema import CypherSchema
 from dataset_prep.discover import discover_database_units
+from dataset_prep.translate_validate import (
+    has_expensive_bounded_variable_length_path,
+    has_quantified_relationship_property_map,
+)
 
 FAILURE_STATUSES = {"syntax_error", "runtime_error", "unsupported", "load_error"}
 
@@ -17,9 +22,7 @@ def main() -> None:
     output_root = Path(args.output_root)
     records = list(iter_enriched_records(output_root))
     failure_records = [
-        record
-        for record in records
-        if record.get("oracle_validation_status") in FAILURE_STATUSES
+        record for record in records if record.get("oracle_validation_status") in FAILURE_STATUSES
     ]
 
     report = build_report(
@@ -119,9 +122,7 @@ def build_report(
 def failure_signature(record: Dict[str, Any]) -> str:
     status = record.get("oracle_validation_status", "")
     if status == "unsupported":
-        query_signature = unsupported_query_signature(
-            record.get("oracle_source_query") or ""
-        )
+        query_signature = unsupported_query_signature(record.get("oracle_source_query") or "")
         if query_signature in {
             "multiple_with_skipped",
             "standalone_optional_match",
@@ -178,6 +179,17 @@ def unsupported_query_signature(query: str) -> str:
         flags=re.IGNORECASE,
     ):
         return "path_variable_return"
+    if re.search(
+        r"-\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*(?:->|-)|"
+        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*-",
+        normalized,
+        flags=re.IGNORECASE,
+    ):
+        return "open_ended_variable_length_path"
+    if has_quantified_relationship_property_map(normalized):
+        return "quantified_relationship_property_map"
+    if has_expensive_bounded_variable_length_path(normalized):
+        return "expensive_variable_length_path"
     if re.search(r"\bWITH\b.+\bMATCH\b", normalized, flags=re.IGNORECASE):
         return "with_match_pipeline"
     match_prefix = normalized.split(" WHERE ", 1)[0].split(" WITH ", 1)[0].split(" RETURN ", 1)[0]
@@ -199,74 +211,30 @@ def schema_mismatch_signature(record: Dict[str, Any]) -> str:
         config = json.loads(config_path.read_text(encoding="utf-8"))
     except Exception:
         return ""
-    schema = config.get("schema") or []
-    node_props = {
-        item.get("label"): {
-            prop.get("name")
-            for prop in item.get("properties", [])
-            if prop.get("name")
-        }
-        for item in schema
-        if item.get("type") == "VERTEX"
-    }
-    edge_props = {
-        item.get("label"): {
-            prop.get("name")
-            for prop in item.get("properties", [])
-            if prop.get("name")
-        }
-        for item in schema
-        if item.get("type") == "EDGE"
-    }
-    edge_constraints = {
-        item.get("label"): {
-            (constraint[0], constraint[1])
-            for constraint in item.get("constraints", [])
-            if isinstance(constraint, list) and len(constraint) == 2
-        }
-        for item in schema
-        if item.get("type") == "EDGE"
-    }
-    variable_labels, edge_variable_labels = _cypher_variable_labels(query)
-    for variable, label in variable_labels.items():
-        if label not in node_props:
-            return "invalid_schema_label"
-    for variable, label in edge_variable_labels.items():
-        if label not in edge_props:
-            return "invalid_schema_label"
-    for variable, prop in _cypher_property_references(query):
-        if variable in variable_labels and not _property_exists(prop, node_props.get(variable_labels[variable], set())):
-            return "invalid_schema_property"
-        if variable in edge_variable_labels and not _property_exists(prop, edge_props.get(edge_variable_labels[variable], set())):
-            return "invalid_schema_property"
-    for label, properties in _cypher_property_maps(query, node=True):
-        if label in node_props:
-            for prop in properties:
-                if not _property_exists(prop, node_props[label]):
-                    return "invalid_schema_property"
-    for label, properties in _cypher_property_maps(query, node=False):
-        if label in edge_props:
-            for prop in properties:
-                if not _property_exists(prop, edge_props[label]):
-                    return "invalid_schema_property"
-    for left_label, direction, edge_label, right_label in _cypher_edge_triples(query):
-        constraints = edge_constraints.get(edge_label)
-        if not constraints or not left_label or not right_label:
-            continue
-        expected = (left_label, right_label) if direction == "right" else (right_label, left_label)
-        if expected not in constraints:
-            return "invalid_schema_direction"
+    for issue in CypherSchema(config).validation_issues(query):
+        if issue.signature in {
+            "invalid_schema_label",
+            "invalid_schema_property",
+            "invalid_schema_direction",
+            "unsafe_numeric_conversion",
+            "unsafe_temporal_numeric_comparison",
+        }:
+            return issue.signature
     return ""
 
 
 def _cypher_variable_labels(query: str) -> tuple[dict[str, str], dict[str, str]]:
     node_labels: dict[str, str] = {}
     edge_labels: dict[str, str] = {}
-    for match in re.finditer(r"\(\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<label>[^`(){},\s]+)`?", query):
+    for match in re.finditer(
+        r"\(\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<label>[^`(){},\s]+)`?", query
+    ):
         variable = match.group("var")
         if variable:
             node_labels[variable] = _clean_schema_name(match.group("label"))
-    for match in re.finditer(r"\[\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<label>[^`\]{}\s]+)`?", query):
+    for match in re.finditer(
+        r"\[\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<label>[^`\]{}\s]+)`?", query
+    ):
         variable = match.group("var")
         if variable:
             edge_labels[variable] = _clean_schema_name(match.group("label"))
@@ -301,14 +269,19 @@ def _cypher_property_maps(query: str, node: bool) -> list[tuple[str, list[str]]]
     for match in pattern.finditer(query):
         properties = [
             _clean_schema_name(prop.group("prop"))
-            for prop in re.finditer(r"`?(?P<prop>[A-Za-z_][A-Za-z0-9_$#-]*)`?\s*:", match.group("body"))
+            for prop in re.finditer(
+                r"`?(?P<prop>[A-Za-z_][A-Za-z0-9_$#-]*)`?\s*:", match.group("body")
+            )
         ]
         maps.append((_clean_schema_name(match.group("label")), properties))
     return maps
 
 
 def _cypher_edge_triples(query: str) -> list[tuple[str, str, str, str]]:
-    node = r"\(\s*(?:[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<NAME>[^`(){}\]\[,\s]+)`?(?:\s*\{[^}]*\})?\s*\)"
+    node = (
+        r"\(\s*(?:[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?"
+        r"(?P<NAME>[^`(){}\]\[,\s]+)`?(?:\s*\{[^}]*\})?\s*\)"
+    )
     edge = r"\[\s*(?:[A-Za-z_][A-Za-z0-9_]*)?\s*:\s*`?(?P<edge>[^`\]{}\s]+)`?(?:\s*\{[^}]*\})?\s*\]"
     triples = []
     right_pattern = (
@@ -328,20 +301,24 @@ def _cypher_edge_triples(query: str) -> list[tuple[str, str, str, str]]:
     for start in range(len(query)):
         match = re.match(right_pattern, query[start:])
         if match:
-            triples.append((
-                _clean_schema_name(match.group("left")),
-                "right",
-                _clean_schema_name(match.group("edge")),
-                _clean_schema_name(match.group("right")),
-            ))
+            triples.append(
+                (
+                    _clean_schema_name(match.group("left")),
+                    "right",
+                    _clean_schema_name(match.group("edge")),
+                    _clean_schema_name(match.group("right")),
+                )
+            )
         match = re.match(left_pattern, query[start:])
         if match:
-            triples.append((
-                _clean_schema_name(match.group("left")),
-                "left",
-                _clean_schema_name(match.group("edge")),
-                _clean_schema_name(match.group("right")),
-            ))
+            triples.append(
+                (
+                    _clean_schema_name(match.group("left")),
+                    "left",
+                    _clean_schema_name(match.group("edge")),
+                    _clean_schema_name(match.group("right")),
+                )
+            )
     return triples
 
 
@@ -359,25 +336,57 @@ def _clean_schema_name(value: str) -> str:
 def likely_next_action(status: str, signature: str) -> str:
     if status == "unsupported":
         if signature == "multiple_with_skipped":
-            return "Skipped by policy: do not spend translator work on queries with more than one WITH."
+            return (
+                "Skipped by policy: do not spend translator work on queries with more "
+                "than one WITH."
+            )
         if signature == "path_variable_return":
-            return "Keep unsupported unless grouped path projection semantics are added for Oracle SQL/PGQ."
+            return (
+                "Keep unsupported unless grouped path projection semantics are added "
+                "for Oracle SQL/PGQ."
+            )
         if signature == "temporal_numeric_aggregate":
-            return "Keep unsupported unless the source query explicitly converts temporal values to numeric durations."
+            return (
+                "Keep unsupported unless the source query explicitly converts temporal "
+                "values to numeric durations."
+            )
         if signature == "expensive_variable_length_path":
-            return "Skip broad undirected variable-length paths that can exhaust Oracle validation resources."
+            return (
+                "Skip broad undirected variable-length paths that can exhaust Oracle "
+                "validation resources."
+            )
+        if signature == "open_ended_variable_length_path":
+            return (
+                "Keep unsupported or add an explicit max bound; Oracle SQL/PGQ rejects "
+                "open-ended bounded quantifiers."
+            )
         if signature == "invalid_schema_property":
             return "Treat as invalid source/schema mismatch; do not emit SQL for absent properties."
         if signature == "optional_match":
-            return "Correlated OPTIONAL MATCH should translate through the Graph IR LEFT JOIN path; inspect unsupported samples for unsupported optional shapes."
+            return (
+                "Correlated OPTIONAL MATCH should translate through the Graph IR LEFT "
+                "JOIN path; inspect unsupported samples for unsupported optional shapes."
+            )
         if signature == "standalone_optional_match":
-            return "Standalone OPTIONAL MATCH differs from MATCH only for empty-match null-row semantics; keep unsupported unless that behavior is modeled."
+            return (
+                "Standalone OPTIONAL MATCH differs from MATCH only for empty-match "
+                "null-row semantics; keep unsupported unless that behavior is modeled."
+            )
         if signature == "optional_match_left_join_required":
-            return "Retry with Graph IR OPTIONAL MATCH support; remaining cases likely lack correlation or exceed the v1 optional scope."
+            return (
+                "Retry with Graph IR OPTIONAL MATCH support; remaining cases likely "
+                "lack correlation or exceed the v1 optional scope."
+            )
         if signature == "with_match_pipeline":
-            return "Inspect whether this single-WITH pipeline is covered by staged SQL support; add a focused test if fixable."
+            return (
+                "Inspect whether this single-WITH pipeline is covered by staged SQL "
+                "support; add a focused test if fixable."
+            )
         if signature == "multi_pattern_match":
-            return "Inspect comma-separated path patterns for schema validity and shared-variable support."
+            return (
+                "Inspect comma-separated path patterns for schema validity and "
+                "shared-variable support."
+            )
         return (
             "Decide whether this Cypher feature maps to documented Oracle SQL/PGQ; "
             "otherwise keep classified as unsupported."
@@ -401,8 +410,7 @@ def likely_next_action(status: str, signature: str) -> str:
         )
     if "ORA-12899" in signature:
         return (
-            "Use CLOB or wider text columns for long STRING/TEXT properties during "
-            "dataset loading."
+            "Use CLOB or wider text columns for long STRING/TEXT properties during dataset loading."
         )
     return (
         "Inspect sample source query and generated SQL, then add a focused translator "
@@ -451,9 +459,7 @@ def write_markdown(path: Path, report: Dict[str, Any]) -> None:
 
     lines += ["", "## Top Failure Signatures", ""]
     for item in report["top_signatures"]:
-        lines.append(
-            f"### {item['status']} / {item['signature']} / {item['count']}"
-        )
+        lines.append(f"### {item['status']} / {item['signature']} / {item['count']}")
         lines.append("")
         lines.append(item["likely_next_action"])
         lines.append("")
