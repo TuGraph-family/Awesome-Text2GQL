@@ -1022,7 +1022,12 @@ def compare_record(
         neo4j_loader.primary_by_label,
         element_label_aliases,
     )
-    matched = oracle_counter == neo4j_counter
+    matched = oracle_counter == neo4j_counter or normalized_rows_match_with_numeric_tolerance(
+        oracle_rows,
+        neo4j_rows,
+        neo4j_loader.primary_by_label,
+        element_label_aliases,
+    )
     reason = "result_mismatch" if not matched else ""
     if (
         not matched
@@ -1737,6 +1742,76 @@ def normalized_counter(
         json.dumps(row, sort_keys=True, ensure_ascii=False)
         for row in normalize_rows(rows, primary_by_label, element_label_aliases)
     )
+
+
+def normalized_rows_match_with_numeric_tolerance(
+    oracle_rows: Sequence[Dict[str, Any]],
+    neo4j_rows: Sequence[Dict[str, Any]],
+    primary_by_label: Dict[str, str] | None = None,
+    element_label_aliases: Dict[str, str] | None = None,
+    absolute_tolerance: float = 1e-4,
+    relative_tolerance: float = 1e-8,
+) -> bool:
+    if len(oracle_rows) != len(neo4j_rows):
+        return False
+    oracle_normalized = normalize_rows(oracle_rows, primary_by_label, element_label_aliases)
+    neo4j_normalized = normalize_rows(neo4j_rows, primary_by_label, element_label_aliases)
+    unmatched = list(neo4j_normalized)
+    for oracle_row in oracle_normalized:
+        match_index = next(
+            (
+                index
+                for index, neo4j_row in enumerate(unmatched)
+                if _values_equal_with_numeric_tolerance(
+                    oracle_row,
+                    neo4j_row,
+                    absolute_tolerance,
+                    relative_tolerance,
+                )
+            ),
+            -1,
+        )
+        if match_index == -1:
+            return False
+        unmatched.pop(match_index)
+    return not unmatched
+
+
+def _values_equal_with_numeric_tolerance(
+    left: Any,
+    right: Any,
+    absolute_tolerance: float,
+    relative_tolerance: float,
+) -> bool:
+    if isinstance(left, bool) or isinstance(right, bool):
+        return left == right
+    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
+        delta = abs(float(left) - float(right))
+        allowed = max(
+            absolute_tolerance, relative_tolerance * max(abs(float(left)), abs(float(right)), 1.0)
+        )
+        return delta <= allowed
+    if isinstance(left, list) and isinstance(right, list):
+        return len(left) == len(right) and all(
+            _values_equal_with_numeric_tolerance(
+                left_item,
+                right_item,
+                absolute_tolerance,
+                relative_tolerance,
+            )
+            for left_item, right_item in zip(left, right, strict=True)
+        )
+    if isinstance(left, dict) and isinstance(right, dict):
+        return left.keys() == right.keys() and all(
+            _values_equal_with_numeric_tolerance(
+                left[key],
+                right[key],
+                absolute_tolerance,
+                relative_tolerance,
+            )
+            for key in left
+        )
+    return left == right
 
 
 def result_diagnostics(

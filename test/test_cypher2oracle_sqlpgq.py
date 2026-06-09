@@ -1627,6 +1627,37 @@ def test_cypher2oracle_sqlpgq_translates_scalar_with_match_property_map_correlat
     assert "year = releaseYear" not in query
 
 
+def test_cypher2oracle_sqlpgq_translates_with_match_scalar_expression_correlation():
+    query = _translate_sql(
+        "MATCH (t:TRANSACTION)-[:TRIGGERED_ALERT]->(a:ALERT) "
+        "WITH avg(t.amount) AS avg_amount "
+        "MATCH (t2:TRANSACTION)-[:TRIGGERED_ALERT]->(a2:ALERT) "
+        "WHERE t2.amount > 2 * avg_amount "
+        "RETURN a2.alert_id, a2.severity_level, a2.fraud_probability_score"
+    )
+
+    assert "AVG(amount) AS avg_amount" in query
+    assert 't2."amount" AS t2_amount' in query
+    assert "JOIN stage_1 ON stage_2.t2_amount > 2 * stage_1.avg_amount" in query
+    assert "WHERE t2.amount > 2 * avg_amount" not in query
+
+
+def test_cypher2oracle_sqlpgq_translates_with_match_aggregate_expression_alias():
+    query = _translate_sql(
+        "MATCH (t:TRANSACTION) "
+        "WITH avg(t.amount) * 2 AS threshold "
+        "MATCH (i:INVESTIGATION)-[:INVESTIGATES]->(al:ALERT)"
+        "<-[:TRIGGERED_ALERT]-(t:TRANSACTION) "
+        "WHERE t.amount > threshold "
+        "RETURN i.investigation_id, i.start_time, i.findings_summary"
+    )
+
+    assert "avg(amount) * 2 AS threshold" in query
+    assert 't."amount" AS t_amount' in query
+    assert "JOIN stage_1 ON stage_2.t_amount > stage_1.threshold" in query
+    assert "WHERE t.amount > threshold" not in query
+
+
 def test_cypher2oracle_sqlpgq_filters_with_match_on_stage_scalar_alias():
     query = _translate_sql(
         "MATCH (a:ASSET)-[:LOCATED_AT]->(l:LOCATION) "

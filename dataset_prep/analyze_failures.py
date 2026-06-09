@@ -218,6 +218,7 @@ def schema_mismatch_signature(record: Dict[str, Any]) -> str:
             "invalid_schema_direction",
             "unsafe_numeric_conversion",
             "unsafe_temporal_numeric_comparison",
+            "unsafe_temporal_arithmetic",
         }:
             return issue.signature
     return ""

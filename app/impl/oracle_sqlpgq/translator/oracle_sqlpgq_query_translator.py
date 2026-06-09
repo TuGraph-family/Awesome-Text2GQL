@@ -1498,6 +1498,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             correlations,
             scalar_correlations,
             expression_scalar_correlations,
+            stage_expression_correlations,
             element_correlations,
             stage_one_filters,
             residual_second_where,
@@ -1513,7 +1514,12 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             scalar_aliases,
         )
         scalar_correlations.extend(property_map_scalar_correlations)
-        if not carried_variables and not scalar_correlations and not expression_scalar_correlations:
+        if (
+            not carried_variables
+            and not scalar_correlations
+            and not expression_scalar_correlations
+            and not stage_expression_correlations
+        ):
             raise ValueError(
                 "WITH MATCH pipeline requires carried graph variables or scalar correlations."
             )
@@ -1527,6 +1533,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             not first_join_variables
             and not scalar_correlations
             and not expression_scalar_correlations
+            and not stage_expression_correlations
         ):
             raise ValueError("WITH MATCH pipeline has no declared carried variables.")
         first_graph_table_parts = [
@@ -1542,6 +1549,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             or bool(with_clause.compare_expression_list)
             or bool(scalar_correlations)
             or bool(expression_scalar_correlations)
+            or bool(stage_expression_correlations)
         )
         stage_one_aliases: set[str] = set()
         nonstaged_stage_one_aliases: set[str] = set()
@@ -1687,6 +1695,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             and not correlations
             and not scalar_correlations
             and not expression_scalar_correlations
+            and not stage_expression_correlations
             and not element_correlations
             and self._with_match_allows_cross_join(
                 return_clause.return_body,
@@ -1699,6 +1708,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             and not correlations
             and not scalar_correlations
             and not expression_scalar_correlations
+            and not stage_expression_correlations
             and not element_correlations
             and not cross_join
         ):
@@ -1714,6 +1724,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             correlations,
             scalar_correlations,
             expression_scalar_correlations,
+            stage_expression_correlations,
             element_correlations,
         )
         if cross_join and not second_return_body.return_item_list:
@@ -1759,6 +1770,17 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
                 operator,
                 stage_alias,
             ) in expression_scalar_correlations
+        )
+        join_conditions.extend(
+            f"stage_2.{self._with_property_stage_alias(second_variable, second_property)} "
+            f"{operator} "
+            f"{self._with_match_stage_expression_sql(stage_expression, stage_one_aliases)}"
+            for (
+                second_variable,
+                second_property,
+                operator,
+                stage_expression,
+            ) in stage_expression_correlations
         )
         join_conditions.extend(
             f"stage_2.{self._element_projection_alias(second_variable)} "
@@ -1928,11 +1950,13 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
         correlations: List[Tuple[str, str, str, str]] | None = None,
         scalar_correlations: List[Tuple[str, str, str, str]] | None = None,
         expression_scalar_correlations: List[Tuple[str, str, str, str]] | None = None,
+        stage_expression_correlations: List[Tuple[str, str, str, str]] | None = None,
         element_correlations: List[Tuple[str, str, str]] | None = None,
     ) -> ReturnBody:
         correlations = correlations or []
         scalar_correlations = scalar_correlations or []
         expression_scalar_correlations = expression_scalar_correlations or []
+        stage_expression_correlations = stage_expression_correlations or []
         element_correlations = element_correlations or []
         items = [
             item
@@ -1999,6 +2023,15 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             + [
                 (second_variable, second_property)
                 for second_variable, second_property, _operator, _stage_alias in scalar_correlations
+            ]
+            + [
+                (second_variable, second_property)
+                for (
+                    second_variable,
+                    second_property,
+                    _operator,
+                    _stage_expression,
+                ) in stage_expression_correlations
             ]
             + [
                 (item.symbolic_name, item.property)
@@ -2503,6 +2536,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
         List[Tuple[str, str, str, str]],
         List[Tuple[str, str, str, str]],
         List[Tuple[str, str, str, str]],
+        List[Tuple[str, str, str, str]],
         List[Tuple[str, str, str]],
         List[str],
         List[CompareExpression],
@@ -2510,6 +2544,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
         correlations: List[Tuple[str, str, str, str]] = []
         scalar_correlations: List[Tuple[str, str, str, str]] = []
         expression_scalar_correlations: List[Tuple[str, str, str, str]] = []
+        stage_expression_correlations: List[Tuple[str, str, str, str]] = []
         element_correlations: List[Tuple[str, str, str]] = []
         stage_one_filters: List[str] = []
         residual: List[CompareExpression] = []
@@ -2553,6 +2588,14 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             )
             if expression_scalar:
                 expression_scalar_correlations.append(expression_scalar)
+                continue
+            stage_expression = self._with_match_stage_expression_correlation(
+                raw_expression or "",
+                second_declared_variables,
+                scalar_aliases,
+            )
+            if stage_expression:
+                stage_expression_correlations.append(stage_expression)
                 continue
             match = re.fullmatch(
                 r"\s*(?P<left_var>[A-Za-z_][A-Za-z0-9_]*)\."
@@ -2611,6 +2654,7 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             correlations,
             scalar_correlations,
             expression_scalar_correlations,
+            stage_expression_correlations,
             element_correlations,
             stage_one_filters,
             residual,
@@ -2667,6 +2711,92 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
                 translated,
             )
         return translated
+
+    def _with_match_stage_expression_sql(
+        self,
+        expression: str,
+        stage_one_aliases: set[str],
+    ) -> str:
+        translated = self._translate_sql_expression(expression)
+        for alias in sorted(stage_one_aliases, key=len, reverse=True):
+            translated = re.sub(
+                rf"(?<![.\"])\b{re.escape(alias)}\b(?!\")",
+                f"stage_1.{alias}",
+                translated,
+            )
+        return translated
+
+    def _with_match_stage_expression_correlation(
+        self,
+        expression: str,
+        second_declared_variables: set[str],
+        scalar_aliases: set[str],
+    ) -> Tuple[str, str, str, str] | None:
+        property_ref = (
+            r"(?P<{prefix}_var>[A-Za-z_][A-Za-z0-9_]*)\."
+            r"(?P<{prefix}_prop>[A-Za-z_][A-Za-z0-9_$#-]*)"
+        )
+        left_property = re.fullmatch(
+            property_ref.format(prefix="left")
+            + r"\s*(?P<operator>=|<>|<=|>=|<|>)\s*"
+            + r"(?P<right_expr>.+?)\s*",
+            expression,
+            flags=re.IGNORECASE,
+        )
+        if (
+            left_property
+            and left_property.group("left_var") in second_declared_variables
+            and self._is_stage_one_scalar_expression(
+                left_property.group("right_expr"),
+                scalar_aliases,
+            )
+        ):
+            return (
+                left_property.group("left_var"),
+                left_property.group("left_prop"),
+                left_property.group("operator"),
+                left_property.group("right_expr").strip(),
+            )
+        right_property = re.fullmatch(
+            r"\s*(?P<left_expr>.+?)\s*"
+            + r"(?P<operator>=|<>|<=|>=|<|>)\s*"
+            + property_ref.format(prefix="right")
+            + r"\s*",
+            expression,
+            flags=re.IGNORECASE,
+        )
+        if (
+            right_property
+            and right_property.group("right_var") in second_declared_variables
+            and self._is_stage_one_scalar_expression(
+                right_property.group("left_expr"),
+                scalar_aliases,
+            )
+        ):
+            return (
+                right_property.group("right_var"),
+                right_property.group("right_prop"),
+                self._reverse_operator(right_property.group("operator")),
+                right_property.group("left_expr").strip(),
+            )
+        return None
+
+    def _is_stage_one_scalar_expression(
+        self,
+        expression: str,
+        scalar_aliases: set[str],
+    ) -> bool:
+        if not expression:
+            return False
+        protected, _ = self._protect_string_literals(expression)
+        if not any(
+            re.search(rf"\b{re.escape(alias)}\b", protected) for alias in scalar_aliases if alias
+        ):
+            return False
+        stripped = protected
+        for alias in sorted(scalar_aliases, key=len, reverse=True):
+            stripped = re.sub(rf"\b{re.escape(alias)}\b", "", stripped)
+        return bool(re.fullmatch(r"[\s\d.+\-*/%()]+", stripped))
 
     def _with_match_expression_scalar_correlation(
         self,
@@ -3033,7 +3163,13 @@ class OracleSqlPgqQueryTranslator(QueryTranslator):
             if (
                 not item.property
                 and not item.function_name
-                and (not item.expression or item.expression == item.symbolic_name)
+                and (
+                    not item.expression
+                    or (
+                        item.expression == item.symbolic_name
+                        and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", item.symbolic_name or "")
+                    )
+                )
             ):
                 continue
             alias = item.alias or item.property or item.symbolic_name

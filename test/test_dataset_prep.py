@@ -147,6 +147,9 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     assert "quantified_relationship_property_map" in detect_unsupported_features(
         "MATCH (d:DEVICE)-[:CONNECTS_TO*1..2 {connectionType: 'WiFi'}]->(:GATEWAY) RETURN d"
     )
+    assert "relative_duration" in detect_unsupported_features(
+        "MATCH (m:Movie) WHERE m.release_date >= date() - duration('P5Y') RETURN m"
+    )
 
 
 def test_detect_schema_direction_and_numeric_source_issues():
@@ -172,13 +175,38 @@ def test_detect_schema_direction_and_numeric_source_issues():
                     "properties": [
                         {"name": "success_rate", "type": "DOUBLE"},
                         {"name": "sla_requirements", "type": "STRING"},
+                        {"name": "last_review_date", "type": "DATE"},
                     ],
+                },
+                {
+                    "label": "Character",
+                    "type": "VERTEX",
+                    "primary": "Character_id",
+                    "properties": [
+                        {"name": "Character_id", "type": "STRING"},
+                        {"name": "fastrf_embedding", "type": "STRING"},
+                    ],
+                },
+                {
+                    "label": "Review",
+                    "type": "VERTEX",
+                    "primary": "Review_id",
+                    "properties": [{"name": "Review_id", "type": "STRING"}],
                 },
                 {
                     "label": "Transforms",
                     "type": "EDGE",
                     "constraints": [["ProcessingJob", "DataAsset"]],
                     "properties": [],
+                },
+                {
+                    "label": "USED_DEVICE",
+                    "type": "EDGE",
+                    "constraints": [["ProcessingJob", "DataAsset"]],
+                    "properties": [
+                        {"name": "session_start", "type": "TIMESTAMP"},
+                        {"name": "session_end", "type": "TIMESTAMP"},
+                    ],
                 },
             ]
         }
@@ -196,6 +224,26 @@ def test_detect_schema_direction_and_numeric_source_issues():
         "MATCH (pj:ProcessingJob) WHERE toInteger(pj.sla_requirements) > 24 RETURN pj",
         source_schema=schema,
     )
+    assert "unsafe_numeric_conversion" in detect_unsupported_features(
+        "MATCH (c:Character) WHERE c.fastrf_embedding IS NOT NULL "
+        "RETURN max(c.fastrf_embedding) - min(c.fastrf_embedding) AS diversity",
+        source_schema=schema,
+    )
+    assert "unsafe_temporal_arithmetic" in detect_unsupported_features(
+        "MATCH (pj:ProcessingJob) "
+        "RETURN max(pj.last_review_date) - min(pj.last_review_date) AS dateRange",
+        source_schema=schema,
+    )
+    assert "invalid_schema_property" in detect_unsupported_features(
+        "MATCH (r:Review) RETURN size(collect(DISTINCT r.summary)) AS summaryCount",
+        source_schema=schema,
+    )
+    duration_features = detect_unsupported_features(
+        "MATCH (pj:ProcessingJob)-[ud:USED_DEVICE]->(da:DataAsset) "
+        "RETURN avg(duration.between(ud.session_start, ud.session_end))",
+        source_schema=schema,
+    )
+    assert "invalid_schema_property" not in duration_features
 
 
 def test_failure_analysis_groups_unsupported_query_shapes():
@@ -704,6 +752,72 @@ def test_compare_result_mismatch_reports_full_result_diagnostics():
     )
 
     assert comparison["result_diagnostics"] == diagnostics
+
+
+def test_compare_matches_tiny_numeric_aggregate_deltas():
+    class FakeOracle:
+        def execute_query(self, query: str, **kwargs):
+            return QueryResult(
+                QueryStatus.SUCCESS,
+                data=[
+                    {"account": "A", "amount": 4037.349344},
+                    {"account": "B", "amount": 1250.577610},
+                ],
+            )
+
+    class FakeNeo4j:
+        primary_by_label = {}
+
+        def execute(self, query: str, timeout_s=None):
+            return (
+                "success",
+                [
+                    {"account": "B", "amount": 1250.577578},
+                    {"account": "A", "amount": 4037.349339},
+                ],
+                "",
+            )
+
+    args = type("Args", (), {"oracle_timeout_ms": 0, "neo4j_timeout_s": 0})()
+    comparison = compare_record(
+        {
+            "oracle_sqlpgq": "SELECT account, amount FROM graph_table(...)",
+            "oracle_source_query": "MATCH (n) RETURN n.account, sum(n.amount)",
+        },
+        FakeOracle(),
+        FakeNeo4j(),
+        args,
+    )
+
+    assert comparison["matched"]
+    assert comparison["reason"] == ""
+    assert "result_diagnostics" not in comparison
+
+
+def test_compare_does_not_mask_semantic_numeric_deltas():
+    class FakeOracle:
+        def execute_query(self, query: str, **kwargs):
+            return QueryResult(QueryStatus.SUCCESS, data=[{"account": "A", "amount": 10.0}])
+
+    class FakeNeo4j:
+        primary_by_label = {}
+
+        def execute(self, query: str, timeout_s=None):
+            return "success", [{"account": "A", "amount": 10.5}], ""
+
+    args = type("Args", (), {"oracle_timeout_ms": 0, "neo4j_timeout_s": 0})()
+    comparison = compare_record(
+        {
+            "oracle_sqlpgq": "SELECT account, amount FROM graph_table(...)",
+            "oracle_source_query": "MATCH (n) RETURN n.account, sum(n.amount)",
+        },
+        FakeOracle(),
+        FakeNeo4j(),
+        args,
+    )
+
+    assert not comparison["matched"]
+    assert comparison["reason"] == "result_mismatch"
 
 
 def test_compare_fails_ordered_limit_mismatch_without_boundary_tie():

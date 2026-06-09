@@ -8,6 +8,16 @@ from typing import Any, Iterable
 
 from app.impl.oracle_sqlpgq.utils.sqlpgq import OracleNameSanitizer
 
+IGNORED_PROPERTY_REFERENCE_NAMESPACES = {
+    "apoc",
+    "date",
+    "datetime",
+    "duration",
+    "localdatetime",
+    "localtime",
+    "time",
+}
+
 
 @dataclass(frozen=True)
 class CypherSchemaIssue:
@@ -107,6 +117,8 @@ class CypherSchema:
                     )
                     break
         for variable, property_name in cypher_property_references(query):
+            if variable.lower() in IGNORED_PROPERTY_REFERENCE_NAMESPACES:
+                continue
             if variable in node_variables:
                 label = self.canonical_node_label(node_variables[variable])
                 if not self._valid_node_property(query, variable, label, property_name):
@@ -130,6 +142,13 @@ class CypherSchema:
                     CypherSchemaIssue(
                         "invalid_schema_property",
                         f'Cannot resolve pseudo-property "{property_name}" for "{variable}".',
+                    )
+                )
+            elif not self._property_known_anywhere(property_name):
+                issues.append(
+                    CypherSchemaIssue(
+                        "invalid_schema_property",
+                        f'Cannot resolve property "{property_name}" for "{variable}".',
                     )
                 )
         issues.extend(self.unsafe_numeric_issues(query))
@@ -194,6 +213,51 @@ class CypherSchema:
                         "Temporal and numeric properties are compared directly.",
                     )
                 )
+        aggregate_ref = re.compile(
+            r"\b(?P<function>AVG|SUM|MIN|MAX)\s*\(\s*"
+            + property_ref.format(prefix="arg")
+            + r"\s*\)",
+            flags=re.IGNORECASE,
+        )
+        aggregate_matches = list(aggregate_ref.finditer(mask_string_literals(query)))
+        for match in aggregate_matches:
+            variable = match.group("arg_var")
+            if variable not in variables:
+                continue
+            property_name = self.canonical_property_name(
+                variable,
+                match.group("arg_prop"),
+                variables,
+            )
+            property_type = self.property_type(variable, property_name, variables)
+            if self._is_unsafe_numeric_text_property(property_name, property_type):
+                issues.append(
+                    CypherSchemaIssue(
+                        "unsafe_numeric_conversion",
+                        f'Unsafe numeric aggregate over "{variable}.{property_name}".',
+                    )
+                )
+        if self._has_arithmetic_between_temporal_aggregates(query, aggregate_matches, variables):
+            issues.append(
+                CypherSchemaIssue(
+                    "unsafe_temporal_arithmetic",
+                    "Temporal aggregate arithmetic requires explicit numeric conversion.",
+                )
+            )
+        for variable, property_name in cypher_property_references(query):
+            if variable not in variables:
+                continue
+            canonical_property = self.canonical_property_name(variable, property_name, variables)
+            property_type = self.property_type(variable, canonical_property, variables)
+            if not self._is_unsafe_numeric_text_property(canonical_property, property_type):
+                continue
+            if self._property_reference_has_numeric_operator(query, variable, property_name):
+                issues.append(
+                    CypherSchemaIssue(
+                        "unsafe_numeric_conversion",
+                        f'Unsafe numeric arithmetic over "{variable}.{canonical_property}".',
+                    )
+                )
         return issues
 
     def canonical_node_label(self, label: str) -> str:
@@ -209,6 +273,8 @@ class CypherSchema:
         variables: dict[str, str],
     ) -> str:
         label = variables.get(variable, "")
+        if not label:
+            return self._canonical_schema_name(property_name, self.global_property_aliases)
         canonical_label = (
             self.canonical_node_label(label)
             if label in self.node_label_aliases or label in self.node_props
@@ -230,6 +296,8 @@ class CypherSchema:
         variables: dict[str, str],
     ) -> str:
         label = variables.get(variable, "")
+        if not label:
+            return ""
         labels = [self.canonical_node_label(label), self.canonical_edge_label(label)]
         for candidate in labels:
             properties = self.property_types_by_label.get(candidate, {})
@@ -298,6 +366,19 @@ class CypherSchema:
         )
         return canonical in self.edge_props.get(label, set())
 
+    def _property_known_anywhere(self, property_name: str) -> bool:
+        aliases = {
+            property_name,
+            OracleNameSanitizer.clean(property_name, fallback=property_name),
+            re.sub(r"(?<!^)(?=[A-Z])", "_", str(property_name or "")).lower(),
+            str(property_name or "").lower(),
+        }
+        for properties in self.property_types_by_label.values():
+            property_aliases = self._schema_name_aliases(properties)
+            if any(alias in property_aliases for alias in aliases):
+                return True
+        return False
+
     def _schema_name_aliases(self, names: Iterable[str]) -> dict[str, str]:
         aliases: dict[str, str] = {}
         for name in names:
@@ -323,6 +404,8 @@ class CypherSchema:
         return {alias: next(iter(names)) for alias, names in candidates.items() if len(names) == 1}
 
     def _canonical_schema_name(self, name: str, aliases: dict[str, str]) -> str:
+        if not name:
+            return ""
         cleaned = OracleNameSanitizer.clean(name, fallback=name)
         snake = re.sub(r"(?<!^)(?=[A-Z])", "_", str(name or "")).lower()
         return (
@@ -349,6 +432,53 @@ class CypherSchema:
                 "array",
             ]
         )
+
+    def _is_unsafe_numeric_text_property(self, property_name: str, property_type: str) -> bool:
+        return self._is_string_type(property_type) and self._looks_unsafe_numeric_text_property(
+            property_name
+        )
+
+    def _property_reference_has_numeric_operator(
+        self,
+        query: str,
+        variable: str,
+        property_name: str,
+    ) -> bool:
+        protected = mask_string_literals(query)
+        reference = (
+            rf"\b{re.escape(variable)}\."
+            rf"(?:`{re.escape(property_name)}`|{re.escape(property_name)})\b"
+        )
+        return bool(
+            re.search(reference + r"\s*[-+*/%]", protected)
+            or re.search(r"[-+*/%]\s*" + reference, protected)
+        )
+
+    def _has_arithmetic_between_temporal_aggregates(
+        self,
+        query: str,
+        aggregate_matches: list[re.Match],
+        variables: dict[str, str],
+    ) -> bool:
+        protected = mask_string_literals(query)
+        temporal_spans = []
+        for match in aggregate_matches:
+            variable = match.group("arg_var")
+            property_name = self.canonical_property_name(
+                variable,
+                match.group("arg_prop"),
+                variables,
+            )
+            if self._is_temporal_type(self.property_type(variable, property_name, variables)):
+                temporal_spans.append(match.span())
+        for _left_start, left_end in temporal_spans:
+            for right_start, _right_end in temporal_spans:
+                if left_end > right_start:
+                    continue
+                between = protected[left_end:right_start]
+                if re.fullmatch(r"\s*[-+]\s*", between):
+                    return True
+        return False
 
     def _is_string_type(self, type_name: str) -> bool:
         return (
