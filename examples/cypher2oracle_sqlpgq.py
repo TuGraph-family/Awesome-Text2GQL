@@ -48,6 +48,32 @@ def cypher2oracle_sqlpgq(
             return optional_query
         return "Unable to Translate to Oracle SQL/PGQ", "Graph-IL Not Support"
 
+    optional_null_query = _translate_optional_null_antijoin(
+        query,
+        graph_name=graph_name,
+        node_label_map=node_label_map,
+        edge_label_map=edge_label_map,
+        property_type_map=property_type_map,
+        node_primary_key_map=node_primary_key_map,
+        edge_primary_key_map=edge_primary_key_map,
+        strict_property_validation=strict_property_validation,
+    )
+    if optional_null_query is not None:
+        return optional_null_query
+
+    match_optional_with_query = _translate_match_optional_with(
+        query,
+        graph_name=graph_name,
+        node_label_map=node_label_map,
+        edge_label_map=edge_label_map,
+        property_type_map=property_type_map,
+        node_primary_key_map=node_primary_key_map,
+        edge_primary_key_map=edge_primary_key_map,
+        strict_property_validation=strict_property_validation,
+    )
+    if match_optional_with_query is not None:
+        return match_optional_with_query
+
     union_query = _translate_union_query(
         query,
         graph_name=graph_name,
@@ -157,10 +183,7 @@ def _translate_match_optional_with(
     if not join_variables:
         return "Unable to Translate to Oracle SQL/PGQ", "Graph-IL Not Support"
 
-    transformed = (
-        f"{base_part} WITH {', '.join(base_variables)} "
-        f"{optional_part}"
-    )
+    transformed = f"{base_part} WITH {', '.join(base_variables)} {optional_part}"
     match_query = re.sub(
         r"\bOPTIONAL\s+MATCH\b",
         "MATCH",
@@ -253,10 +276,7 @@ def _replace_group_by_token(sql: str, token: str, replacement: str) -> str:
     def replace_line(match: re.Match) -> str:
         body = match.group("body")
         parts = _split_top_level_commas(body)
-        parts = [
-            replacement if part.strip() == token else part.strip()
-            for part in parts
-        ]
+        parts = [replacement if part.strip() == token else part.strip() for part in parts]
         return f"GROUP BY {', '.join(parts)}"
 
     return re.sub(
@@ -429,9 +449,7 @@ def _wrap_standalone_optional_sql(translated: str) -> str | None:
             if re.fullmatch(r"COUNT\s*\(\s*\*\s*\)", expression, flags=re.IGNORECASE):
                 return None
             fallback_value = (
-                "0"
-                if re.match(r"COUNT\s*\(", expression, flags=re.IGNORECASE)
-                else "NULL"
+                "0" if re.match(r"COUNT\s*\(", expression, flags=re.IGNORECASE) else "NULL"
             )
             output_aliases.append(alias)
             fallback_items.append(f"{fallback_value} AS {alias}")
@@ -563,8 +581,7 @@ def _wrap_union_branch(
     index: int,
 ) -> str:
     select_items = [
-        alias if alias in branch_aliases else f"NULL AS {alias}"
-        for alias in output_aliases
+        alias if alias in branch_aliases else f"NULL AS {alias}" for alias in output_aliases
     ]
     return (
         "SELECT "

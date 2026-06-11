@@ -8,7 +8,9 @@ from dataset_prep.compare_oracle_neo4j_results import (
     compare_record,
     comparison_result,
     is_nondeterministic_limit_without_order,
+    is_nondeterministic_with_limit_without_order,
     is_order_by_limit_query,
+    is_with_order_by_limit_query,
     normalize_rows,
     result_diagnostics,
     select_records_for_range,
@@ -119,7 +121,7 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     assert "multiple_with" not in detect_unsupported_features(
         'MATCH (q:Question {title: "WITH examples in a title"}) RETURN q.title'
     )
-    assert "expensive_variable_length_path" in detect_unsupported_features(
+    assert "expensive_variable_length_path" not in detect_unsupported_features(
         "MATCH (a:ACCOUNT)-[*..10]-(t:TRANSACTION) RETURN t LIMIT 1"
     )
     assert "expensive_variable_length_path" not in detect_unsupported_features(
@@ -135,10 +137,13 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     assert "open_ended_variable_length_path" in detect_unsupported_features(
         "MATCH (person:PERSON)-[*..]->(friend:PERSON) RETURN friend"
     )
+    assert "open_ended_variable_length_path" in detect_unsupported_features(
+        "MATCH (person:PERSON)-[*]->(friend:PERSON) RETURN friend"
+    )
     assert "open_ended_variable_length_path" not in detect_unsupported_features(
         "MATCH (person:PERSON)-[:KNOWS*1..3]->(friend:PERSON) RETURN friend"
     )
-    assert "expensive_variable_length_path" in detect_unsupported_features(
+    assert "expensive_variable_length_path" not in detect_unsupported_features(
         'MATCH (u:USER)-[*2..5]->(n) WHERE u.user_id = "U000001" RETURN n.user_id'
     )
     assert "expensive_variable_length_path" not in detect_unsupported_features(
@@ -149,6 +154,25 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     )
     assert "relative_duration" in detect_unsupported_features(
         "MATCH (m:Movie) WHERE m.release_date >= date() - duration('P5Y') RETURN m"
+    )
+
+
+def test_detect_allows_broad_bounded_variable_length_paths_with_schema():
+    config_path = Path(
+        "dataset/dev/FInancial_Financial_Management/Cypher/TuGraph-DB_Instance/"
+        "import_config.json"
+    )
+    schema = CypherSchema(json.loads(config_path.read_text(encoding="utf-8")))
+
+    assert not detect_unsupported_features(
+        "MATCH (a:ACCOUNT {account_id: 'A000000'})-[*..10]-(t:TRANSACTION)"
+        "-[:GovernedBy]->(c:COMPLIANCE_RULE {regulation_standard: 'GDPR'}) "
+        "RETURN a.account_id, t.transaction_id, c.rule_id LIMIT 1",
+        schema,
+    )
+    assert "open_ended_variable_length_path" in detect_unsupported_features(
+        "MATCH (a:ACCOUNT {account_id: 'A000000'})-[*]-(t:TRANSACTION) RETURN t",
+        schema,
     )
 
 
@@ -234,8 +258,20 @@ def test_detect_schema_direction_and_numeric_source_issues():
         "RETURN max(pj.last_review_date) - min(pj.last_review_date) AS dateRange",
         source_schema=schema,
     )
+    assert "unsafe_temporal_arithmetic" in detect_unsupported_features(
+        "MATCH (pj:ProcessingJob) "
+        "WITH max(pj.last_review_date) AS maxDate, min(pj.last_review_date) AS minDate "
+        "ORDER BY maxDate - minDate DESC "
+        "RETURN minDate, maxDate, maxDate - minDate AS DateRange",
+        source_schema=schema,
+    )
     assert "invalid_schema_property" in detect_unsupported_features(
         "MATCH (r:Review) RETURN size(collect(DISTINCT r.summary)) AS summaryCount",
+        source_schema=schema,
+    )
+    assert "invalid_schema_property" in detect_unsupported_features(
+        "MATCH (pj:ProcessingJob)<-[:REVIEWED]-(r) "
+        "RETURN size(collect(DISTINCT r.summary)) AS summaryCount",
         source_schema=schema,
     )
     duration_features = detect_unsupported_features(
@@ -535,8 +571,84 @@ def test_compare_adds_stable_tiebreakers_to_ordered_scalar_limit():
         "MATCH (n) RETURN n.name AS name, n.score AS score ORDER BY score, name LIMIT 1"
     )
     assert stable.oracle_sqlpgq == (
-        "SELECT name, score FROM graph_table(...) ORDER BY score, 1, 2 FETCH FIRST 1 ROWS ONLY"
+        "SELECT name, score FROM graph_table(...) ORDER BY score, 1, 2\n"
+        "FETCH FIRST 1 ROWS ONLY"
     )
+
+
+def test_compare_adds_stable_tiebreakers_to_ordered_with_limit():
+    stable = stable_execution_queries(
+        (
+            "WITH stage_1 AS (\n"
+            "  SELECT fingerprint, COUNT(transaction_id) AS transaction_count\n"
+            "  FROM graph_table(...)\n"
+            "  GROUP BY fingerprint\n"
+            "  ORDER BY transaction_count DESC\n"
+            "  FETCH FIRST 3 ROWS ONLY\n"
+            ")\n"
+            "SELECT fingerprint, transaction_count FROM stage_1"
+        ),
+        (
+            "MATCH (d:DEVICE)<-[:USED_DEVICE]-(t:TRANSACTION) "
+            "WITH d.device_fingerprint AS fingerprint, COUNT(t) AS transaction_count "
+            "ORDER BY transaction_count DESC LIMIT 3 "
+            "RETURN fingerprint, transaction_count"
+        ),
+    )
+
+    assert stable.applied
+    assert stable.reason == "with_ordered_paging_tiebreaker"
+    assert (
+        "WITH d.device_fingerprint AS fingerprint, COUNT(t) AS transaction_count "
+        "ORDER BY transaction_count DESC, fingerprint LIMIT 3"
+    ) in stable.cypher
+    assert "ORDER BY transaction_count DESC, 1, 2" in stable.oracle_sqlpgq
+    assert "2FETCH" not in stable.oracle_sqlpgq
+
+
+def test_compare_adds_stable_order_to_unordered_with_limit():
+    stable = stable_execution_queries(
+        (
+            "WITH stage_1 AS (\n"
+            "  SELECT name, score\n"
+            "  FROM graph_table(...)\n"
+            "  FETCH FIRST 2 ROWS ONLY\n"
+            ")\n"
+            "SELECT name, score FROM stage_1"
+        ),
+        "MATCH (n) WITH n.name AS name, n.score AS score LIMIT 2 RETURN name, score",
+    )
+
+    assert stable.applied
+    assert stable.reason == "with_unordered_paging"
+    assert "WITH n.name AS name, n.score AS score ORDER BY name, score LIMIT 2" in stable.cypher
+    assert "ORDER BY 1, 2\nFETCH FIRST 2 ROWS ONLY" in stable.oracle_sqlpgq
+
+
+def test_compare_uses_primary_key_tiebreaker_for_with_graph_variable():
+    stable = stable_execution_queries(
+        (
+            "WITH stage_1 AS (\n"
+            "  SELECT dc_VALUE, asset_count\n"
+            "  FROM graph_table(...)\n"
+            "  ORDER BY asset_count DESC\n"
+            "  FETCH FIRST 5 ROWS ONLY\n"
+            ")\n"
+            "SELECT dc_VALUE, asset_count FROM stage_1"
+        ),
+        (
+            "MATCH (dc:DataConsumer)-[:Consumes]->(da:DataAsset) "
+            "WITH dc, COUNT(da) AS asset_count ORDER BY asset_count DESC LIMIT 5 "
+            "RETURN dc.name, asset_count"
+        ),
+        {"DataConsumer": "DataConsumer_id"},
+    )
+
+    assert stable.applied
+    assert stable.reason == "with_ordered_paging_tiebreaker"
+    assert "ORDER BY asset_count DESC, dc.DataConsumer_id LIMIT 5" in stable.cypher
+    assert "ORDER BY asset_count DESC, 1, 2" in stable.oracle_sqlpgq
+    assert "2FETCH" not in stable.oracle_sqlpgq
 
 
 def test_compare_does_not_stabilize_bare_entity_or_path_limit():
@@ -551,6 +663,15 @@ def test_compare_does_not_stabilize_bare_entity_or_path_limit():
 
     assert not node_return.applied
     assert not path_return.applied
+
+
+def test_compare_detects_stage_limit_queries():
+    assert is_nondeterministic_with_limit_without_order(
+        "MATCH (n) WITH n.name AS name LIMIT 2 RETURN name"
+    )
+    assert is_with_order_by_limit_query(
+        "MATCH (n) WITH n.name AS name ORDER BY name LIMIT 2 RETURN name"
+    )
 
 
 def test_compare_executes_matching_nondeterministic_limit_query():
@@ -1084,6 +1205,54 @@ def test_neo4j_compare_rewrites_identity_and_adjacent_edge_properties():
             "MATCH (approver:USER)-[r:Approves]->(report:REPORT) RETURN approver.approval_date"
         )
         == "MATCH (approver:USER)-[r:Approves]->(report:REPORT) RETURN r.approval_date"
+    )
+
+
+def test_neo4j_compare_preserves_real_id_property_over_pseudo_identity():
+    loader = DatasetNeo4jLoader.__new__(DatasetNeo4jLoader)
+    config = {
+        "schema": [
+            {
+                "label": "Question",
+                "type": "VERTEX",
+                "primary": "vid",
+                "properties": [
+                    {"name": "vid", "type": "STRING"},
+                    {"name": "id", "type": "INT64"},
+                    {"name": "title", "type": "STRING"},
+                ],
+            },
+            {
+                "label": "PaymentTransaction",
+                "type": "VERTEX",
+                "primary": "transaction_id",
+                "properties": [{"name": "transaction_id", "type": "STRING"}],
+            },
+        ]
+    }
+    loader.cypher_schema = CypherSchema(config)
+    loader.vertex_labels = {"Question", "PaymentTransaction"}
+    loader.edge_labels = set()
+    loader.primary_by_label = {
+        "Question": "vid",
+        "PaymentTransaction": "transaction_id",
+    }
+    loader.property_types_by_label = loader.cypher_schema.property_types_by_label
+    loader.node_label_aliases = loader._schema_name_aliases(loader.vertex_labels)
+    loader.edge_type_aliases = {}
+    loader.property_aliases_by_label = {
+        label: loader._schema_name_aliases(properties)
+        for label, properties in loader.property_types_by_label.items()
+    }
+    loader.global_property_aliases = loader._global_property_aliases()
+
+    assert (
+        loader.prepare_query("MATCH (q:Question) RETURN q.id, q.title")
+        == "MATCH (q:Question) RETURN q.id, q.title"
+    )
+    assert (
+        loader.prepare_query("MATCH (n:PaymentTransaction) RETURN n.id, n.identity")
+        == "MATCH (n:PaymentTransaction) RETURN n.transaction_id, n.transaction_id"
     )
 
 

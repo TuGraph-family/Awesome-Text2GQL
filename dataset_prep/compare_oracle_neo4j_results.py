@@ -278,11 +278,19 @@ class DatasetNeo4jLoader:
         edge_variables: Dict[str, str],
     ) -> tuple[str, str]:
         if property_name.lower() in {"identity", "id"}:
-            if variable in variables:
+            if variable in variables and not self._property_defined_for_variable(
+                variable,
+                property_name,
+                variables,
+            ):
                 primary_key = self.primary_by_label.get(variables[variable])
                 if primary_key:
                     return variable, primary_key
-            if variable in edge_variables:
+            if variable in edge_variables and not self._property_defined_for_variable(
+                variable,
+                property_name,
+                edge_variables,
+            ):
                 return variable, "EDGE_ID"
         schema = getattr(self, "cypher_schema", None)
         if schema is not None and query:
@@ -303,6 +311,21 @@ class DatasetNeo4jLoader:
             property_name,
             getattr(self, "global_property_aliases", {}),
         )
+
+    def _property_defined_for_variable(
+        self,
+        variable: str,
+        property_name: str,
+        variables: Dict[str, str],
+    ) -> bool:
+        label = variables.get(variable, "")
+        if not label:
+            return False
+        aliases_by_label = getattr(self, "property_aliases_by_label", {})
+        aliases = aliases_by_label.get(label, {})
+        canonical = self._canonical_schema_name(property_name, aliases)
+        properties = getattr(self, "property_types_by_label", {}).get(label, {})
+        return canonical in properties
 
     def _canonical_schema_name(self, name: str, aliases: Dict[str, str]) -> str:
         cleaned = OracleNameSanitizer.clean(name, fallback=name)
@@ -969,6 +992,7 @@ def compare_record(
     execution_queries = stable_execution_queries(
         oracle_sqlpgq,
         cypher,
+        neo4j_loader.primary_by_label,
     )
     oracle_result = oracle_client.execute_query(
         execution_queries.oracle_sqlpgq,
@@ -1037,6 +1061,22 @@ def compare_record(
         and neo4j_rows
     ):
         reason = "nondeterministic_limit_without_order"
+    elif (
+        not matched
+        and is_nondeterministic_with_limit_without_order(cypher)
+        and not execution_queries.applied
+        and oracle_rows
+        and neo4j_rows
+    ):
+        reason = "nondeterministic_with_limit_without_order"
+    elif (
+        not matched
+        and is_with_order_by_limit_query(cypher)
+        and not execution_queries.applied
+        and oracle_rows
+        and neo4j_rows
+    ):
+        reason = "suspected_with_order_by_limit_tie"
     elif (
         not matched
         and is_order_by_limit_query(cypher)
@@ -1165,7 +1205,26 @@ def skip_reason_for_record(
     return ""
 
 
-def stable_execution_queries(oracle_sqlpgq: str, cypher: str) -> StableExecutionQueries:
+def stable_execution_queries(
+    oracle_sqlpgq: str,
+    cypher: str,
+    primary_by_label: Dict[str, str] | None = None,
+) -> StableExecutionQueries:
+    cypher_query = _stable_cypher_stage_paging_query(cypher, primary_by_label)
+    if cypher_query is not None:
+        oracle_query = _stable_oracle_stage_paging_query(
+            oracle_sqlpgq,
+            cypher_query.projected_column_count,
+            has_existing_order=cypher_query.had_order_by,
+        )
+        if oracle_query is not None:
+            return StableExecutionQueries(
+                oracle_sqlpgq=oracle_query,
+                cypher=cypher_query.query,
+                applied=True,
+                reason=cypher_query.reason,
+            )
+
     cypher_query = _stable_cypher_paging_query(cypher)
     if cypher_query is None:
         return StableExecutionQueries(oracle_sqlpgq, cypher)
@@ -1190,6 +1249,7 @@ class StableCypherQuery:
     projected_column_count: int
     had_order_by: bool
     reason: str
+    scope: str = "final"
 
 
 @dataclass(frozen=True)
@@ -1204,6 +1264,74 @@ class FinalCypherPaging:
     order_body_end: int = -1
     has_limit: bool = False
     has_skip: bool = False
+
+
+@dataclass(frozen=True)
+class StageCypherPaging:
+    with_start: int
+    with_end: int
+    body_start: int
+    body_end: int
+    pagination_start: int
+    stage_end: int
+    has_order_by: bool
+    order_body_start: int = -1
+    order_body_end: int = -1
+    has_limit: bool = False
+    has_skip: bool = False
+
+
+def _stable_cypher_stage_paging_query(
+    query: str,
+    primary_by_label: Dict[str, str] | None = None,
+) -> StableCypherQuery | None:
+    stage = _last_cypher_with_paging(query)
+    if stage is None:
+        return None
+    stage_body = query[stage.body_start : stage.body_end].strip()
+    with_items = _parse_cypher_return_items(
+        stage_body,
+        query[: stage.with_start],
+        _graph_variable_stable_order_terms(query[: stage.with_start], primary_by_label),
+    )
+    if not with_items:
+        return None
+    order_terms = [item.order_term for item in with_items]
+    if stage.has_order_by:
+        existing_terms = _order_by_expressions_from_body(
+            query[stage.order_body_start : stage.order_body_end]
+        )
+        missing_terms = _missing_order_terms(existing_terms, order_terms)
+        if not missing_terms:
+            return None
+        updated = (
+            query[: stage.order_body_end].rstrip()
+            + ", "
+            + ", ".join(missing_terms)
+            + " "
+            + query[stage.order_body_end :].lstrip()
+        )
+        return StableCypherQuery(
+            query=updated,
+            projected_column_count=len(with_items),
+            had_order_by=True,
+            reason="with_ordered_paging_tiebreaker",
+            scope="with",
+        )
+    updated = (
+        query[: stage.pagination_start].rstrip()
+        + " ORDER BY "
+        + ", ".join(order_terms)
+        + " "
+        + query[stage.pagination_start :].lstrip()
+    )
+    return StableCypherQuery(
+        query=updated,
+        projected_column_count=len(with_items),
+        had_order_by=False,
+        reason="with_unordered_paging",
+        scope="with",
+    )
 
 
 def _stable_cypher_paging_query(query: str) -> StableCypherQuery | None:
@@ -1271,7 +1399,7 @@ def _stable_oracle_paging_query(
         if order_span is None:
             return None
         _, order_body_end = order_span
-        return stripped[:order_body_end].rstrip() + ", " + order_terms + stripped[order_body_end:]
+        return _append_sql_order_terms(stripped, order_body_end, order_terms)
     return (
         stripped[:pagination_start].rstrip()
         + "\nORDER BY "
@@ -1281,20 +1409,69 @@ def _stable_oracle_paging_query(
     )
 
 
+def _stable_oracle_stage_paging_query(
+    query: str,
+    projected_column_count: int,
+    has_existing_order: bool,
+) -> str | None:
+    if projected_column_count < 1:
+        return None
+    stripped = query.rstrip().rstrip(";")
+    masked = _mask_string_literals(stripped)
+    fetch_match = None
+    for match in re.finditer(
+        r"\bFETCH\s+FIRST\s+\d+\s+ROWS\s+ONLY\b",
+        masked,
+        flags=re.IGNORECASE,
+    ):
+        if match.end() != len(masked.strip()):
+            fetch_match = match
+            break
+    if fetch_match is None:
+        return None
+    order_terms = ", ".join(str(index) for index in range(1, projected_column_count + 1))
+    if has_existing_order:
+        order_span = _nearest_sql_order_body_span(masked, fetch_match.start())
+        if order_span is None:
+            return None
+        _, order_body_end = order_span
+        return _append_sql_order_terms(stripped, order_body_end, order_terms)
+    return (
+        stripped[: fetch_match.start()].rstrip()
+        + "\nORDER BY "
+        + order_terms
+        + "\n"
+        + stripped[fetch_match.start() :].lstrip()
+    )
+
+
+def _append_sql_order_terms(query: str, order_body_end: int, order_terms: str) -> str:
+    suffix = query[order_body_end:].lstrip()
+    separator = "\n" if suffix.upper().startswith(("FETCH ", "OFFSET ")) else " "
+    return query[:order_body_end].rstrip() + ", " + order_terms + separator + suffix
+
+
 def _parse_cypher_return_items(
     return_body: str,
     query_before_return: str,
+    graph_variable_order_terms: Dict[str, str] | None = None,
 ) -> List[CypherReturnItem]:
     body = re.sub(r"^\s*DISTINCT\b", "", return_body, flags=re.IGNORECASE).strip()
     if not body:
         return []
     graph_variables = _graph_variables(query_before_return)
+    graph_variable_order_terms = graph_variable_order_terms or {}
     items: List[CypherReturnItem] = []
     for raw_item in _split_top_level_commas(body):
         expression, alias = _split_cypher_alias(raw_item)
-        if not _is_safe_stable_order_expression(expression, graph_variables):
+        stripped_expression = expression.strip()
+        graph_order_term = graph_variable_order_terms.get(stripped_expression)
+        if graph_order_term:
+            order_term = graph_order_term
+        elif not _is_safe_stable_order_expression(expression, graph_variables):
             return []
-        order_term = _cypher_identifier(alias) if alias else expression.strip()
+        else:
+            order_term = _cypher_identifier(alias) if alias else stripped_expression
         if not order_term or order_term == "*":
             return []
         items.append(
@@ -1364,6 +1541,32 @@ def _graph_variables(query: str) -> set[str]:
     return variables
 
 
+def _graph_variable_stable_order_terms(
+    query: str,
+    primary_by_label: Dict[str, str] | None,
+) -> Dict[str, str]:
+    if not primary_by_label:
+        return {}
+    masked = _mask_string_literals(query)
+    order_terms: Dict[str, str] = {}
+    for match in re.finditer(
+        r"\(\s*(?P<variable>[A-Za-z_][A-Za-z0-9_]*)\s*:\s*"
+        r"`?(?P<label>[^`(){},\s]+)`?",
+        masked,
+        flags=re.IGNORECASE,
+    ):
+        variable = match.group("variable")
+        label = match.group("label")
+        primary_key = (
+            primary_by_label.get(label)
+            or primary_by_label.get(OracleNameSanitizer.clean(label, fallback=label))
+            or primary_by_label.get(label.lower())
+        )
+        if primary_key:
+            order_terms[variable] = f"{variable}.{_cypher_identifier(primary_key)}"
+    return order_terms
+
+
 def _final_cypher_paging(query: str) -> FinalCypherPaging | None:
     masked = _mask_string_literals(query)
     return_matches = list(re.finditer(r"\bRETURN\b", masked, flags=re.IGNORECASE))
@@ -1399,6 +1602,59 @@ def _final_cypher_paging(query: str) -> FinalCypherPaging | None:
         has_limit=limit_match is not None,
         has_skip=skip_match is not None,
     )
+
+
+def _last_cypher_with_paging(query: str) -> StageCypherPaging | None:
+    masked = _mask_string_literals(query)
+    with_matches = list(re.finditer(r"\bWITH\b", masked, flags=re.IGNORECASE))
+    for with_match in reversed(with_matches):
+        stage_end = _next_cypher_clause_start(masked, with_match.end())
+        if stage_end is None:
+            continue
+        stage_text = masked[with_match.end() : stage_end]
+        order_match = re.search(r"\bORDER\s+BY\b", stage_text, flags=re.IGNORECASE)
+        skip_match = re.search(r"\bSKIP\s+\d+\b", stage_text, flags=re.IGNORECASE)
+        limit_match = re.search(r"\bLIMIT\s+\d+\b", stage_text, flags=re.IGNORECASE)
+        if skip_match is None and limit_match is None:
+            continue
+        pagination_offsets = [
+            match.start() for match in (skip_match, limit_match) if match is not None
+        ]
+        pagination_start = with_match.end() + min(pagination_offsets)
+        has_order_by = bool(
+            order_match and with_match.end() + order_match.start() < pagination_start
+        )
+        if has_order_by and order_match is not None:
+            body_end = with_match.end() + order_match.start()
+            order_body_start = with_match.end() + order_match.end()
+            order_body_end = pagination_start
+        else:
+            body_end = pagination_start
+            order_body_start = -1
+            order_body_end = -1
+        return StageCypherPaging(
+            with_start=with_match.start(),
+            with_end=with_match.end(),
+            body_start=with_match.end(),
+            body_end=body_end,
+            pagination_start=pagination_start,
+            stage_end=stage_end,
+            has_order_by=has_order_by,
+            order_body_start=order_body_start,
+            order_body_end=order_body_end,
+            has_limit=limit_match is not None,
+            has_skip=skip_match is not None,
+        )
+    return None
+
+
+def _next_cypher_clause_start(masked_query: str, start: int) -> int | None:
+    match = re.search(
+        r"\b(?:MATCH|OPTIONAL\s+MATCH|RETURN|WITH)\b",
+        masked_query[start:],
+        flags=re.IGNORECASE,
+    )
+    return start + match.start() if match else None
 
 
 def _order_by_expressions_from_body(order_body: str) -> List[str]:
@@ -1445,6 +1701,20 @@ def _final_top_level_sql_order_body_span(
     return last_match.end(), search_end
 
 
+def _nearest_sql_order_body_span(
+    masked_sql: str,
+    search_end: int,
+) -> tuple[int, int] | None:
+    target_depth = _paren_depth_at(masked_sql, search_end)
+    last_match: re.Match | None = None
+    for match in re.finditer(r"\bORDER\s+BY\b", masked_sql[:search_end], flags=re.IGNORECASE):
+        if _paren_depth_at(masked_sql, match.start()) == target_depth:
+            last_match = match
+    if last_match is None:
+        return None
+    return last_match.end(), search_end
+
+
 def _paren_depth_at(value: str, position: int) -> int:
     depth = 0
     for char in value[:position]:
@@ -1460,8 +1730,18 @@ def is_nondeterministic_limit_without_order(query: str) -> bool:
     return bool(paging and paging.has_limit and not paging.has_order_by)
 
 
+def is_nondeterministic_with_limit_without_order(query: str) -> bool:
+    paging = _last_cypher_with_paging(query)
+    return bool(paging and paging.has_limit and not paging.has_order_by)
+
+
 def is_order_by_limit_query(query: str) -> bool:
     paging = _final_cypher_paging(query)
+    return bool(paging and paging.has_limit and paging.has_order_by)
+
+
+def is_with_order_by_limit_query(query: str) -> bool:
+    paging = _last_cypher_with_paging(query)
     return bool(paging and paging.has_limit and paging.has_order_by)
 
 

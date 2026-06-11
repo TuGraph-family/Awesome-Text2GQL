@@ -78,6 +78,7 @@ class CypherSchema:
         query = str(query or "")
         issues: list[CypherSchemaIssue] = []
         node_variables, edge_variables = cypher_variable_labels(query)
+        declared_variables = cypher_graph_variables(query)
         for variable, label in node_variables.items():
             if self.canonical_node_label(label) not in self.node_props:
                 issues.append(
@@ -142,6 +143,15 @@ class CypherSchema:
                     CypherSchemaIssue(
                         "invalid_schema_property",
                         f'Cannot resolve pseudo-property "{property_name}" for "{variable}".',
+                    )
+                )
+            elif variable in declared_variables and not self._property_has_unique_schema_owner(
+                property_name
+            ):
+                issues.append(
+                    CypherSchemaIssue(
+                        "invalid_schema_property",
+                        f'Cannot resolve property "{property_name}" for unlabeled "{variable}".',
                     )
                 )
             elif not self._property_known_anywhere(property_name):
@@ -242,6 +252,17 @@ class CypherSchema:
                 CypherSchemaIssue(
                     "unsafe_temporal_arithmetic",
                     "Temporal aggregate arithmetic requires explicit numeric conversion.",
+                )
+            )
+        if self._has_arithmetic_between_temporal_aggregate_aliases(
+            query,
+            aggregate_matches,
+            variables,
+        ):
+            issues.append(
+                CypherSchemaIssue(
+                    "unsafe_temporal_arithmetic",
+                    "Temporal aggregate alias arithmetic requires explicit numeric conversion.",
                 )
             )
         for variable, property_name in cypher_property_references(query):
@@ -379,6 +400,20 @@ class CypherSchema:
                 return True
         return False
 
+    def _property_has_unique_schema_owner(self, property_name: str) -> bool:
+        aliases = {
+            property_name,
+            OracleNameSanitizer.clean(property_name, fallback=property_name),
+            re.sub(r"(?<!^)(?=[A-Z])", "_", str(property_name or "")).lower(),
+            str(property_name or "").lower(),
+        }
+        owners = set()
+        for label, properties in self.property_types_by_label.items():
+            property_aliases = self._schema_name_aliases(properties)
+            if any(alias in property_aliases for alias in aliases):
+                owners.add(label)
+        return len(owners) == 1
+
     def _schema_name_aliases(self, names: Iterable[str]) -> dict[str, str]:
         aliases: dict[str, str] = {}
         for name in names:
@@ -480,6 +515,41 @@ class CypherSchema:
                     return True
         return False
 
+    def _has_arithmetic_between_temporal_aggregate_aliases(
+        self,
+        query: str,
+        aggregate_matches: list[re.Match],
+        variables: dict[str, str],
+    ) -> bool:
+        protected = mask_string_literals(query)
+        temporal_aliases = set()
+        for match in aggregate_matches:
+            variable = match.group("arg_var")
+            property_name = self.canonical_property_name(
+                variable,
+                match.group("arg_prop"),
+                variables,
+            )
+            if not self._is_temporal_type(self.property_type(variable, property_name, variables)):
+                continue
+            alias_match = re.match(
+                r"\s+AS\s+(?P<alias>`[^`]+`|[A-Za-z_][A-Za-z0-9_]*)",
+                protected[match.end() :],
+                flags=re.IGNORECASE,
+            )
+            if alias_match:
+                temporal_aliases.add(alias_match.group("alias").strip("`"))
+        if len(temporal_aliases) < 2:
+            return False
+        alias_pattern = "|".join(re.escape(alias) for alias in sorted(temporal_aliases))
+        return bool(
+            re.search(
+                rf"\b(?:{alias_pattern})\b\s*[-+]\s*\b(?:{alias_pattern})\b",
+                protected,
+                flags=re.IGNORECASE,
+            )
+        )
+
     def _is_string_type(self, type_name: str) -> bool:
         return (
             "CHAR" in type_name.upper()
@@ -520,6 +590,29 @@ def cypher_variable_labels(query: str) -> tuple[dict[str, str], dict[str, str]]:
                 match.group("quoted") or match.group("label")
             )
     return node_labels, edge_labels
+
+
+def cypher_graph_variables(query: str) -> set[str]:
+    protected = mask_string_literals(query)
+    variables = {
+        match.group("var")
+        for match in re.finditer(
+            r"\(\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)"
+            r"(?=\s*(?::|\{|\)|WHERE\b))",
+            protected,
+            flags=re.IGNORECASE,
+        )
+    }
+    variables.update(
+        match.group("var")
+        for match in re.finditer(
+            r"\[\s*(?P<var>[A-Za-z_][A-Za-z0-9_]*)"
+            r"(?=\s*(?::|\*|\]|\{))",
+            protected,
+            flags=re.IGNORECASE,
+        )
+    )
+    return variables
 
 
 def cypher_property_references(query: str) -> list[tuple[str, str]]:

@@ -101,6 +101,21 @@ def test_cypher2oracle_sqlpgq_translates_variable_length_relationship():
     assert 'COLUMNS (friend."name" AS friend_name)' in query
 
 
+def test_cypher2oracle_sqlpgq_translates_broad_bounded_variable_length_relationship():
+    query = _translate(
+        "MATCH (a:ACCOUNT {account_id: 'A000000'})-[*..10]-(t:TRANSACTION)"
+        "-[:GovernedBy]->(c:COMPLIANCE_RULE {regulation_standard: 'GDPR'}) "
+        "RETURN a.account_id, t.transaction_id, c.rule_id LIMIT 1"
+    )
+
+    assert '(a IS "ACCOUNT")-[e1]-{1,10}(t IS "TRANSACTION")' in query
+    assert '[e2 IS "GovernedBy"]->(c IS "COMPLIANCE_RULE")' in query
+    assert 'a."account_id" AS account_id' in query
+    assert 't."transaction_id" AS transaction_id' in query
+    assert 'c."rule_id" AS rule_id' in query
+    assert "FETCH FIRST 1 ROWS ONLY" in query
+
+
 def test_cypher2oracle_sqlpgq_translates_whole_node_return_to_vertex_id():
     query = _translate("MATCH (p:PERSON) RETURN p")
 
@@ -391,6 +406,19 @@ def test_cypher2oracle_sqlpgq_disambiguates_duplicate_projection_aliases():
     assert " AS name" not in query
 
 
+def test_cypher2oracle_sqlpgq_disambiguates_complex_aggregate_property_aliases():
+    query = _translate(
+        "MATCH (dc:DataConsumer)-[c:Consumes {critical_dependency: true}]->(da:DataAsset) "
+        "RETURN dc.name, COUNT(c) AS critical_dependencies, "
+        "AVG(TOFLOAT(SIZE(da.name))) AS avg_usage_frequency"
+    )
+
+    assert 'dc."name" AS name' in query
+    assert 'da."name" AS da_name' in query
+    assert "AVG(TO_NUMBER(LENGTH(da_name))) AS avg_usage_frequency" in query
+    assert "AVG(TO_NUMBER(LENGTH(name)))" not in query
+
+
 def test_cypher2oracle_sqlpgq_orders_by_aggregate_alias_without_inner_projection():
     query = _translate(
         "MATCH (u:USER)-[:Initiates]->(t:TRANSACTION) "
@@ -416,8 +444,8 @@ def test_cypher2oracle_sqlpgq_translates_scalar_function_return_expressions():
 def test_cypher2oracle_sqlpgq_translates_tofloat_to_oracle_number_cast():
     query = _translate("MATCH (m:Movie) RETURN avg(toFloat(m.budget)) AS average_budget")
 
-    assert 'COLUMNS (TO_NUMBER(m."budget") AS budget)' in query
-    assert "SELECT AVG(budget) AS average_budget" in query
+    assert 'COLUMNS (m."budget" AS m_budget)' in query
+    assert "SELECT avg(TO_NUMBER(m_budget)) AS average_budget" in query
 
 
 def test_cypher2oracle_sqlpgq_translates_tointeger_to_oracle_cast():
@@ -429,10 +457,10 @@ def test_cypher2oracle_sqlpgq_translates_tointeger_to_oracle_cast():
         "AVG(toInteger(pj.sla_requirements)) AS avg_sla_hours"
     )
 
-    assert 'CAST(pj."sla_requirements" AS INTEGER) AS sla_requirements' in query
+    assert 'pj."sla_requirements" AS pj_sla_requirements' in query
     assert (
         "SELECT environment_name, COUNT(pj_VALUE) AS pii_processing_job_count, "
-        "AVG(sla_requirements) AS avg_sla_hours" in query
+        "AVG(CAST(pj_sla_requirements AS INTEGER)) AS avg_sla_hours" in query
     )
     assert "toInteger" not in query
 
@@ -660,11 +688,23 @@ def test_cypher2oracle_sqlpgq_translates_aggregate_case_expression():
     )
 
     assert query.startswith(
-        "SELECT (count(CASE WHEN type = 'P.O. Box Only' THEN 1 ELSE NULL END) "
-        "- count(CASE WHEN type = 'Post Office' THEN 1 ELSE NULL END)) AS DIFFERENCE"
+        "SELECT (count(CASE WHEN t2_type = 'P.O. Box Only' THEN 1 ELSE NULL END) "
+        "- count(CASE WHEN t2_type = 'Post Office' THEN 1 ELSE NULL END)) AS DIFFERENCE"
     )
-    assert 'COLUMNS (t2."type" AS type)' in query
+    assert 'COLUMNS (t2."type" AS t2_type)' in query
     assert "GROUP BY" not in query
+
+
+def test_cypher2oracle_sqlpgq_projects_multi_property_case_aggregate_outside_graph_table():
+    query = _translate(
+        "MATCH (t1:person)-->(t2:disabled) "
+        "RETURN count(CASE WHEN t2.name IS NULL THEN t1.name END) AS number"
+    )
+
+    assert query.startswith("SELECT count(CASE WHEN t2_name IS NULL THEN t1_name END) AS number")
+    assert 't2."name" AS t2_name' in query
+    assert 't1."name" AS t1_name' in query
+    assert "COLUMNS (CASE WHEN" not in query
 
 
 def test_cypher2oracle_sqlpgq_uses_case_insensitive_label_maps():
@@ -764,6 +804,26 @@ def test_cypher2oracle_sqlpgq_maps_identity_to_primary_key():
     assert category == "Graph-IL Translatable"
     assert 'n."transaction_id" AS identity' in query
     assert 'n."identity"' not in query
+
+
+def test_cypher2oracle_sqlpgq_preserves_real_id_property_over_pseudo_identity():
+    query, category = cypher2oracle_sqlpgq(
+        "MATCH (q:Question) RETURN q.id, q.title",
+        graph_name="G",
+        property_type_map={
+            "Question": {
+                "vid": "VARCHAR2(4000)",
+                "id": "NUMBER",
+                "title": "VARCHAR2(4000)",
+            }
+        },
+        node_primary_key_map={"Question": "vid"},
+        strict_property_validation=True,
+    )
+
+    assert category == "Graph-IL Translatable"
+    assert 'q."id" AS id' in query
+    assert 'q."vid" AS id' not in query
 
 
 def test_cypher2oracle_sqlpgq_rejects_unresolved_identity_pseudo_property():
@@ -1193,7 +1253,9 @@ def test_cypher2oracle_sqlpgq_casts_date_function_over_properties():
         "AVG(DATE(p.end_date) - DATE(p.start_date)) AS avg_duration_days"
     )
 
-    assert 'CAST(p."end_date" AS DATE) - CAST(p."start_date" AS DATE)' in query
+    assert "CAST(p_end_date AS DATE) - CAST(p_start_date AS DATE)" in query
+    assert 'p."end_date" AS p_end_date' in query
+    assert 'p."start_date" AS p_start_date' in query
     assert 'DATE(p."end_date")' not in query
 
 
@@ -1593,9 +1655,9 @@ def test_cypher2oracle_sqlpgq_translates_cast_scalar_with_match_comparison():
     )
 
     assert category == "Graph-IL Translatable"
-    assert 'TO_NUMBER(oi."unitPrice") AS unitPrice' in query
     assert 'oi."unitPrice" AS oi_unitPrice' in query
-    assert "JOIN stage_1 ON stage_2.oi_unitPrice = stage_1.maxUnitPrice" in query
+    assert 'TO_NUMBER(oi."unitPrice") AS oi_unitPrice_toFloat' in query
+    assert "JOIN stage_1 ON stage_2.oi_unitPrice_toFloat = stage_1.maxUnitPrice" in query
 
 
 def test_cypher2oracle_sqlpgq_translates_size_scalar_with_match_comparison():
@@ -1607,7 +1669,7 @@ def test_cypher2oracle_sqlpgq_translates_size_scalar_with_match_comparison():
         "RETURN count(a) AS answer_count"
     )
 
-    assert 'LENGTH(a."body_markdown") AS body_markdown' in query
+    assert 'a."body_markdown" AS a_body_markdown' in query
     assert 'LENGTH(a."body_markdown") AS a_body_markdown_size' in query
     assert "JOIN stage_1 ON stage_2.a_body_markdown_size > stage_1.average_length" in query
     assert "SELECT COUNT(stage_2.a_VALUE) AS answer_count" in query
@@ -1652,7 +1714,7 @@ def test_cypher2oracle_sqlpgq_translates_with_match_aggregate_expression_alias()
         "RETURN i.investigation_id, i.start_time, i.findings_summary"
     )
 
-    assert "avg(amount) * 2 AS threshold" in query
+    assert "avg(t_amount) * 2 AS threshold" in query
     assert 't."amount" AS t_amount' in query
     assert "JOIN stage_1 ON stage_2.t_amount > stage_1.threshold" in query
     assert "WHERE t.amount > threshold" not in query
@@ -1809,7 +1871,10 @@ def test_cypher2oracle_sqlpgq_groups_second_stage_property_after_distinct_with()
         "RETURN t.language, AVG(t.view_count) AS avg_view_count"
     )
 
-    assert "SELECT stage_2.language AS language, AVG(view_count) AS avg_view_count" in query
+    assert (
+        "SELECT stage_2.language AS language, AVG(stage_2.t_view_count) AS avg_view_count"
+        in query
+    )
     assert "GROUP BY stage_2.language" in query
     assert 't."language"' not in query.split("SELECT stage_2.language AS language", 1)[1]
 
@@ -1987,10 +2052,29 @@ def test_cypher2oracle_sqlpgq_uses_second_stage_aliases_for_renamed_properties()
 
     assert 'u2."user_id" AS u2_user_id' in query
     assert 'u2."department" AS u2_department' in query
-    assert "stage_2.u2_user_id AS consolidated_approver_id" in query
-    assert "stage_2.u2_department AS consolidated_department" in query
-    assert "stage_2.consolidated_approver_id" not in query
-    assert "stage_2.consolidated_department" not in query
+    assert "AS consolidated_approver_id" in query
+    assert "AS consolidated_department" in query
+    assert "stage_2.u2_department <> stage_1.u_department" in query
+    assert "stage_2.u2_department = stage_1.u_department" not in query
+
+
+def test_cypher2oracle_sqlpgq_uses_distinct_second_stage_aliases_for_with_match_aggregates():
+    query = _translate_sql(
+        "MATCH (ou:ORGANIZATION_UNIT)<-[:AssignedTo]-(u:USER)-[:Initiates]->"
+        "(t:TRANSACTION)-[:BelongsTo]->(fp:FINANCIAL_PERIOD) "
+        "WITH ou, fp, MAX(fp.start_date) AS latest_start_date "
+        "MATCH (ou)<-[:AssignedTo]-(u:USER)-[:Initiates]->(t:TRANSACTION)-[:BelongsTo]->"
+        "(fp:FINANCIAL_PERIOD {start_date: latest_start_date})<-[:BelongsTo]-"
+        "(acc:ACCOUNT)<-[:AllocatedTo]-(b:BUDGET) "
+        "RETURN ou.name, SUM(b.amount) AS total_budget, "
+        "SUM(t.amount) AS total_transactions"
+    )
+
+    assert 'b."amount" AS b_amount' in query
+    assert 't."amount" AS t_amount' in query
+    assert "COALESCE(SUM(stage_2.b_amount), 0) AS total_budget" in query
+    assert "COALESCE(SUM(stage_2.t_amount), 0) AS total_transactions" in query
+    assert "SUM(amount)" not in query
 
 
 def test_cypher2oracle_sqlpgq_translates_left_tostring_and_safe_numeric_division():
@@ -2034,7 +2118,7 @@ def test_cypher2oracle_sqlpgq_translates_apoc_toset_collect_size_as_count_distin
         "RETURN p.name AS actor, roleDiversity ORDER BY roleDiversity DESC LIMIT 3"
     )
 
-    assert "COUNT(DISTINCT roles) AS roleDiversity" in query
+    assert "COUNT(DISTINCT r_roles) AS roleDiversity" in query
     assert "apoc.coll.toSet" not in query
 
 
@@ -2209,7 +2293,8 @@ def test_cypher2oracle_sqlpgq_keeps_two_stage_aggregate_function_argument_expres
         "RETURN s.companyName AS supplierName, avgFreight"
     )
 
-    assert "AVG(TO_NUMBER(freight)) AS avgFreight" in query
+    assert "avg(TO_NUMBER(freight)) AS avgFreight" in query
+    assert query.count("GROUP BY s_VALUE, s_companyName") == 1
     assert "TO_NUMBER_freight_" not in query
 
 
@@ -2222,8 +2307,8 @@ def test_cypher2oracle_sqlpgq_translates_size_collect_distinct_to_count():
         "ORDER BY numCountries DESC LIMIT 5"
     )
 
-    assert "COUNT(DISTINCT countries) AS numCountries" in query
-    assert 'm."countries" AS countries' in query
+    assert "COUNT(DISTINCT m_countries) AS numCountries" in query
+    assert 'm."countries" AS m_countries' in query
     assert "LENGTH(collect" not in query
 
 
@@ -2508,7 +2593,7 @@ def test_cypher2oracle_sqlpgq_carries_base_only_variable_in_match_optional_with(
     assert "GROUP BY stage_1.categoryName" in query
 
 
-def test_cypher2oracle_sqlpgq_keeps_optional_null_where_in_optional_stage():
+def test_cypher2oracle_sqlpgq_translates_optional_null_where_to_antijoin():
     query = _translate_sql(
         "MATCH (q:Question) "
         "OPTIONAL MATCH (q)<-[:COMMENTED_ON]-(c:Comment) "
@@ -2516,7 +2601,9 @@ def test_cypher2oracle_sqlpgq_keeps_optional_null_where_in_optional_stage():
         "RETURN q.title"
     )
 
-    assert "LEFT JOIN stage_2 ON stage_2.q_VALUE = stage_1.stage_1_q_VALUE" in query
+    assert query.startswith("WITH base AS")
+    assert "WHERE NOT EXISTS" in query
     assert 'MATCH (c IS "Comment")-[e1 IS "COMMENTED_ON"]->(q)' in query
-    assert "WHERE c IS NULL" in query
+    assert "pp.q_VALUE = base.q_VALUE" in query
+    assert "WHERE c IS NULL" not in query
     assert "OPTIONAL MATCH" not in query

@@ -10,7 +10,6 @@ from typing import Any, Dict, Iterable, List
 from dataset_prep.cypher_schema import CypherSchema
 from dataset_prep.discover import discover_database_units
 from dataset_prep.translate_validate import (
-    has_expensive_bounded_variable_length_path,
     has_quantified_relationship_property_map,
 )
 
@@ -188,8 +187,6 @@ def unsupported_query_signature(query: str) -> str:
         return "open_ended_variable_length_path"
     if has_quantified_relationship_property_map(normalized):
         return "quantified_relationship_property_map"
-    if has_expensive_bounded_variable_length_path(normalized):
-        return "expensive_variable_length_path"
     if re.search(r"\bWITH\b.+\bMATCH\b", normalized, flags=re.IGNORECASE):
         return "with_match_pipeline"
     match_prefix = normalized.split(" WHERE ", 1)[0].split(" WITH ", 1)[0].split(" RETURN ", 1)[0]
@@ -350,11 +347,6 @@ def likely_next_action(status: str, signature: str) -> str:
             return (
                 "Keep unsupported unless the source query explicitly converts temporal "
                 "values to numeric durations."
-            )
-        if signature == "expensive_variable_length_path":
-            return (
-                "Skip broad undirected variable-length paths that can exhaust Oracle "
-                "validation resources."
             )
         if signature == "open_ended_variable_length_path":
             return (

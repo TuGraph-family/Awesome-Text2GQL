@@ -30,11 +30,9 @@ UNSUPPORTED_PATTERNS = {
     "unwind": re.compile(r"\bUNWIND\b", re.IGNORECASE),
     "open_ended_variable_length_path": re.compile(
         r"-\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*(?:->|-)|"
-        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*-",
-        re.IGNORECASE,
-    ),
-    "expensive_variable_length_path": re.compile(
-        r"-\s*\[[^\]]*\*(?:\s*\.\.\s*(?:[1-9]\d+)|\s*)\]\s*-",
+        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*-|"
+        r"-\s*\[[^\]]*\*\s*\]\s*(?:->|-)|"
+        r"(?:<-|-)\s*\[[^\]]*\*\s*\]\s*-",
         re.IGNORECASE,
     ),
     "case_label_predicate": re.compile(
@@ -315,8 +313,6 @@ def detect_unsupported_features(
     ]
     if query and has_quantified_relationship_property_map(searchable_query):
         features.append("quantified_relationship_property_map")
-    if query and has_expensive_bounded_variable_length_path(searchable_query):
-        features.append("expensive_variable_length_path")
     if query and len(re.findall(r"\bWITH\b", searchable_query, flags=re.IGNORECASE)) > 1:
         features.append("multiple_with")
     if source_schema is not None:
@@ -343,19 +339,6 @@ def has_quantified_relationship_property_map(query: str) -> bool:
             flags=re.IGNORECASE,
         )
     )
-
-
-def has_expensive_bounded_variable_length_path(query: str) -> bool:
-    for match in re.finditer(
-        r"\[[^\]]*\*\s*(?P<lower>\d+)?\s*\.\.\s*(?P<upper>\d+)\s*[^\]]*\]",
-        query,
-        flags=re.IGNORECASE,
-    ):
-        lower = int(match.group("lower") or "1")
-        upper = int(match.group("upper"))
-        if lower >= 2 and upper >= 5:
-            return True
-    return False
 
 
 def mask_string_literals(query: str) -> str:
