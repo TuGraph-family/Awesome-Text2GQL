@@ -29,8 +29,8 @@ UNSUPPORTED_PATTERNS = {
     "relative_duration": re.compile(r"\bdate\s*\(\s*\)\s*[-+]\s*duration\s*\(", re.IGNORECASE),
     "unwind": re.compile(r"\bUNWIND\b", re.IGNORECASE),
     "open_ended_variable_length_path": re.compile(
-        r"-\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*(?:->|-)|"
-        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:\d+\s*)?\.\.\s*\]\s*-|"
+        r"-\s*\[[^\]]*\*\s*(?:(?:\d+\s*)?\.\.\s*|\.\.\s*\d+)\]\s*(?:->|-)|"
+        r"(?:<-|-)\s*\[[^\]]*\*\s*(?:(?:\d+\s*)?\.\.\s*|\.\.\s*\d+)\]\s*-|"
         r"-\s*\[[^\]]*\*\s*\]\s*(?:->|-)|"
         r"(?:<-|-)\s*\[[^\]]*\*\s*\]\s*-",
         re.IGNORECASE,
@@ -98,6 +98,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--graph-prefix", default="T2GQL")
     parser.add_argument("--limit-databases", type=int, default=0)
     parser.add_argument("--limit-queries", type=int, default=0)
+    parser.add_argument(
+        "--query-offset",
+        type=int,
+        default=0,
+        help="Skip this many source records before applying --limit-queries.",
+    )
+    parser.add_argument(
+        "--progress-every",
+        type=int,
+        default=0,
+        help="Print query progress every N selected records. Use 1 for every record.",
+    )
     parser.add_argument("--keep-db-on-failure", action="store_true")
     parser.add_argument("--skip-live-validation", action="store_true")
     parser.add_argument(
@@ -126,7 +138,9 @@ def process_unit(
     out_dir = output_root / unit.split / unit.database
     out_dir.mkdir(parents=True, exist_ok=True)
     output_path = out_dir / "oracle_sqlpgq_enriched.jsonl"
-    records = load_records(unit.query_path)
+    all_records = load_records(unit.query_path)
+    query_offset = max(args.query_offset, 0)
+    records = all_records[query_offset:]
     if args.limit_queries:
         records = records[: args.limit_queries]
 
@@ -159,7 +173,17 @@ def process_unit(
             node_primary_key_map = loader.node_primary_key_map()
             edge_primary_key_map = loader.edge_primary_key_map()
 
-        for index, record in enumerate(records):
+        for selected_index, record in enumerate(records):
+            source_index = query_offset + selected_index
+            if args.progress_every and selected_index % args.progress_every == 0:
+                print(
+                    "[query] "
+                    f"{unit.split}/{unit.database} "
+                    f"selected_index={selected_index} "
+                    f"record_index={source_index} "
+                    f"id={record.get('id')}",
+                    flush=True,
+                )
             enriched_record = translate_record(
                 record,
                 graph_name,
@@ -179,7 +203,8 @@ def process_unit(
                 "query_file": str(unit.query_path),
                 "import_config": str(unit.import_config_path),
                 "graph_name": graph_name,
-                "record_index": index,
+                "record_index": source_index,
+                "selected_index": selected_index,
             }
             enriched.append(enriched_record)
             if enriched_record["oracle_validation_status"] == "unsupported":
@@ -201,6 +226,7 @@ def process_unit(
                 "graph_name": graph_name,
                 "query_file": str(unit.query_path),
                 "import_config": str(unit.import_config_path),
+                "query_offset": query_offset,
                 "load_counts": load_counts,
             }
         )
@@ -313,6 +339,8 @@ def detect_unsupported_features(
     ]
     if query and has_quantified_relationship_property_map(searchable_query):
         features.append("quantified_relationship_property_map")
+    if query and has_expensive_undirected_variable_length_path(searchable_query):
+        features.append("expensive_variable_length_path")
     if query and len(re.findall(r"\bWITH\b", searchable_query, flags=re.IGNORECASE)) > 1:
         features.append("multiple_with")
     if source_schema is not None:
@@ -339,6 +367,18 @@ def has_quantified_relationship_property_map(query: str) -> bool:
             flags=re.IGNORECASE,
         )
     )
+
+
+def has_expensive_undirected_variable_length_path(query: str) -> bool:
+    for match in re.finditer(
+        r"(?<!<)-\s*\[[^\]]*\*\s*(?P<lower>\d+)\s*\.\.\s*(?P<upper>\d+)\s*\]\s*-(?!>)",
+        query,
+        flags=re.IGNORECASE,
+    ):
+        upper = int(match.group("upper"))
+        if upper > 3:
+            return True
+    return False
 
 
 def mask_string_literals(query: str) -> str:

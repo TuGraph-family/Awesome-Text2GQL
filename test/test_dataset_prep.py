@@ -121,11 +121,19 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     assert "multiple_with" not in detect_unsupported_features(
         'MATCH (q:Question {title: "WITH examples in a title"}) RETURN q.title'
     )
-    assert "expensive_variable_length_path" not in detect_unsupported_features(
+    assert "open_ended_variable_length_path" in detect_unsupported_features(
         "MATCH (a:ACCOUNT)-[*..10]-(t:TRANSACTION) RETURN t LIMIT 1"
     )
     assert "expensive_variable_length_path" not in detect_unsupported_features(
         "MATCH (person:PERSON)-[:KNOWS*..3]->(friend:PERSON) RETURN friend"
+    )
+    assert "expensive_variable_length_path" in detect_unsupported_features(
+        'MATCH (target:Character {name: "Stevron-Frey"}) '
+        "MATCH (target)-[:INTERACTS*1..5]-(other) RETURN other.name LIMIT 10"
+    )
+    assert "expensive_variable_length_path" not in detect_unsupported_features(
+        'MATCH (target:Character {name: "Stevron-Frey"}) '
+        "MATCH (target)-[:INTERACTS*1..3]-(other) RETURN other.name LIMIT 10"
     )
     assert "cost" not in detect_unsupported_features("MATCH (p:Product) RETURN p.cost")
     assert "cost" in detect_unsupported_features(
@@ -136,6 +144,9 @@ def test_detect_unsupported_oracle_sqlpgq_features():
     )
     assert "open_ended_variable_length_path" in detect_unsupported_features(
         "MATCH (person:PERSON)-[*..]->(friend:PERSON) RETURN friend"
+    )
+    assert "open_ended_variable_length_path" in detect_unsupported_features(
+        "MATCH (m:Material {Material_id: 'M000123'})-[*..10]-(p:Product) RETURN p"
     )
     assert "open_ended_variable_length_path" in detect_unsupported_features(
         "MATCH (person:PERSON)-[*]->(friend:PERSON) RETURN friend"
@@ -164,7 +175,7 @@ def test_detect_allows_broad_bounded_variable_length_paths_with_schema():
     )
     schema = CypherSchema(json.loads(config_path.read_text(encoding="utf-8")))
 
-    assert not detect_unsupported_features(
+    assert "open_ended_variable_length_path" in detect_unsupported_features(
         "MATCH (a:ACCOUNT {account_id: 'A000000'})-[*..10]-(t:TRANSACTION)"
         "-[:GovernedBy]->(c:COMPLIANCE_RULE {regulation_standard: 'GDPR'}) "
         "RETURN a.account_id, t.transaction_id, c.rule_id LIMIT 1",
