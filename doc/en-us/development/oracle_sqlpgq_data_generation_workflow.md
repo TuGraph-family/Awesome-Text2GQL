@@ -550,6 +550,5 @@ Implemented:
 Still limited:
 
 - Oracle SQL/PGQ parsing is subset-based, not a full ANTLR-backed Oracle SQL/PGQ grammar.
-- Complex SQL/PGQ constructs such as `OPTIONAL MATCH`, `shortestPath`, unions, advanced boolean logic, `IN`, `LIKE`, `STARTS WITH`, `CONTAINS`, and rich path-return forms are not fully supported by Cypher-to-Oracle translation.
 - Deterministic templates currently avoid literal filters. Value-aware template instantiation can be added by sampling real values from Oracle.
 - Generic synthetic row generation for arbitrary new schemas is not complete. New domains still need domain-specific setup scripts, CSV loading, or a future generic data synthesizer.

@@ -10,6 +10,18 @@ Utilities in this directory prepare the benchmark dataset for Oracle SQL/PGQ wor
 
 Run commands from the repository root.
 
+## Input Dataset
+
+These utilities are designed for the [Text2GQL-Bench dataset](https://tugraph-web.oss-cn-beijing.aliyuncs.com/tugraph/datasets/text2gql/Text2GraphQueryBenchmark/Text2GQL-Bench_dataset.zip), which is also referenced in the main repository README.
+
+By default, the scripts expect the downloaded dataset to be extracted under `dataset/` at the repository root. Use `--dataset-root <path>` if the dataset is stored somewhere else.
+
+The discovery logic expects the benchmark split layout described below, including `train`, `dev`, and `test` directories with query JSON files and graph import configs.
+
+## dataset output
+
+The dataset including the Oracle SQL/PGQ translated queries is available at [Dataset-with-SQL/PGQ](https://objectstorage.us-ashburn-1.oraclecloud.com/p/8dIkuVGsfnRQlP3ifxVDjQP0pmidpadEY18ltEbkPC4PrZyLTxjJdqDjbtWIEYUW/n/ogcs/b/Text2GQL-Bench_dataset/o/Text2GQL-Bench_dataset.zip), it includes 19633 out of 22407 existing queries.
+
 ## Environment
 
 Use the Poetry environment:
