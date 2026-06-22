@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 from app.core.validator.db_client import QueryResult, QueryStatus
 from dataset_prep.analyze_failures import failure_signature, unsupported_query_signature
@@ -18,6 +19,13 @@ from dataset_prep.compare_oracle_neo4j_results import (
 )
 from dataset_prep.cypher_schema import CypherSchema
 from dataset_prep.discover import DatabaseUnit, discover_database_units, source_query
+from dataset_prep.export_validated_dataset import (
+    copy_dataset_assets,
+    insert_sql_pgq_field,
+    merge_export_summaries,
+    project_export_record,
+    write_records_like_source,
+)
 from dataset_prep.oracle_loader import DatasetOracleLoader
 from dataset_prep.translate_validate import detect_unsupported_features, graph_name_for
 
@@ -80,6 +88,169 @@ def test_graph_name_is_oracle_safe():
     assert "-" not in name
     assert "(" not in name
     assert len(name) <= 128
+
+
+def test_export_projection_adds_sql_pgq_and_strips_oracle_metadata():
+    record = {
+        "id": "q1",
+        "initial_question": "Question?",
+        "initial_cypher": "MATCH (n) RETURN n",
+        "initial_gql": "MATCH (n) RETURN n",
+        "source": "synthetic",
+        "oracle_sqlpgq": "SELECT * FROM GRAPH_TABLE (...)",
+        "oracle_validation_status": "success",
+        "oracle_dataset_meta": {"split": "train"},
+    }
+    args = SimpleNamespace(sql_pgq_field="initial_sql_pgq", include_oracle_metadata=False)
+
+    exported = project_export_record(record, args)
+
+    assert exported == {
+        "id": "q1",
+        "initial_question": "Question?",
+        "initial_cypher": "MATCH (n) RETURN n",
+        "initial_gql": "MATCH (n) RETURN n",
+        "initial_sql_pgq": "SELECT * FROM GRAPH_TABLE (...)",
+        "source": "synthetic",
+    }
+    assert list(exported) == [
+        "id",
+        "initial_question",
+        "initial_cypher",
+        "initial_gql",
+        "initial_sql_pgq",
+        "source",
+    ]
+
+
+def test_export_projection_can_keep_oracle_metadata_with_custom_field():
+    record = {
+        "id": "q1",
+        "oracle_sqlpgq": "SELECT 1",
+        "oracle_validation_status": "success",
+    }
+    args = SimpleNamespace(sql_pgq_field="sql_pgq_query_oracle", include_oracle_metadata=True)
+
+    exported = project_export_record(record, args)
+
+    assert exported["oracle_validation_status"] == "success"
+    assert exported["sql_pgq_query_oracle"] == "SELECT 1"
+
+
+def test_insert_sql_pgq_field_places_query_next_to_existing_query_fields():
+    exported = insert_sql_pgq_field(
+        {
+            "id": "q1",
+            "initial_cypher": "MATCH (n) RETURN n",
+            "initial_gql": "MATCH (n) RETURN n",
+            "difficulty": "easy",
+        },
+        "initial_sql_pgq",
+        "SELECT 1",
+    )
+
+    assert list(exported) == [
+        "id",
+        "initial_cypher",
+        "initial_gql",
+        "initial_sql_pgq",
+        "difficulty",
+    ]
+
+
+def test_write_records_like_source_preserves_list_shape(tmp_path: Path):
+    source = tmp_path / "source.json"
+    output = tmp_path / "out" / "source.json"
+    source.write_text(json.dumps([{"id": "a"}, {"id": "b"}]), encoding="utf-8")
+
+    write_records_like_source(source, output, [{"id": "a", "initial_sql_pgq": "SELECT 1"}])
+
+    assert json.loads(output.read_text(encoding="utf-8")) == [
+        {"id": "a", "initial_sql_pgq": "SELECT 1"}
+    ]
+
+
+def test_write_records_like_source_preserves_dict_shape(tmp_path: Path):
+    source = tmp_path / "source.json"
+    output = tmp_path / "out" / "source.json"
+    source.write_text(
+        json.dumps({"q1": {"initial_cypher": "MATCH (n) RETURN n"}}),
+        encoding="utf-8",
+    )
+
+    write_records_like_source(source, output, [{"id": "q1", "initial_sql_pgq": "SELECT 1"}])
+
+    assert json.loads(output.read_text(encoding="utf-8")) == {
+        "q1": {"id": "q1", "initial_sql_pgq": "SELECT 1"}
+    }
+
+
+def test_copy_dataset_assets_handles_resolved_dataset_root(tmp_path: Path, monkeypatch):
+    dataset_root = tmp_path / "dataset"
+    db_root = dataset_root / "train" / "movies"
+    config_root = db_root / "cypher" / "movies_tugraph"
+    config_root.mkdir(parents=True)
+    query_path = db_root / "4_level_results_ek_results.json"
+    query_path.write_text("[]", encoding="utf-8")
+    config_path = config_root / "import_config.json"
+    config_path.write_text("{}", encoding="utf-8")
+    asset_path = config_root / "Movie.csv"
+    asset_path.write_text("id,title\n1,Heat\n", encoding="utf-8")
+    output_root = tmp_path / "exported"
+    unit = DatabaseUnit(
+        split="train",
+        database="movies",
+        root=Path("dataset/train/movies"),
+        query_path=Path("dataset/train/movies/4_level_results_ek_results.json"),
+        import_config_path=Path("dataset/train/movies/cypher/movies_tugraph/import_config.json"),
+        csv_root=Path("dataset/train/movies/cypher/movies_tugraph"),
+    )
+    monkeypatch.chdir(tmp_path)
+
+    copy_dataset_assets(
+        [unit],
+        Path("dataset").resolve(),
+        output_root,
+        {query_path.resolve()},
+    )
+
+    assert not (output_root / "train" / "movies" / "4_level_results_ek_results.json").exists()
+    assert (
+        output_root / "train" / "movies" / "cypher" / "movies_tugraph" / "Movie.csv"
+    ).read_text(encoding="utf-8") == "id,title\n1,Heat\n"
+
+
+def test_merge_export_summaries_accumulates_counts():
+    merged = merge_export_summaries(
+        [
+            {
+                "total_records": 3,
+                "selected_records": 3,
+                "considered": 2,
+                "exported": 1,
+                "failed": 1,
+                "skipped": 1,
+                "skip_reasons": {"not_translatable": 1},
+                "failure_reasons": {"result_mismatch": 1},
+            },
+            {
+                "total_records": 2,
+                "selected_records": 2,
+                "considered": 2,
+                "exported": 2,
+                "failed": 0,
+                "skipped": 0,
+                "skip_reasons": {},
+                "failure_reasons": {},
+            },
+        ]
+    )
+
+    assert merged["databases"] == 2
+    assert merged["total_records"] == 5
+    assert merged["exported"] == 3
+    assert merged["skip_reasons"] == {"not_translatable": 1}
+    assert merged["failure_reasons"] == {"result_mismatch": 1}
 
 
 def test_detect_unsupported_oracle_sqlpgq_features():

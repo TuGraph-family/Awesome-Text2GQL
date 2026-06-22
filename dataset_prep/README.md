@@ -231,6 +231,32 @@ The comparison script:
 
 Neo4j is cleared between databases in batches to avoid transaction memory errors from a single large `DETACH DELETE`.
 
+## Export Validated Oracle SQL/PGQ Dataset
+
+Use this after `translate_validate.py` has produced enriched records. The exporter loads each graph into Oracle and Neo4j, reruns the Oracle-vs-Neo4j comparison, and writes only records whose source Cypher and translated SQL/PGQ results match.
+
+```bash
+poetry run python dataset_prep/export_validated_dataset.py \
+  --dataset-root dataset \
+  --dataset-output-root output/dataset_prep \
+  --output-root output/oracle_sqlpgq_dataset \
+  --splits train dev test
+```
+
+The output mirrors the source `dataset/` layout. Query JSON files are filtered to matched records and each exported record gets:
+
+```text
+initial_sql_pgq
+```
+
+By default, the exporter strips internal `oracle_*` enrichment fields and copies the dataset assets beside the filtered query files. Useful options:
+
+- `--sql-pgq-field <name>`: use a different field name for the SQL/PGQ query.
+- `--include-oracle-metadata`: keep the internal `oracle_*` enrichment fields.
+- `--no-copy-assets`: write only filtered query JSON files.
+- `--overwrite`: replace an existing non-empty output directory.
+- `--reuse-loaded`: validate against already-loaded Oracle and Neo4j graphs for a focused run.
+
 ## Common Workflows
 
 Full Oracle translation and validation:
@@ -269,4 +295,3 @@ poetry run python dataset_prep/compare_oracle_neo4j_results.py \
   --neo4j-password 'ValidationPass123' \
   --keep-loaded
 ```
-
