@@ -24,14 +24,16 @@ class EdgePattern:
 class PathPattern:
     node_pattern_list: List[NodePattern]
     edge_pattern_list: List[EdgePattern]
+    path_variable: str = ""
 
 
 class MatchClause(Clause):
-    def __init__(self, path_pattern: PathPattern):
+    def __init__(self, path_pattern: PathPattern, optional: bool = False):
         self.path_pattern = path_pattern
+        self.optional = optional
 
     def to_string(self) -> str:
-        match_string = "MATCH "
+        match_string = "OPTIONAL MATCH " if self.optional else "MATCH "
         path_degree = len(self.path_pattern.edge_pattern_list)
         # add first node
         node_pattern = self.path_pattern.node_pattern_list[0]
@@ -51,7 +53,7 @@ class MatchClause(Clause):
         return match_string
 
     def to_string_cypher(self) -> str:
-        match_string = "MATCH "
+        match_string = "OPTIONAL MATCH " if self.optional else "MATCH "
         path_degree = len(self.path_pattern.edge_pattern_list)
         # add first node
         node_pattern = self.path_pattern.node_pattern_list[0]
@@ -82,7 +84,7 @@ class MatchClause(Clause):
         return match_string
 
     def to_string_gql(self) -> str:
-        match_string = "MATCH "
+        match_string = "OPTIONAL MATCH " if self.optional else "MATCH "
         path_degree = len(self.path_pattern.edge_pattern_list)
         # add first node
         node_pattern = self.path_pattern.node_pattern_list[0]

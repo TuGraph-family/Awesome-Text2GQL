@@ -10,6 +10,7 @@ class CompareExpression:
     property: tuple[str, Dict]
     comparison_type: str
     comparison_value: str
+    raw_expression: str = ""
 
 
 class WhereClause(Clause):

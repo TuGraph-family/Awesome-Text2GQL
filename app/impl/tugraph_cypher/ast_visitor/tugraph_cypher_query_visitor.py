@@ -57,7 +57,7 @@ class TugraphCypherAstVisitor(LcypherVisitor, AstVisitor):
         # add match clause
         path_pattern_list = self.visitOC_Pattern(ctx.oC_Pattern())
         # only use the first path pattern
-        match_clause = MatchClause(path_pattern_list[0])
+        match_clause = MatchClause(path_pattern_list[0], optional=ctx.OPTIONAL_() is not None)
         # add match clause to clause list
         clause_list.append(match_clause)
         # add where clause to clause list

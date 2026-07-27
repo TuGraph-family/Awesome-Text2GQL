@@ -1,31 +1,84 @@
+from importlib import import_module
 import logging
 from typing import Any, Dict, List
 
 from app.core.validator.db_client import DB_Client, QueryResult, QueryStatus
-from app.impl.tugraph_cypher.db_client.tugraph_db_client import TuGraphDBClient
 
 logger = logging.getLogger("CorpusValidator")
 
 
 class CorpusValidator:
-    def __init__(self, tu_client_params: dict):
-        # Store parameters instead of the client object itself
-        """
-        Initialize validator and for instantiating TuGraph database client implementation.
-        """
-        self._tu_client_params = tu_client_params
-        self._client: DB_Client | None = None
+    CLIENTS = {
+        "tugraph_cypher": (
+            "app.impl.tugraph_cypher.db_client.tugraph_db_client",
+            "TuGraphDBClient",
+        ),
+        "tugraph": (
+            "app.impl.tugraph_cypher.db_client.tugraph_db_client",
+            "TuGraphDBClient",
+        ),
+        "oracle_sqlpgq": (
+            "app.impl.oracle_sqlpgq.db_client.oracle_db_client",
+            "OracleDBClient",
+        ),
+        "oracle": (
+            "app.impl.oracle_sqlpgq.db_client.oracle_db_client",
+            "OracleDBClient",
+        ),
+    }
 
-        # Create connection during initialization and store the instance
-        self._client = TuGraphDBClient(self._tu_client_params)
+    def __init__(
+        self,
+        tu_client_params: dict | None = None,
+        backend: str = "tugraph_cypher",
+        db_client_params: dict | None = None,
+        db_client: DB_Client | None = None,
+    ):
+        """
+        Initialize validator and instantiate the selected database client implementation.
 
-        # Immediately check if connection was successful
-        if not self._client or not self._client.client:
-            logger.error("Database client failed to initialize or connect.")
+        Args:
+            tu_client_params: Backward-compatible TuGraph parameters.
+            backend: One of tugraph_cypher or oracle_sqlpgq.
+            db_client_params: Backend-specific connection parameters.
+            db_client: Optional prebuilt client, useful for tests.
+        """
+        self.backend = backend
+        self._client_params = db_client_params if db_client_params is not None else tu_client_params
+        self._client_params = self._client_params or {}
+        self._client: DB_Client | None = db_client
+
+        if self._client is None:
+            client_class = self._resolve_client_class(backend)
+            self._client = client_class(self._client_params)
+
+        if not self._is_client_ready(self._client):
+            logger.error(
+                f"Database client for backend '{backend}' failed to initialize or connect."
+            )
 
     def _get_client(self) -> DB_Client | None:
         """Return the created client instance."""
         return self._client
+
+    def _resolve_client_class(self, backend: str):
+        target = self.CLIENTS.get(backend)
+        if target is None:
+            supported = ", ".join(sorted(self.CLIENTS))
+            raise ValueError(
+                f"Unsupported backend '{backend}'. Supported backends: {supported}"
+            )
+        module_path, class_name = target
+        module = import_module(module_path)
+        return getattr(module, class_name)
+
+    def _is_client_ready(self, client: DB_Client | None) -> bool:
+        if client is None:
+            return False
+        for attr in ("client", "connection", "driver"):
+            if hasattr(client, attr):
+                return getattr(client, attr) is not None
+        return True
 
     def execute_with_results(self, pairs: List[Dict[str, str]]) -> List[Dict[str, Any]]:
         """
@@ -33,7 +86,7 @@ class CorpusValidator:
         filter out pairs that fail execution or have empty results.
         """
         client = self._get_client()
-        if not client or not client.client:
+        if not self._is_client_ready(client):
             logger.error("Database connection is not ready. Skipping validation.")
             raise Exception("Database connection is not ready.")
 

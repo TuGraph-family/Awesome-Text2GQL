@@ -8,11 +8,46 @@ from app.core.prompt import corpus
 
 
 class CorpusGenerator:
-    def __init__(self, llm_client: LlmClient):
+    def __init__(
+        self,
+        llm_client: LlmClient,
+        query_language: str = "cypher",
+        graph_name: str | None = None,
+    ):
         self.llm_client = llm_client
+        self.query_language = query_language.lower()
+        self.graph_name = graph_name
+
+    def _system_prompt(self) -> str:
+        if self.query_language in {"oracle_sqlpgq", "sqlpgq", "sql/pgq"}:
+            return corpus.SQLPGQ_SYSTEM_PROMPT
+        return corpus.SYSTEM_PROMPT
+
+    def _instruction_template(self) -> str:
+        if self.query_language in {"oracle_sqlpgq", "sqlpgq", "sql/pgq"}:
+            return corpus.SQLPGQ_INSTRUCTION_TEMPLATE
+        return corpus.INSTRUCTION_TEMPLATE
+
+    def _translation_prompt_template(self) -> str:
+        if self.query_language in {"oracle_sqlpgq", "sqlpgq", "sql/pgq"}:
+            return corpus.SQLPGQ_TRANSLATION_PROMPT_TEMPLATE
+        return corpus.TRANSLATION_PROMPT_TEMPLATE
+
+    def _query_template_instruction(self) -> str:
+        if self.query_language in {"oracle_sqlpgq", "sqlpgq", "sql/pgq"}:
+            return corpus.SQLPGQ_QUERY_TEMPLATE_INSTRUCTION
+        return corpus.QUERY_TEMPLATE_INSTRUCTION
+
+    def _query_archetypes(self) -> List[str]:
+        if self.query_language in {"oracle_sqlpgq", "sqlpgq", "sql/pgq"}:
+            return corpus.SQLPGQ_QUERY_ARCHETYPES
+        return corpus.QUERY_ARCHETYPES
 
     def _extract_json_from_response(self, response: str, expect_list: bool = True):
         """Extract JSON from LLM response."""
+        if not response:
+            print(" [Warning] Empty LLM response.")
+            return [] if expect_list else {}
         try:
             start_char, end_char = ("[", "]") if expect_list else ("{", "}")
             json_start = response.find(start_char)
@@ -40,7 +75,7 @@ class CorpusGenerator:
         all_questions = set()
 
         # Randomly select a query intent archetype to guide generation
-        archetype = random.choice(corpus.QUERY_ARCHETYPES)
+        archetype = random.choice(self._query_archetypes())
         print(f"Brainstorming questions with intent: '{archetype.split(':')[0]}'")
 
         instruction = corpus.EXPLORATION_PROMPT_TEMPLATE.format(
@@ -50,7 +85,7 @@ class CorpusGenerator:
             num_to_generate=questions_per_call,
         )
         message = [
-            {"role": "system", "content": corpus.SYSTEM_PROMPT},
+            {"role": "system", "content": self._system_prompt()},
             {"role": "user", "content": instruction},
         ]
 
@@ -69,16 +104,17 @@ class CorpusGenerator:
         self, schema_json: str, questions: List[str], error_context: Dict[str, str] = None
     ) -> List[Dict[str, Any]]:
         """
-        Translate a list of questions into Cypher queries.
+        Translate a list of questions into the configured graph query language.
         Supports retries by providing an error_context.
         """
-        instruction = corpus.TRANSLATION_PROMPT_TEMPLATE.format(
+        instruction = self._translation_prompt_template().format(
             schema_json=schema_json,
             question=questions[0],  # Assuming one question per call for clarity
+            graph_name=self.graph_name or "GRAPH_NAME",
             error_context=error_context if error_context else "",
         )
         message = [
-            {"role": "system", "content": corpus.SYSTEM_PROMPT},
+            {"role": "system", "content": self._system_prompt()},
             {"role": "user", "content": instruction},
         ]
 
@@ -193,13 +229,14 @@ class CorpusGenerator:
                 selected_contexts = random_examples
 
                 # 1. Build Prompt
-                instruction = corpus.INSTRUCTION_TEMPLATE.format(
+                instruction = self._instruction_template().format(
                     schema_json=schema_json,
                     examples_json=json.dumps(selected_contexts, indent=2, ensure_ascii=False),
                     num_per_iteration=num_per_iteration,
+                    graph_name=self.graph_name or "GRAPH_NAME",
                 )
                 message = [
-                    {"role": "system", "content": corpus.SYSTEM_PROMPT},
+                    {"role": "system", "content": self._system_prompt()},
                     {"role": "user", "content": instruction},
                 ]
 
@@ -274,7 +311,7 @@ class CorpusGenerator:
             # 3. Construct the Prompt
             # We directly provide the "raw" data and ask the LLM to do three things: 
             # extract information, fill the template, and generate questions.
-            instraction = corpus.QUERY_TEMPLATE_INSTRUCTION.format(
+            instraction = self._query_template_instruction().format(
                 raw_data_str=raw_data_str,
                 current_batch_size=current_batch_size,
                 selected_templates=selected_templates,
@@ -283,7 +320,7 @@ class CorpusGenerator:
             message = [
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant that generates Cypher datasets.",
+                    "content": self._system_prompt(),
                 },
                 {"role": "user", "content": instraction},
             ]

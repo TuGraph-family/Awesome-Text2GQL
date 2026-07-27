@@ -10,6 +10,7 @@ class ReturnItem:
     property: str
     alias: str
     function_name: str = ""
+    expression: str = ""
 
 
 @dataclass
@@ -18,6 +19,7 @@ class SortItem:
     property: str
     order: str
     function_name: str = ""
+    expression: str = ""
 
 
 @dataclass

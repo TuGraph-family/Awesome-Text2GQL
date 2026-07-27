@@ -1,6 +1,13 @@
 # specific
 output/
 corpus/
+.history/
+dataset/
+broken_db/
+examples/Oracle_SQLPGQ_Instance/
+examples/generated_corpus/oracle_sqlpgq_*.json
+examples/generated_corpus/cypher_to_oracle_sqlpgq*.json
+test_oracle_sqlpgq_query.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

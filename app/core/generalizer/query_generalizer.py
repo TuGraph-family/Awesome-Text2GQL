@@ -6,14 +6,29 @@ from app.core.clauses.return_clause import ReturnBody, ReturnClause
 from app.core.clauses.where_clause import CompareExpression, WhereClause
 from app.core.schema.schema_graph import SchemaGraph
 from app.core.schema.schema_parser import SchemaParser
+from app.impl.oracle_sqlpgq.schema.schema_parser import OracleSqlPgqSchemaParser
 from app.impl.tugraph_cypher.schema.schema_parser import TuGraphSchemaParser
 
 
 class QueryGeneralizer:
-    def __init__(self, db_id, instance_path):
+    SCHEMA_PARSERS = {
+        "tugraph_cypher": TuGraphSchemaParser,
+        "tugraph": TuGraphSchemaParser,
+        "oracle_sqlpgq": OracleSqlPgqSchemaParser,
+        "oracle": OracleSqlPgqSchemaParser,
+    }
+
+    def __init__(self, db_id, instance_path, backend: str = "tugraph_cypher"):
         self.db_id = db_id
         self.instance_path = instance_path
-        self.schema_parser: SchemaParser = TuGraphSchemaParser(db_id, instance_path)
+        self.backend = backend
+        parser_class = self.SCHEMA_PARSERS.get(backend)
+        if parser_class is None:
+            supported = ", ".join(sorted(self.SCHEMA_PARSERS))
+            raise ValueError(
+                f"Unsupported schema backend '{backend}'. Supported backends: {supported}"
+            )
+        self.schema_parser: SchemaParser = parser_class(db_id, instance_path)
         self.schema_graph: SchemaGraph = self.schema_parser.get_schema_graph()
 
     def generalize(self, query_pattern: List[Clause]) -> List[str]:
@@ -54,6 +69,11 @@ class QueryGeneralizer:
 
     def generalize_from_cypher(self, query_template: str) -> List[str]:
         # TODO: use original awesome-text2gql to generalize new query.
+        if self.backend not in {"tugraph_cypher", "tugraph"}:
+            raise NotImplementedError(
+                "generalize_from_cypher is backed by the TuGraph Cypher generalizer. "
+                "Use get_query_pattern + generalize + an Oracle translator for oracle_sqlpgq."
+            )
         from app.impl.tugraph_cypher.generalizer.graph_query_generalizer import (
             GraphQueryGeneralizer as CypherGeneralizer,
         )

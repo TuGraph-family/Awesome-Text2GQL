@@ -21,6 +21,7 @@ tugraphclient = "^2.0"
 openai = "==2.9.0"
 numpy = "2.2.6"
 neo4j = "6.0.3"
+oracledb = "^3.1.0"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -83,5 +84,6 @@ python_files = ["test_*.py"]
 addopts = "-v"
 asyncio_mode = "auto"  # Enable asyncio mode
 markers = [
-    "asyncio: mark test as async"
+    "asyncio: mark test as async",
+    "oracle: tests that require a live Oracle Database"
 ]

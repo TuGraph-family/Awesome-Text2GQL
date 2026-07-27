@@ -1,0 +1,202 @@
+[
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.prop_1 = \"value_1\" RETURN n.prop_1 LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"prop_1\" = \"value_1\" COLUMNS (n.\"prop_1\" AS prop_1)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.prop_1 = \"value_1\" RETURN n.id, n.prop_1 LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"prop_1\" = \"value_1\" COLUMNS (n.\"id\" AS id, n.\"prop_1\" AS prop_1)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.age > 20 RETURN n.name, n.age, n.email",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"age\" > 20 COLUMNS (n.\"name\" AS name, n.\"age\" AS age, n.\"email\" AS email)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.price >= 100 AND n.price <= 500 RETURN n.product_id, n.price",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.name STARTS WITH \"A\" RETURN n.id, n.name",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.description CONTAINS \"tech\" RETURN n.description LIMIT 5",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.email IS NOT NULL RETURN n.id, n.email",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.status IN [\"active\", \"pending\"] RETURN n.id, n.status",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (a:label_1)-[r:edge_1]->(b:label_2) RETURN a.name, b.title LIMIT 20",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (a IS \"label_1\")-[r IS \"edge_1\"]->(b IS \"label_2\") COLUMNS (a.\"name\" AS name, b.\"title\" AS title)\n) gt\nFETCH FIRST 20 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (a:label_1)-[:edge_1]->(b:label_2) WHERE b.status = \"active\" RETURN a.id, a.name",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (a IS \"label_1\")-[e1 IS \"edge_1\"]->(b IS \"label_2\") WHERE b.\"status\" = \"active\" COLUMNS (a.\"id\" AS id, a.\"name\" AS name)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (a:label_1)-[r:edge_1]->(b:label_2) WHERE r.weight > 0.8 RETURN a.id, r.weight, b.id",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (a IS \"label_1\")-[r IS \"edge_1\"]->(b IS \"label_2\") WHERE r.\"weight\" > 0.8 COLUMNS (a.\"id\" AS id, r.\"weight\" AS weight, b.\"id\" AS id)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (a:label_1)--(b:label_2) WHERE a.name = \"value_1\" RETURN b.id, b.name LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (a IS \"label_1\")-[e1]-(b IS \"label_2\") WHERE a.\"name\" = \"value_1\" COLUMNS (b.\"id\" AS id, b.\"name\" AS name)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.type = \"A\" OR n.type = \"B\" RETURN n.id, n.type",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE NOT n.status = \"banned\" RETURN n.id, n.status LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"status\" = \"banned\" COLUMNS (n.\"id\" AS id, n.\"status\" AS status)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.prop_1 = \"value_1\" RETURN count(n.id)",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"prop_1\" = \"value_1\" COLUMNS (COUNT(n.\"id\") AS id)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.score > 60 RETURN n.name, n.score ORDER BY n.score DESC LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"score\" > 60 COLUMNS (n.\"name\" AS name, n.\"score\" AS score)\n) gt\nORDER BY score DESC\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) RETURN DISTINCT n.category",
+        "oracle_sqlpgq": "SELECT DISTINCT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") COLUMNS (n.\"category\" AS category)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n:label_1) WHERE n.prop_1 = \"value_1\" RETURN n.prop_1 LIMIT 1",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n IS \"label_1\") WHERE n.\"prop_1\" = \"value_1\" COLUMNS (n.\"prop_1\" AS prop_1)\n) gt\nFETCH FIRST 1 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH p = (n1:label_1)-[e1]-(x)-[e2]-(n2:label_1) WHERE n1.prop_1 = \"value_1\" AND n2.prop_1 <> \"value_1\" RETURN p LIMIT 1",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[e*1..3]-(n2:label_2) WHERE n1.prop_1 = \"value_1\" RETURN n1, n2 LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e]-{1,3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (VERTEX_ID(n1) AS n1_VALUE, VERTEX_ID(n2) AS n2_VALUE)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[e*1..3]-(n2:label_2) WHERE n1.prop_1 = \"value_1\" RETURN n1.prop_1, n2.prop_1 LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e]-{1,3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (n1.\"prop_1\" AS prop_1, n2.\"prop_1\" AS prop_1)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*1..3]->(n2:label_2) WHERE n1.prop_1 = \"value_1\" RETURN n2.id, n2.name LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->{1,3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (n2.\"id\" AS id, n2.\"name\" AS name)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*2..5]->(n2:label_2) WHERE n1.id = \"start_node\" RETURN n2.name LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->{2,5}(n2 IS \"label_2\") WHERE n1.\"id\" = \"start_node\" COLUMNS (n2.\"name\" AS name)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*3]->(n2:label_2) WHERE n1.prop_1 = \"value_1\" RETURN n2.id, n2.prop_2 LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->{3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (n2.\"id\" AS id, n2.\"prop_2\" AS prop_2)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[:edge_1*1..3]->(n2:label_2) WHERE n1.name = \"Alice\" RETURN n2.name LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1 IS \"edge_1\"]->{1,3}(n2 IS \"label_2\") WHERE n1.\"name\" = \"Alice\" COLUMNS (n2.\"name\" AS name)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[:edge_1|edge_2*1..4]->(n2:label_2) RETURN n1.id, n2.id LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1 IS \"edge_1\"]->{1,4}(n2 IS \"label_2\") COLUMNS (n1.\"id\" AS id, n2.\"id\" AS id)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*1..3]->(n2:label_2) WHERE n1.status = \"active\" AND n2.age > 30 RETURN n1.id, n2.id LIMIT 5",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*1..2]-(n2:label_2) WHERE n1.id = \"user_123\" RETURN n2.id, n2.name LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]-{1,2}(n2 IS \"label_2\") WHERE n1.\"id\" = \"user_123\" COLUMNS (n2.\"id\" AS id, n2.\"name\" AS name)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*1..3]->(n2:label_2) WHERE n1.prop_1 = \"root\" RETURN count(n2.id) LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->{1,3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"root\" COLUMNS (COUNT(n2.\"id\") AS id)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[*1..3]->(n2:label_2) WHERE n1.prop_1 = \"root\" RETURN count(DISTINCT n2.id) LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->{1,3}(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"root\" COLUMNS (COUNT(n2.\"id\") AS id)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[e:label_2]->(n2:label_3) WHERE n1.prop_1 = \"value_1\" RETURN n1, e, n2 LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e IS \"label_2\"]->(n2 IS \"label_3\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (VERTEX_ID(n1) AS n1_VALUE, EDGE_ID(e) AS e_VALUE, VERTEX_ID(n2) AS n2_VALUE)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH p=(n1:label_1)-[e:label_2*1..3]->(n2:label_1) WHERE n1.prop_1 = \"value_1\" AND n2.prop_1 = \"value_3\" RETURN n2.prop_1 LIMIT 5",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH p = (n1:label_1)-[e1]-(x)-[e2]-(n2:label_1) WHERE n1.prop_1 = \"value_1\" AND n2.prop_1 <> \"value_1\" RETURN p LIMIT 5 UNION ALL MATCH p = (n1:label_1)-[e1]-(x)-[e2]-(y)-[e3]-(n2:label_1) WHERE n1.prop_1 = \"value_1\" AND n2.prop_1 <> \"value_1\" RETURN p LIMIT 5",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[e:label_2|label_3]->(n2:label_4) RETURN e, n2 LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e IS \"label_2\"]->(n2 IS \"label_4\") COLUMNS (EDGE_ID(e) AS e_VALUE, VERTEX_ID(n2) AS n2_VALUE)\n) gt\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n2:label_4)<-[e4:type_edge]-(n4:type_node) WHERE n4.name = \"Alice\" RETURN COUNT(e4), COUNT(n4), e4.type ORDER BY COUNT(e4) DESC SKIP 0 LIMIT 5",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n2 IS \"label_4\")<-[e4 IS \"type_edge\"]-(n4 IS \"type_node\") WHERE n4.\"name\" = \"Alice\" COLUMNS (COUNT(EDGE_ID(e4)) AS e4_VALUE, COUNT(VERTEX_ID(n4)) AS n4_VALUE, e4.\"type\" AS type)\n) gt\nORDER BY e4_VALUE DESC\nOFFSET 0 ROWS\nFETCH FIRST 5 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (n1:label_1)-[]->(n2:label_2) WHERE n1.prop_1 = \"value_1\" RETURN COUNT(DISTINCT n2) as count_alias",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (n1 IS \"label_1\")-[e1]->(n2 IS \"label_2\") WHERE n1.\"prop_1\" = \"value_1\" COLUMNS (COUNT(VERTEX_ID(n2)) AS count_alias)\n) gt",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH p = shortestPath((a:label_1)-[:label_2*1..10]->(b:label_3)) WHERE a.prop_1 = \"value_1\" RETURN p, length(p) AS depth ORDER BY depth ASC LIMIT 5",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Not Comply with OpenCypher"
+    },
+    {
+        "cypher": "MATCH (a:label_1)-[:label_2]->(b:label_3) WHERE a.prop_1 = \"value_1\" OPTIONAL MATCH (b)<-[:label_4]-(c:label_5) OPTIONAL MATCH (b)<-[:label_6]-(d:label_7) RETURN DISTINCT c.prop_2, d.prop_3 LIMIT 10",
+        "oracle_sqlpgq": "SELECT DISTINCT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (a IS \"label_1\")-[e1 IS \"label_2\"]->(b IS \"label_3\"), (b)<-[e2 IS \"label_4\"]-(c IS \"label_5\"), (b)<-[e3 IS \"label_6\"]-(d IS \"label_7\") WHERE a.\"prop_1\" = \"value_1\" COLUMNS (c.\"prop_2\" AS prop_2, d.\"prop_3\" AS prop_3)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (nodes_1:label_1) WHERE nodes_1.prop_1 = \"value_1\" WITH nodes_1 MATCH (nodes_1)-[edges_1:label_2]->(nodes_2:label_3) RETURN nodes_2, nodes_1, edges_1 LIMIT 10",
+        "oracle_sqlpgq": "SELECT *\nFROM GRAPH_TABLE (\n  \"TEXT2GQL_GRAPH\" MATCH (nodes_1)-[edges_1 IS \"label_2\"]->(nodes_2 IS \"label_3\") COLUMNS (VERTEX_ID(nodes_2) AS nodes_2_VALUE, VERTEX_ID(nodes_1) AS nodes_1_VALUE, EDGE_ID(edges_1) AS edges_1_VALUE)\n) gt\nFETCH FIRST 10 ROWS ONLY",
+        "category": "Graph-IL Translatable"
+    },
+    {
+        "cypher": "MATCH (a:label_1 {prop_1: \"value_1\"})-[e:label_2]->(n:label_3) WHERE e.prop_2 = \"value_2\" AND e.prop_4 > \"value_3\" RETURN n, e.prop_5 LIMIT 10",
+        "oracle_sqlpgq": "Unable to Translate to Oracle SQL/PGQ",
+        "category": "Graph-IL Not Support"
+    }
+]
